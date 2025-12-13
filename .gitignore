@@ -1,0 +1,8 @@
+node_modules/
+
+.env.development
+.env.production
+
+test.ts
+test1.mjs
+test2.mjs

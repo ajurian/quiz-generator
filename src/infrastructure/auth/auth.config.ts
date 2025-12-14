@@ -34,6 +34,13 @@ export function createAuth(options: AuthConfigOptions = {}) {
       schema: authSchema,
       usePlural: true,
     }),
+
+    advanced: {
+      database: {
+        generateId: () => crypto.randomUUID(),
+      },
+    },
+
     secret,
     baseURL: options.baseURL,
 

@@ -189,37 +189,38 @@ export class GeminiQuizGeneratorService implements IAIQuizGenerator {
     };
 
     return [
-      "**Role**: You are a Quiz Generator.",
-      `> **${totalQuestions} Questions**`,
-      "- Generate a quiz about the given handouts.",
-      "- The question should strictly be in multiple choice format.",
-      "- **Do not reference the handouts** as it is redundant.",
-      "- **Do not invent** any additional information not present in the handouts.",
-      "- Each question must have **4 options (A, B, C, D)** with exactly one correct answer.",
-      "- **Do not give off any clues** about which option is correct in the question phrasing.",
-      "- **Do not have obvious patterns** in the correct answers.",
-      "- Provide **uniform distribution of answer keys** (A, B, C, D) across the entire quiz.",
-      "- **Do not rephrase** questions and options.",
-      "- For each option, **provide a concise explanation** of why it is correct or incorrect.",
-      "- For explanation, **do not state whether the option is correct or incorrect**. Just explain why.",
-      "- The questions should be distributed into the following:",
+      "**Role**: You are a source-grounded MCQ item writer and post-answer feedback author.",
+      `> Generate **${totalQuestions}** multiple-choice questions strictly from the provided handouts`,
+      "## Non-negotiable rules (MUST / MUST NOT)",
+      "- **MUST** use only information in the handouts.",
+      "- **MUST NOT** invent facts, examples, definitions, or terminology not present in the handouts.",
+      "- **MUST NOT** mention, cite, or refer to the handouts in the stems/options.",
+      "- **MUST** write each item in MCQ format with **4 options (A, B, C, D)** and **exactly one** correct answer.",
+      "- **MUST** avoid cues: keep options parallel in grammar/length/style; **avoid giveaway words and inconsistent specificity**.",
+      "- **MUST** balance answer keys approximately across A-D and **avoid obvious patterns** (no long runs).",
+      "- **MUST NOT** rephrase/paraphrase from the handouts.",
+      "- **MUST** provide rationales for **A, B, C, D**.",
+      "- Rationales **MUST** be concise and grounded in the handouts.",
+      "- Rationales **MUST NOT** state correctness; **just explain why**.",
+      "- Rationales **MUST** be independent of each other (no cross-references).",
+      "## Item type distribution",
       distribution.singleBestAnswer > 0
         ? `> ${lazyNumbering(
             1,
             distribution.singleBestAnswer
-          )}) **Single-Best Answer**: Pick one correct option from fixed alternatives.`
+          )}) **Single-Best Answer**`
         : "",
       distribution.twoStatements > 0
         ? `> ${lazyNumbering(
             distribution.singleBestAnswer + 1,
             distribution.twoStatements
-          )}) **Two-Statement Compound True/False**: Judge each of two statements as true/false, then select the option that matches the truth pattern (A-'Only the first statement is true', B-'Only the second statement is true', C-'Both statements are true', D-'Neither statement is true').`
+          )}) **Two-Statement Compound True/False** Question format: \`{{first_statement}};{{second_statement}}\` (A-'Only the first statement is true', B-'Only the second statement is true', C-'Both statements are true', D-'Neither statement is true')`
         : "",
       distribution.contextual > 0
         ? `> ${lazyNumbering(
             distribution.singleBestAnswer + distribution.twoStatements + 1,
             distribution.contextual
-          )}) **Contextual*: Read the provided background (scenario, case details, data, or short story) and use it as the basis for selecting the best answer.`
+          )}) **Contextual** (include only necessary scenario, case details, data, or short story required to answer the question)`
         : "",
       ,
     ].join("\n");

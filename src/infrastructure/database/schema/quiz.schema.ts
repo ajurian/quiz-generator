@@ -21,7 +21,7 @@ export const quizzes = pgTable("quizzes", {
   id: uuid("id").primaryKey().defaultRandom(),
 
   /** Reference to the user who created the quiz */
-  userId: text("user_id")
+  userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
 

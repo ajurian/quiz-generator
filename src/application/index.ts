@@ -11,6 +11,7 @@ export type {
   // Service Interfaces
   IAIQuizGenerator,
   GenerateQuizParams,
+  GeneratedQuestionData,
   FileMetadata,
   IFileStorageService,
   ICacheService,

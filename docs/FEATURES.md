@@ -318,6 +318,10 @@ export const auth = betterAuth({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     },
+    microsoft: {
+      clientId: process.env.MICROSOFT_CLIENT_ID!,
+      clientSecret: process.env.MICROSOFT_CLIENT_SECRET!
+    }
   },
 })
 ```
@@ -534,8 +538,8 @@ export default defineConfig({
 
 ```
 DATABASE_URL=
-UPSTASH_REDIS_URL=
-UPSTASH_REDIS_TOKEN=
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
 GOOGLE_AI_API_KEY=
 BETTER_AUTH_SECRET=
 ```

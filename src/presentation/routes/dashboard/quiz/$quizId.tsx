@@ -219,9 +219,9 @@ function QuizDetailPage() {
               </p>
             </div>
             <div>
-              <p className="text-muted-foreground">Situational</p>
+              <p className="text-muted-foreground">Contextual</p>
               <p className="text-2xl font-bold">
-                {quiz.distribution.situational}
+                {quiz.distribution.contextual}
               </p>
             </div>
           </div>

@@ -25,7 +25,7 @@ describe("DeleteQuizUseCase", () => {
       id: "quiz-123",
       userId,
       title: "Test Quiz",
-      distribution: { singleBestAnswer: 5, twoStatements: 3, situational: 2 },
+      distribution: { singleBestAnswer: 5, twoStatements: 3, contextual: 2 },
       isPublic: false,
     });
   };

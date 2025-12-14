@@ -23,7 +23,7 @@ describe("DrizzleQuizRepository", () => {
       distribution: {
         singleBestAnswer: 5,
         twoStatements: 3,
-        situational: 2,
+        contextual: 2,
       },
       isPublic: overrides.isPublic ?? false,
     });

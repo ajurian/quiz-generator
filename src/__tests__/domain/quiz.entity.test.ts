@@ -16,7 +16,7 @@ describe("Quiz Entity", () => {
     distribution: {
       singleBestAnswer: 5,
       twoStatements: 3,
-      situational: 2,
+      contextual: 2,
     },
     isPublic: false,
     ...overrides,
@@ -52,7 +52,7 @@ describe("Quiz Entity", () => {
       const distribution: QuizDistribution = {
         singleBestAnswer: 10,
         twoStatements: 5,
-        situational: 3,
+        contextual: 3,
       };
       const quiz = Quiz.create(createValidProps({ distribution }));
 
@@ -98,7 +98,7 @@ describe("Quiz Entity", () => {
               distribution: {
                 singleBestAnswer: -1,
                 twoStatements: 0,
-                situational: 0,
+                contextual: 0,
               },
             })
           )
@@ -112,7 +112,7 @@ describe("Quiz Entity", () => {
               distribution: {
                 singleBestAnswer: 0,
                 twoStatements: 0,
-                situational: 0,
+                contextual: 0,
               },
             })
           )
@@ -128,7 +128,7 @@ describe("Quiz Entity", () => {
       const encodedDistribution = QuizDistributionService.encode({
         singleBestAnswer: 5,
         twoStatements: 3,
-        situational: 2,
+        contextual: 2,
       });
 
       const quiz = Quiz.reconstitute({
@@ -172,7 +172,7 @@ describe("Quiz Entity", () => {
           distribution: {
             singleBestAnswer: 10,
             twoStatements: 5,
-            situational: 3,
+            contextual: 3,
           },
         })
       );
@@ -200,7 +200,7 @@ describe("Quiz Entity", () => {
       const distribution: QuizDistribution = {
         singleBestAnswer: 15,
         twoStatements: 10,
-        situational: 5,
+        contextual: 5,
       };
       const quiz = Quiz.create(createValidProps({ distribution }));
 
@@ -301,7 +301,7 @@ describe("Quiz Entity", () => {
       const newDistribution: QuizDistribution = {
         singleBestAnswer: 20,
         twoStatements: 15,
-        situational: 10,
+        contextual: 10,
       };
 
       quiz.updateDistribution(newDistribution);
@@ -317,7 +317,7 @@ describe("Quiz Entity", () => {
         quiz.updateDistribution({
           singleBestAnswer: -1,
           twoStatements: 0,
-          situational: 0,
+          contextual: 0,
         })
       ).toThrow("Invalid question distribution");
     });

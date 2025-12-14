@@ -8,10 +8,10 @@ export const distributionSchema = z
   .object({
     singleBestAnswer: z.number().int().min(0).max(255),
     twoStatements: z.number().int().min(0).max(255),
-    situational: z.number().int().min(0).max(255),
+    contextual: z.number().int().min(0).max(255),
   })
   .refine(
-    (data) => data.singleBestAnswer + data.twoStatements + data.situational > 0,
+    (data) => data.singleBestAnswer + data.twoStatements + data.contextual > 0,
     {
       message: "Total questions must be greater than 0",
     }
@@ -21,8 +21,8 @@ export const distributionSchema = z
  * Schema for creating a new quiz
  */
 export const createQuizInputSchema = z.object({
-  userId: z.string().min(1, "User ID is required"),
-  title: z.string().min(1, "Title is required").max(255, "Title too long"),
+  userId: z.uuid(),
+  title: z.string().min(1).max(255),
   distribution: distributionSchema,
 });
 
@@ -35,7 +35,7 @@ export type CreateQuizInput = z.infer<typeof createQuizInputSchema>;
  * Schema for quiz response
  */
 export const quizResponseSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   title: z.string(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),

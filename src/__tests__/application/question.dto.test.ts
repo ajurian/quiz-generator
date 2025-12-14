@@ -78,7 +78,7 @@ describe("Question DTOs", () => {
       const questionTypes = [
         QuestionType.SINGLE_BEST_ANSWER,
         QuestionType.TWO_STATEMENTS,
-        QuestionType.SITUATIONAL,
+        QuestionType.CONTEXTUAL,
       ];
 
       questionTypes.forEach((type) => {

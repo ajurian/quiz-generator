@@ -17,7 +17,7 @@ describe("GetUserQuizzesUseCase", () => {
       id,
       userId,
       title,
-      distribution: { singleBestAnswer: 5, twoStatements: 3, situational: 2 },
+      distribution: { singleBestAnswer: 5, twoStatements: 3, contextual: 2 },
       isPublic: false,
     });
   };
@@ -117,7 +117,7 @@ describe("GetUserQuizzesUseCase", () => {
             distribution: {
               singleBestAnswer: 5,
               twoStatements: 3,
-              situational: 2,
+              contextual: 2,
             },
             isPublic: true,
           });

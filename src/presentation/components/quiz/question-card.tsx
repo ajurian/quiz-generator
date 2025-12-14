@@ -38,7 +38,7 @@ interface QuestionCardProps {
 const QUESTION_TYPE_LABELS: Record<string, string> = {
   single_best_answer: "Single Best Answer",
   two_statements: "Two Statements",
-  situational: "Situational",
+  contextual: "Contextual",
 };
 
 export function QuestionCard({
@@ -84,7 +84,8 @@ export function QuestionCard({
               Q{index}
             </Badge>
             <Badge variant="secondary">
-              {QUESTION_TYPE_LABELS[question.questionType] || question.questionType}
+              {QUESTION_TYPE_LABELS[question.questionType] ||
+                question.questionType}
             </Badge>
           </div>
           {!isReview && (
@@ -129,8 +130,8 @@ export function QuestionCard({
                 localShowAnswer && option.isCorrect
                   ? "bg-green-500 text-white"
                   : localShowAnswer && selectedAnswer === option.index
-                  ? "bg-red-500 text-white"
-                  : "bg-muted"
+                    ? "bg-red-500 text-white"
+                    : "bg-muted"
               )}
             >
               {localShowAnswer && option.isCorrect ? (

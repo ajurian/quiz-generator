@@ -33,7 +33,7 @@ describe("CreateQuizUseCase", () => {
     distribution: {
       singleBestAnswer: 5,
       twoStatements: 3,
-      situational: 2,
+      contextual: 2,
     },
     files: [new File(["content"], "test.pdf", { type: "application/pdf" })],
   });
@@ -141,7 +141,7 @@ describe("CreateQuizUseCase", () => {
       expect(result.distribution).toEqual({
         singleBestAnswer: 5,
         twoStatements: 3,
-        situational: 2,
+        contextual: 2,
       });
     });
 
@@ -201,7 +201,7 @@ describe("CreateQuizUseCase", () => {
       input.distribution = {
         singleBestAnswer: 0,
         twoStatements: 0,
-        situational: 0,
+        contextual: 0,
       };
 
       await expect(useCase.execute(input)).rejects.toThrow(ValidationError);

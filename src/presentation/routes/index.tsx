@@ -206,7 +206,7 @@ function HomePage() {
               <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
                 <CardContent className="pt-6">
                   <div className="mb-3 text-2xl">🎯</div>
-                  <h3 className="mb-2 font-semibold">Situational</h3>
+                  <h3 className="mb-2 font-semibold">Contextual</h3>
                   <p className="text-sm text-muted-foreground">
                     Scenario-based questions testing practical application of
                     knowledge

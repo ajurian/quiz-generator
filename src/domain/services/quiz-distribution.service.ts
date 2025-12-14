@@ -4,7 +4,7 @@
 export interface QuizDistribution {
   singleBestAnswer: number;
   twoStatements: number;
-  situational: number;
+  contextual: number;
 }
 
 /**
@@ -18,7 +18,7 @@ const MAX_COUNT = 255;
 const BIT_POSITIONS = {
   SINGLE_BEST_ANSWER: 0, // Bits 0-7
   TWO_STATEMENTS: 8, // Bits 8-15
-  SITUATIONAL: 16, // Bits 16-23
+  CONTEXTUAL: 16, // Bits 16-23
 } as const;
 
 /**
@@ -30,7 +30,7 @@ const BIT_POSITIONS = {
  * Bit layout (32-bit integer):
  * - Bits 0-7:   Single Best Answer count (0-255)
  * - Bits 8-15:  Two Statements count (0-255)
- * - Bits 16-23: Situational count (0-255)
+ * - Bits 16-23: Contextual count (0-255)
  * - Bits 24-31: Reserved (unused)
  */
 export class QuizDistributionService {
@@ -48,7 +48,7 @@ export class QuizDistributionService {
     return (
       (distribution.singleBestAnswer << BIT_POSITIONS.SINGLE_BEST_ANSWER) |
       (distribution.twoStatements << BIT_POSITIONS.TWO_STATEMENTS) |
-      (distribution.situational << BIT_POSITIONS.SITUATIONAL)
+      (distribution.contextual << BIT_POSITIONS.CONTEXTUAL)
     );
   }
 
@@ -60,7 +60,7 @@ export class QuizDistributionService {
     return {
       singleBestAnswer: (encoded >>> BIT_POSITIONS.SINGLE_BEST_ANSWER) & 0xff,
       twoStatements: (encoded >>> BIT_POSITIONS.TWO_STATEMENTS) & 0xff,
-      situational: (encoded >>> BIT_POSITIONS.SITUATIONAL) & 0xff,
+      contextual: (encoded >>> BIT_POSITIONS.CONTEXTUAL) & 0xff,
     };
   }
 
@@ -71,7 +71,7 @@ export class QuizDistributionService {
     return (
       this.isValidCount(distribution.singleBestAnswer) &&
       this.isValidCount(distribution.twoStatements) &&
-      this.isValidCount(distribution.situational) &&
+      this.isValidCount(distribution.contextual) &&
       this.getTotalFromDistribution(distribution) > 0
     );
   }
@@ -97,7 +97,7 @@ export class QuizDistributionService {
     return (
       distribution.singleBestAnswer +
       distribution.twoStatements +
-      distribution.situational
+      distribution.contextual
     );
   }
 
@@ -116,7 +116,7 @@ export class QuizDistributionService {
     return {
       singleBestAnswer: 0,
       twoStatements: 0,
-      situational: 0,
+      contextual: 0,
     };
   }
 
@@ -135,7 +135,7 @@ export class QuizDistributionService {
     return {
       singleBestAnswer: baseCount + remainder, // Give extra questions to single best answer
       twoStatements: baseCount,
-      situational: baseCount,
+      contextual: baseCount,
     };
   }
 

@@ -33,7 +33,7 @@ describe("GeminiQuizGeneratorService", () => {
     distribution: {
       singleBestAnswer: 3,
       twoStatements: 2,
-      situational: 1,
+      contextual: 1,
     },
     model: GeminiModel.FLASH_2_5,
   });

@@ -19,8 +19,8 @@ describe("QuestionType Enum", () => {
       );
     });
 
-    it("should have SITUATIONAL with correct value", () => {
-      expect(QuestionType.SITUATIONAL).toBe("situational" as QuestionType);
+    it("should have CONTEXTUAL with correct value", () => {
+      expect(QuestionType.CONTEXTUAL).toBe("contextual" as QuestionType);
     });
 
     it("should have exactly 3 question types", () => {
@@ -33,7 +33,7 @@ describe("QuestionType Enum", () => {
     it("should return true for valid QuestionType values", () => {
       expect(isQuestionType("single_best_answer")).toBe(true);
       expect(isQuestionType("two_statements")).toBe(true);
-      expect(isQuestionType("situational")).toBe(true);
+      expect(isQuestionType("contextual")).toBe(true);
     });
 
     it("should return false for invalid string values", () => {
@@ -64,9 +64,9 @@ describe("QuestionType Enum", () => {
       );
     });
 
-    it("should return correct display name for SITUATIONAL", () => {
-      expect(getQuestionTypeDisplayName(QuestionType.SITUATIONAL)).toBe(
-        "Situational"
+    it("should return correct display name for CONTEXTUAL", () => {
+      expect(getQuestionTypeDisplayName(QuestionType.CONTEXTUAL)).toBe(
+        "Contextual"
       );
     });
   });

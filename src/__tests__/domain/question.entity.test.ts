@@ -68,7 +68,7 @@ describe("Question Entity", () => {
       const types = [
         QuestionType.SINGLE_BEST_ANSWER,
         QuestionType.TWO_STATEMENTS,
-        QuestionType.SITUATIONAL,
+        QuestionType.CONTEXTUAL,
       ];
 
       for (const questionType of types) {

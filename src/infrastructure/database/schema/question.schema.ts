@@ -21,7 +21,7 @@ export const questions = pgTable("questions", {
   /** The question text content */
   questionText: text("question_text").notNull(),
 
-  /** Type of question (single_best_answer, two_statements, situational) */
+  /** Type of question (single_best_answer, two_statements, contextual) */
   questionType: text("question_type").notNull(),
 
   /** Answer options stored as JSONB array */

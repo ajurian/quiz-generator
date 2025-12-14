@@ -3,12 +3,12 @@
  *
  * - SINGLE_BEST_ANSWER: A question with one correct answer from multiple choices
  * - TWO_STATEMENTS: A question based on evaluating two statements
- * - SITUATIONAL: A scenario-based question testing judgment
+ * - CONTEXTUAL: A scenario-based question testing judgment
  */
 export enum QuestionType {
   SINGLE_BEST_ANSWER = "single_best_answer",
   TWO_STATEMENTS = "two_statements",
-  SITUATIONAL = "situational",
+  CONTEXTUAL = "contextual",
 }
 
 /**
@@ -28,7 +28,7 @@ export function getQuestionTypeDisplayName(type: QuestionType): string {
   const displayNames: Record<QuestionType, string> = {
     [QuestionType.SINGLE_BEST_ANSWER]: "Single Best Answer",
     [QuestionType.TWO_STATEMENTS]: "Two Statements",
-    [QuestionType.SITUATIONAL]: "Situational",
+    [QuestionType.CONTEXTUAL]: "Contextual",
   };
   return displayNames[type];
 }

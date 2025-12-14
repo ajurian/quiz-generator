@@ -6,7 +6,7 @@ import { QuestionType } from "../../domain";
  */
 export const questionOptionSchema = z.object({
   index: z.enum(["A", "B", "C", "D"]),
-  text: z.string().min(1, "Option text is required"),
+  text: z.string().min(1),
   explanation: z.string(),
   isCorrect: z.boolean(),
 });
@@ -15,10 +15,10 @@ export const questionOptionSchema = z.object({
  * Schema for question response
  */
 export const questionResponseSchema = z.object({
-  id: z.string().uuid(),
-  quizId: z.string().uuid(),
+  id: z.uuid(),
+  quizId: z.uuid(),
   questionText: z.string(),
-  questionType: z.nativeEnum(QuestionType),
+  questionType: z.enum(QuestionType),
   options: z.array(questionOptionSchema).length(4),
   orderIndex: z.number().int().min(0),
 });

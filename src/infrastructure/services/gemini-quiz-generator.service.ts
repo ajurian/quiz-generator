@@ -25,7 +25,7 @@ const questionSchema = {
         enum: [
           QuestionType.SINGLE_BEST_ANSWER,
           QuestionType.TWO_STATEMENTS,
-          QuestionType.SITUATIONAL,
+          QuestionType.CONTEXTUAL,
         ],
         description: "The type of question",
       },
@@ -177,12 +177,12 @@ export class GeminiQuizGeneratorService implements IAIQuizGenerator {
   private buildPrompt(distribution: {
     singleBestAnswer: number;
     twoStatements: number;
-    situational: number;
+    contextual: number;
   }): string {
     const totalQuestions =
       distribution.singleBestAnswer +
       distribution.twoStatements +
-      distribution.situational;
+      distribution.contextual;
 
     const lazyNumbering = (start: number, count: number) => {
       return count > 1 ? `${start}-${start + count - 1}` : `${start}`;
@@ -215,10 +215,10 @@ export class GeminiQuizGeneratorService implements IAIQuizGenerator {
             distribution.twoStatements
           )}) **Two-Statement Compound True/False**: Judge each of two statements as true/false, then select the option that matches the truth pattern (A-'Only the first statement is true', B-'Only the second statement is true', C-'Both statements are true', D-'Neither statement is true').`
         : "",
-      distribution.situational > 0
+      distribution.contextual > 0
         ? `> ${lazyNumbering(
             distribution.singleBestAnswer + distribution.twoStatements + 1,
-            distribution.situational
+            distribution.contextual
           )}) **Contextual*: Read the provided background (scenario, case details, data, or short story) and use it as the basis for selecting the best answer.`
         : "",
       ,

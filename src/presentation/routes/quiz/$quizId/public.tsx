@@ -109,15 +109,21 @@ function PublicQuizPage() {
             <div className="grid grid-cols-3 gap-4 text-sm">
               <div>
                 <p className="text-muted-foreground">Single Best Answer</p>
-                <p className="text-2xl font-bold">{quiz.distribution.singleBestAnswer}</p>
+                <p className="text-2xl font-bold">
+                  {quiz.distribution.singleBestAnswer}
+                </p>
               </div>
               <div>
                 <p className="text-muted-foreground">Two Statements</p>
-                <p className="text-2xl font-bold">{quiz.distribution.twoStatements}</p>
+                <p className="text-2xl font-bold">
+                  {quiz.distribution.twoStatements}
+                </p>
               </div>
               <div>
-                <p className="text-muted-foreground">Situational</p>
-                <p className="text-2xl font-bold">{quiz.distribution.situational}</p>
+                <p className="text-muted-foreground">Contextual</p>
+                <p className="text-2xl font-bold">
+                  {quiz.distribution.contextual}
+                </p>
               </div>
             </div>
           </CardContent>

@@ -12,7 +12,7 @@ describe("Quiz DTOs", () => {
       const result = distributionSchema.safeParse({
         singleBestAnswer: 5,
         twoStatements: 3,
-        situational: 2,
+        contextual: 2,
       });
 
       expect(result.success).toBe(true);
@@ -22,7 +22,7 @@ describe("Quiz DTOs", () => {
       const result = distributionSchema.safeParse({
         singleBestAnswer: -1,
         twoStatements: 3,
-        situational: 2,
+        contextual: 2,
       });
 
       expect(result.success).toBe(false);
@@ -32,7 +32,7 @@ describe("Quiz DTOs", () => {
       const result = distributionSchema.safeParse({
         singleBestAnswer: 5.5,
         twoStatements: 3,
-        situational: 2,
+        contextual: 2,
       });
 
       expect(result.success).toBe(false);
@@ -42,7 +42,7 @@ describe("Quiz DTOs", () => {
       const result = distributionSchema.safeParse({
         singleBestAnswer: 256,
         twoStatements: 3,
-        situational: 2,
+        contextual: 2,
       });
 
       expect(result.success).toBe(false);
@@ -52,7 +52,7 @@ describe("Quiz DTOs", () => {
       const result = distributionSchema.safeParse({
         singleBestAnswer: 0,
         twoStatements: 0,
-        situational: 0,
+        contextual: 0,
       });
 
       expect(result.success).toBe(false);
@@ -67,7 +67,7 @@ describe("Quiz DTOs", () => {
         distribution: {
           singleBestAnswer: 5,
           twoStatements: 3,
-          situational: 2,
+          contextual: 2,
         },
       });
 
@@ -78,7 +78,7 @@ describe("Quiz DTOs", () => {
       const result = createQuizInputSchema.safeParse({
         userId: "",
         title: "Test Quiz",
-        distribution: { singleBestAnswer: 5, twoStatements: 3, situational: 2 },
+        distribution: { singleBestAnswer: 5, twoStatements: 3, contextual: 2 },
       });
 
       expect(result.success).toBe(false);
@@ -88,7 +88,7 @@ describe("Quiz DTOs", () => {
       const result = createQuizInputSchema.safeParse({
         userId: "user-123",
         title: "",
-        distribution: { singleBestAnswer: 5, twoStatements: 3, situational: 2 },
+        distribution: { singleBestAnswer: 5, twoStatements: 3, contextual: 2 },
       });
 
       expect(result.success).toBe(false);
@@ -98,7 +98,7 @@ describe("Quiz DTOs", () => {
       const result = createQuizInputSchema.safeParse({
         userId: "user-123",
         title: "a".repeat(256),
-        distribution: { singleBestAnswer: 5, twoStatements: 3, situational: 2 },
+        distribution: { singleBestAnswer: 5, twoStatements: 3, contextual: 2 },
       });
 
       expect(result.success).toBe(false);
@@ -111,7 +111,7 @@ describe("Quiz DTOs", () => {
         id: "quiz-123",
         userId: "user-123",
         title: "Test Quiz",
-        distribution: { singleBestAnswer: 5, twoStatements: 3, situational: 2 },
+        distribution: { singleBestAnswer: 5, twoStatements: 3, contextual: 2 },
         isPublic,
       });
     };
@@ -127,7 +127,7 @@ describe("Quiz DTOs", () => {
       expect(dto.distribution).toEqual({
         singleBestAnswer: 5,
         twoStatements: 3,
-        situational: 2,
+        contextual: 2,
       });
       expect(typeof dto.createdAt).toBe("string");
       expect(typeof dto.updatedAt).toBe("string");

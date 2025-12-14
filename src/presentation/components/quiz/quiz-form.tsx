@@ -23,7 +23,7 @@ export interface QuizFormData {
   distribution: {
     singleBestAnswer: number;
     twoStatements: number;
-    situational: number;
+    contextual: number;
   };
 }
 
@@ -54,7 +54,7 @@ export function QuizForm({
     initialData?.distribution || {
       singleBestAnswer: 10,
       twoStatements: 5,
-      situational: 5,
+      contextual: 5,
     }
   );
 
@@ -66,7 +66,7 @@ export function QuizForm({
     setDistribution({
       singleBestAnswer: third + remainder,
       twoStatements: third,
-      situational: third,
+      contextual: third,
     });
   };
 
@@ -79,16 +79,16 @@ export function QuizForm({
     const newTotal =
       newDistribution.singleBestAnswer +
       newDistribution.twoStatements +
-      newDistribution.situational;
+      newDistribution.contextual;
 
     if (newTotal === totalQuestions) {
       setDistribution(newDistribution);
     } else {
       // Adjust other values proportionally
       const diff = totalQuestions - newTotal;
-      const others = Object.keys(distribution).filter((k) => k !== type) as Array<
-        keyof typeof distribution
-      >;
+      const others = Object.keys(distribution).filter(
+        (k) => k !== type
+      ) as Array<keyof typeof distribution>;
       const adjustedDistribution = { ...newDistribution };
       adjustedDistribution[others[0]!] = Math.max(
         0,
@@ -121,7 +121,7 @@ export function QuizForm({
   const distributionSum =
     distribution.singleBestAnswer +
     distribution.twoStatements +
-    distribution.situational;
+    distribution.contextual;
 
   const isValid =
     title.trim().length > 0 &&
@@ -232,17 +232,17 @@ export function QuizForm({
           </div>
           <div className="space-y-2">
             <Label htmlFor="sit" className="text-sm">
-              Situational
+              Contextual
             </Label>
             <Input
               id="sit"
               type="number"
               min={0}
               max={totalQuestions}
-              value={distribution.situational}
+              value={distribution.contextual}
               onChange={(e) =>
                 handleDistributionChange(
-                  "situational",
+                  "contextual",
                   parseInt(e.target.value, 10) || 0
                 )
               }

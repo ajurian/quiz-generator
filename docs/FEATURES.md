@@ -22,9 +22,9 @@ The Domain layer contains enterprise-wide business logic and is completely indep
 - updatedAt: Date
 - isPublic: boolean
 - questionDistribution: number (int32 bit-packed)
-  * Bits 0-7: Single-Best Answer count (0-255)
+  * Bits 0-7: Single-Answer count (0-255)
   * Bits 8-15: Two Statements count (0-255)
-  * Bits 16-23: Situational count (0-255)
+  * Bits 16-23: Contextual count (0-255)
 - totalQuestions: number (computed property)
 ```
 
@@ -57,7 +57,7 @@ The Domain layer contains enterprise-wide business logic and is completely indep
 enum QuestionType {
   SINGLE_BEST_ANSWER = 'single_best_answer',
   TWO_STATEMENTS = 'two_statements',
-  SITUATIONAL = 'situational'
+  CONTEXTUAL = 'contextual'
 }
 
 enum GeminiModel {
@@ -71,7 +71,7 @@ enum GeminiModel {
 
 #### QuizDistributionService
 
-- `encodeDistribution(singleBest, twoStatements, situational): number`
+- `encodeDistribution(singleBest, twoStatements, contextual): number`
 - `decodeDistribution(encoded: number): QuizDistribution`
 - `validateDistribution(distribution): boolean`
 
@@ -172,7 +172,7 @@ interface CreateQuizDTO {
   distribution: {
     singleBestAnswer: number
     twoStatements: number
-    situational: number
+    contextual: number
   }
 }
 
@@ -201,7 +201,7 @@ The Infrastructure layer contains implementations of interfaces defined in Appli
 // src/infrastructure/database/schema/quiz.schema.ts
 export const quizzes = pgTable('quizzes', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: text('user_id').notNull().references(() => users.id),
+  userId: uuid('user_id').notNull().references(() => users.id),
   title: text('title').notNull(),
   questionDistribution: integer('question_distribution').notNull(),
   isPublic: boolean('is_public').default(false),

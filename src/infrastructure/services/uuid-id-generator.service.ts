@@ -1,3 +1,4 @@
+import { randomUUIDv7 } from "bun";
 import type { IIdGenerator } from "../../application";
 
 /**
@@ -12,6 +13,6 @@ export class UuidIdGenerator implements IIdGenerator {
    * @returns A unique string identifier
    */
   generate(): string {
-    return crypto.randomUUID();
+    return randomUUIDv7();
   }
 }

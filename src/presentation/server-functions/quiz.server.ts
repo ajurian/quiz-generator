@@ -12,7 +12,7 @@ const paginationSchema = z.object({
 export const getUserQuizzes = createServerFn({ method: "GET" })
   .inputValidator(
     z.object({
-      userId: z.uuid(),
+      userId: z.uuidv7(),
       pagination: paginationSchema.optional(),
     })
   )
@@ -23,7 +23,7 @@ export const getUserQuizzes = createServerFn({ method: "GET" })
         userId: data.userId,
         pagination: data.pagination,
       },
-      process.env.VITE_APP_URL || "http://localhost:3000"
+      container.baseUrl
     );
     return result;
   });
@@ -32,8 +32,8 @@ export const getUserQuizzes = createServerFn({ method: "GET" })
 export const getQuizById = createServerFn({ method: "GET" })
   .inputValidator(
     z.object({
-      quizId: z.uuid(),
-      userId: z.uuid().nullable().optional(),
+      quizId: z.uuidv7(),
+      userId: z.uuidv7().nullable().optional(),
     })
   )
   .handler(async ({ data }) => {
@@ -43,7 +43,7 @@ export const getQuizById = createServerFn({ method: "GET" })
         quizId: data.quizId,
         userId: data.userId,
       },
-      process.env.VITE_APP_URL || "http://localhost:3000"
+      container.baseUrl
     );
     return result;
   });
@@ -74,7 +74,7 @@ function reconstructFile(serializable: SerializableFile): File {
 export const createQuiz = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
-      userId: z.uuid(),
+      userId: z.uuidv7(),
       title: z.string().min(1).max(255),
       distribution: z.object({
         singleBestAnswer: z.number().int().min(0).max(255),
@@ -97,7 +97,7 @@ export const createQuiz = createServerFn({ method: "POST" })
         distribution: data.distribution,
         files,
       },
-      process.env.VITE_APP_URL || "http://localhost:3000"
+      container.baseUrl
     );
     return result;
   });
@@ -106,8 +106,8 @@ export const createQuiz = createServerFn({ method: "POST" })
 export const shareQuiz = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
-      quizId: z.uuid(),
-      userId: z.uuid(),
+      quizId: z.uuidv7(),
+      userId: z.uuidv7(),
     })
   )
   .handler(async ({ data }) => {
@@ -117,7 +117,7 @@ export const shareQuiz = createServerFn({ method: "POST" })
         quizId: data.quizId,
         userId: data.userId,
       },
-      process.env.VITE_APP_URL || "http://localhost:3000"
+      container.baseUrl
     );
     return result;
   });
@@ -126,8 +126,8 @@ export const shareQuiz = createServerFn({ method: "POST" })
 export const deleteQuiz = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
-      quizId: z.uuid(),
-      userId: z.uuid(),
+      quizId: z.uuidv7(),
+      userId: z.uuidv7(),
     })
   )
   .handler(async ({ data }) => {

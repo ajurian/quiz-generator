@@ -16,9 +16,14 @@ describe("ShareQuizUseCase", () => {
   let useCase: ShareQuizUseCase;
   let mockQuizRepository: IQuizRepository;
 
-  const createMockQuiz = (isPublic = false, userId = "owner-123"): Quiz => {
+  const QUIZ_ID = "019b2194-72a0-7000-a712-5e5bc5c313c1";
+  const OWNER_ID = "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10";
+  const OTHER_USER_ID = "019b2194-72a0-7000-a712-5e5bc5c313c0";
+  const NON_EXISTENT_QUIZ_ID = "019b2194-72a0-7000-a712-5e5bc5c313d0";
+
+  const createMockQuiz = (isPublic = false, userId = OWNER_ID): Quiz => {
     return Quiz.create({
-      id: "quiz-123",
+      id: QUIZ_ID,
       userId,
       title: "Test Quiz",
       distribution: { singleBestAnswer: 5, twoStatements: 3, contextual: 2 },
@@ -30,7 +35,7 @@ describe("ShareQuizUseCase", () => {
     mockQuizRepository = {
       create: mock(async (quiz: Quiz) => quiz),
       findById: mock(async (id: string) => {
-        if (id === "quiz-123") {
+        if (id === QUIZ_ID) {
           return createMockQuiz();
         }
         return null;
@@ -55,20 +60,22 @@ describe("ShareQuizUseCase", () => {
   describe("successful execution", () => {
     it("should make quiz public and return share link", async () => {
       const input: ShareQuizInput = {
-        quizId: "quiz-123",
-        userId: "owner-123",
+        quizId: QUIZ_ID,
+        userId: OWNER_ID,
       };
 
       const result = await useCase.execute(input, "https://example.com");
 
       expect(result.quiz.isPublic).toBe(true);
-      expect(result.shareLink).toBe("https://example.com/quiz/quiz-123/public");
+      expect(result.shareLink).toBe(
+        `https://example.com/quiz/${QUIZ_ID}/public`
+      );
     });
 
     it("should call update on repository", async () => {
       const input: ShareQuizInput = {
-        quizId: "quiz-123",
-        userId: "owner-123",
+        quizId: QUIZ_ID,
+        userId: OWNER_ID,
       };
 
       await useCase.execute(input, "https://example.com");
@@ -80,8 +87,8 @@ describe("ShareQuizUseCase", () => {
       mockQuizRepository.findById = mock(async () => createMockQuiz(true));
 
       const input: ShareQuizInput = {
-        quizId: "quiz-123",
-        userId: "owner-123",
+        quizId: QUIZ_ID,
+        userId: OWNER_ID,
       };
 
       const result = await useCase.execute(input, "https://example.com");
@@ -91,14 +98,14 @@ describe("ShareQuizUseCase", () => {
 
     it("should return correct share link format", async () => {
       const input: ShareQuizInput = {
-        quizId: "quiz-123",
-        userId: "owner-123",
+        quizId: QUIZ_ID,
+        userId: OWNER_ID,
       };
 
       const result = await useCase.execute(input, "https://my-app.example.com");
 
       expect(result.shareLink).toBe(
-        "https://my-app.example.com/quiz/quiz-123/public"
+        `https://my-app.example.com/quiz/${QUIZ_ID}/public`
       );
     });
   });
@@ -106,8 +113,8 @@ describe("ShareQuizUseCase", () => {
   describe("access control", () => {
     it("should throw ForbiddenError when non-owner tries to share", async () => {
       const input: ShareQuizInput = {
-        quizId: "quiz-123",
-        userId: "other-user-456",
+        quizId: QUIZ_ID,
+        userId: OTHER_USER_ID,
       };
 
       await expect(
@@ -119,8 +126,8 @@ describe("ShareQuizUseCase", () => {
   describe("error handling", () => {
     it("should throw NotFoundError when quiz does not exist", async () => {
       const input: ShareQuizInput = {
-        quizId: "non-existent-quiz",
-        userId: "user-123",
+        quizId: NON_EXISTENT_QUIZ_ID,
+        userId: OWNER_ID,
       };
 
       await expect(
@@ -131,7 +138,7 @@ describe("ShareQuizUseCase", () => {
     it("should throw ValidationError for empty quizId", async () => {
       const input: ShareQuizInput = {
         quizId: "",
-        userId: "user-123",
+        userId: OWNER_ID,
       };
 
       await expect(
@@ -141,7 +148,7 @@ describe("ShareQuizUseCase", () => {
 
     it("should throw ValidationError for empty userId", async () => {
       const input: ShareQuizInput = {
-        quizId: "quiz-123",
+        quizId: QUIZ_ID,
         userId: "",
       };
 
@@ -152,8 +159,8 @@ describe("ShareQuizUseCase", () => {
 
     it("should throw ValidationError for empty baseUrl", async () => {
       const input: ShareQuizInput = {
-        quizId: "quiz-123",
-        userId: "owner-123",
+        quizId: QUIZ_ID,
+        userId: OWNER_ID,
       };
 
       await expect(useCase.execute(input, "")).rejects.toThrow(ValidationError);

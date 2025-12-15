@@ -15,8 +15,8 @@ export const questionOptionSchema = z.object({
  * Schema for question response
  */
 export const questionResponseSchema = z.object({
-  id: z.uuid(),
-  quizId: z.uuid(),
+  id: z.uuidv7(),
+  quizId: z.uuidv7(),
   questionText: z.string(),
   questionType: z.enum(QuestionType),
   options: z.array(questionOptionSchema).length(4),

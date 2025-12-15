@@ -3,7 +3,6 @@
 
 // Database
 export {
-  db,
   createDatabaseConnection,
   type DrizzleDatabase,
   // Schema

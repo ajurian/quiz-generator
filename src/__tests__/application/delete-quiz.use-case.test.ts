@@ -20,9 +20,14 @@ describe("DeleteQuizUseCase", () => {
   let mockQuizRepository: IQuizRepository;
   let mockQuestionRepository: IQuestionRepository;
 
-  const createMockQuiz = (userId = "owner-123"): Quiz => {
+  const QUIZ_ID = "019b2194-72a0-7000-a712-5e5bc5c313c1";
+  const OWNER_ID = "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10";
+  const OTHER_USER_ID = "019b2194-72a0-7000-a712-5e5bc5c313c0";
+  const NON_EXISTENT_QUIZ_ID = "019b2194-72a0-7000-a712-5e5bc5c313d0";
+
+  const createMockQuiz = (userId = OWNER_ID): Quiz => {
     return Quiz.create({
-      id: "quiz-123",
+      id: QUIZ_ID,
       userId,
       title: "Test Quiz",
       distribution: { singleBestAnswer: 5, twoStatements: 3, contextual: 2 },
@@ -34,7 +39,7 @@ describe("DeleteQuizUseCase", () => {
     mockQuizRepository = {
       create: mock(async (quiz: Quiz) => quiz),
       findById: mock(async (id: string) => {
-        if (id === "quiz-123") {
+        if (id === QUIZ_ID) {
           return createMockQuiz();
         }
         return null;
@@ -66,32 +71,32 @@ describe("DeleteQuizUseCase", () => {
   describe("successful execution", () => {
     it("should delete quiz when owner requests", async () => {
       const input: DeleteQuizInput = {
-        quizId: "quiz-123",
-        userId: "owner-123",
+        quizId: QUIZ_ID,
+        userId: OWNER_ID,
       };
 
       await useCase.execute(input);
 
-      expect(mockQuizRepository.delete).toHaveBeenCalledWith("quiz-123");
+      expect(mockQuizRepository.delete).toHaveBeenCalledWith(QUIZ_ID);
     });
 
     it("should verify ownership before deletion", async () => {
       const input: DeleteQuizInput = {
-        quizId: "quiz-123",
-        userId: "owner-123",
+        quizId: QUIZ_ID,
+        userId: OWNER_ID,
       };
 
       await useCase.execute(input);
 
-      expect(mockQuizRepository.findById).toHaveBeenCalledWith("quiz-123");
+      expect(mockQuizRepository.findById).toHaveBeenCalledWith(QUIZ_ID);
     });
   });
 
   describe("access control", () => {
     it("should throw ForbiddenError when non-owner tries to delete", async () => {
       const input: DeleteQuizInput = {
-        quizId: "quiz-123",
-        userId: "other-user-456",
+        quizId: QUIZ_ID,
+        userId: OTHER_USER_ID,
       };
 
       await expect(useCase.execute(input)).rejects.toThrow(ForbiddenError);
@@ -99,8 +104,8 @@ describe("DeleteQuizUseCase", () => {
 
     it("should not delete quiz when forbidden", async () => {
       const input: DeleteQuizInput = {
-        quizId: "quiz-123",
-        userId: "other-user-456",
+        quizId: QUIZ_ID,
+        userId: OTHER_USER_ID,
       };
 
       await expect(useCase.execute(input)).rejects.toThrow();
@@ -111,8 +116,8 @@ describe("DeleteQuizUseCase", () => {
   describe("error handling", () => {
     it("should throw NotFoundError when quiz does not exist", async () => {
       const input: DeleteQuizInput = {
-        quizId: "non-existent-quiz",
-        userId: "user-123",
+        quizId: NON_EXISTENT_QUIZ_ID,
+        userId: OWNER_ID,
       };
 
       await expect(useCase.execute(input)).rejects.toThrow(NotFoundError);
@@ -121,7 +126,7 @@ describe("DeleteQuizUseCase", () => {
     it("should throw ValidationError for empty quizId", async () => {
       const input: DeleteQuizInput = {
         quizId: "",
-        userId: "user-123",
+        userId: OWNER_ID,
       };
 
       await expect(useCase.execute(input)).rejects.toThrow(ValidationError);
@@ -129,7 +134,7 @@ describe("DeleteQuizUseCase", () => {
 
     it("should throw ValidationError for empty userId", async () => {
       const input: DeleteQuizInput = {
-        quizId: "quiz-123",
+        quizId: QUIZ_ID,
         userId: "",
       };
 

@@ -1,19 +1,26 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { db } from "../database";
+import { DrizzleDatabase } from "../database";
 import { authSchema } from "./auth.schema";
 import type { Redis } from "@upstash/redis";
+import { IIdGenerator } from "@/application";
 
 /**
  * Better Auth Configuration Options
  */
 export interface AuthConfigOptions {
-  /** Upstash Redis instance for session caching */
-  redis?: Redis;
-  /** Base URL for the application */
-  baseURL?: string;
+  /** Id Generator for auth database */
+  idGenerator: IIdGenerator;
   /** Secret key for signing tokens */
-  secret?: string;
+  secret: string;
+  /** Base URL for the application */
+  baseURL: string;
+  /** Primary Database instance */
+  db: DrizzleDatabase;
+  /** Upstash Redis instance for session caching */
+  redis: Redis;
+  googleClient: { id: string; secret: string };
+  microsoftClient: { id: string; secret: string };
 }
 
 /**
@@ -22,14 +29,13 @@ export interface AuthConfigOptions {
  * @param options Configuration options for auth
  * @returns Configured Better Auth instance
  */
-export function createAuth(options: AuthConfigOptions = {}) {
-  const secret = options.secret ?? process.env.BETTER_AUTH_SECRET;
-  if (!secret) {
+export function createAuth(options: AuthConfigOptions) {
+  if (!options.secret) {
     throw new Error("BETTER_AUTH_SECRET environment variable is required");
   }
 
   return betterAuth({
-    database: drizzleAdapter(db, {
+    database: drizzleAdapter(options.db, {
       provider: "pg",
       schema: authSchema,
       usePlural: true,
@@ -37,11 +43,11 @@ export function createAuth(options: AuthConfigOptions = {}) {
 
     advanced: {
       database: {
-        generateId: () => crypto.randomUUID(),
+        generateId: () => options.idGenerator.generate(),
       },
     },
 
-    secret,
+    secret: options.secret,
     baseURL: options.baseURL,
 
     // Session configuration
@@ -55,24 +61,22 @@ export function createAuth(options: AuthConfigOptions = {}) {
     },
 
     // Secondary storage for session caching (Upstash Redis)
-    secondaryStorage: options.redis
-      ? {
-          get: async (key: string) => {
-            const value = await options.redis!.get(key);
-            return value as string | null;
-          },
-          set: async (key: string, value: string, ttl?: number) => {
-            if (ttl) {
-              await options.redis!.setex(key, ttl, value);
-            } else {
-              await options.redis!.set(key, value);
-            }
-          },
-          delete: async (key: string) => {
-            await options.redis!.del(key);
-          },
+    secondaryStorage: {
+      get: async (key: string) => {
+        const value = await options.redis!.get(key);
+        return value as string | null;
+      },
+      set: async (key: string, value: string, ttl?: number) => {
+        if (ttl) {
+          await options.redis!.setex(key, ttl, value);
+        } else {
+          await options.redis!.set(key, value);
         }
-      : undefined,
+      },
+      delete: async (key: string) => {
+        await options.redis!.del(key);
+      },
+    },
 
     // Email and password authentication
     emailAndPassword: {
@@ -83,12 +87,12 @@ export function createAuth(options: AuthConfigOptions = {}) {
     // Social login providers
     socialProviders: {
       google: {
-        clientId: process.env.GOOGLE_CLIENT_ID!,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+        clientId: options.googleClient.id,
+        clientSecret: options.googleClient.secret!,
       },
       microsoft: {
-        clientId: process.env.MICROSOFT_CLIENT_ID!,
-        clientSecret: process.env.MICROSOFT_CLIENT_SECRET!,
+        clientId: options.microsoftClient.id!,
+        clientSecret: options.microsoftClient.secret!,
       },
     },
   });
@@ -105,11 +109,11 @@ export type Auth = ReturnType<typeof createAuth>;
 let authInstance: Auth | null = null;
 
 /**
- * Gets or creates the default auth instance
+ * Gets the auth instance, if initialized, otherwise throws an error
  */
 export function getAuth(): Auth {
   if (!authInstance) {
-    authInstance = createAuth();
+    throw new Error("Auth instance has not been initialized.");
   }
   return authInstance;
 }

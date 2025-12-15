@@ -29,30 +29,6 @@ describe("RedisCacheService", () => {
     };
   });
 
-  describe("constructor", () => {
-    it("should throw error when Redis credentials are not provided", () => {
-      const originalUrl = process.env.UPSTASH_REDIS_REST_URL;
-      const originalToken = process.env.UPSTASH_REDIS_REST_TOKEN;
-      delete process.env.UPSTASH_REDIS_REST_URL;
-      delete process.env.UPSTASH_REDIS_REST_TOKEN;
-
-      expect(() => new RedisCacheService()).toThrow(
-        "UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN environment variables are required"
-      );
-
-      if (originalUrl) process.env.UPSTASH_REDIS_REST_URL = originalUrl;
-      if (originalToken) process.env.UPSTASH_REDIS_REST_TOKEN = originalToken;
-    });
-
-    it("should create service with provided options", () => {
-      const service = new RedisCacheService({
-        url: "https://test-redis.upstash.io",
-        token: "test-token",
-      });
-      expect(service).toBeInstanceOf(RedisCacheService);
-    });
-  });
-
   describe("get", () => {
     it("should return cached value when exists", async () => {
       const service = new RedisCacheService({

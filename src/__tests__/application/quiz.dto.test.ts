@@ -62,7 +62,7 @@ describe("Quiz DTOs", () => {
   describe("createQuizInputSchema", () => {
     it("should validate valid input", () => {
       const result = createQuizInputSchema.safeParse({
-        userId: "user-123",
+        userId: "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
         title: "Test Quiz",
         distribution: {
           singleBestAnswer: 5,
@@ -70,6 +70,7 @@ describe("Quiz DTOs", () => {
           contextual: 2,
         },
       });
+      console.log(result.error);
 
       expect(result.success).toBe(true);
     });
@@ -86,7 +87,7 @@ describe("Quiz DTOs", () => {
 
     it("should reject empty title", () => {
       const result = createQuizInputSchema.safeParse({
-        userId: "user-123",
+        userId: "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
         title: "",
         distribution: { singleBestAnswer: 5, twoStatements: 3, contextual: 2 },
       });
@@ -96,7 +97,7 @@ describe("Quiz DTOs", () => {
 
     it("should reject title exceeding 255 characters", () => {
       const result = createQuizInputSchema.safeParse({
-        userId: "user-123",
+        userId: "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
         title: "a".repeat(256),
         distribution: { singleBestAnswer: 5, twoStatements: 3, contextual: 2 },
       });
@@ -109,7 +110,7 @@ describe("Quiz DTOs", () => {
     const createMockQuiz = (isPublic = false): Quiz => {
       return Quiz.create({
         id: "quiz-123",
-        userId: "user-123",
+        userId: "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
         title: "Test Quiz",
         distribution: { singleBestAnswer: 5, twoStatements: 3, contextual: 2 },
         isPublic,

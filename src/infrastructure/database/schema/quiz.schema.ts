@@ -17,11 +17,11 @@ import { users } from "../../auth/auth.schema";
  * Each quiz belongs to a user and can have multiple questions.
  */
 export const quizzes = pgTable("quizzes", {
-  /** Unique identifier for the quiz (UUID v4) */
-  id: uuid("id").primaryKey().defaultRandom(),
+  /** Unique identifier for the quiz (UUID) */
+  id: uuid("id").primaryKey(),
 
   /** Reference to the user who created the quiz */
-  userId: uuid("user_id")
+  userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
 

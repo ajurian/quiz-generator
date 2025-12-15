@@ -52,6 +52,7 @@ describe("DI Container", () => {
   describe("createAppContainer", () => {
     it("should create a container with all dependencies", () => {
       const container = createAppContainer({
+        baseUrl: "http://localhost:3000",
         databaseUrl: "postgres://test:test@localhost:5432/test",
         googleAiApiKey: "test-api-key",
         redisUrl: "https://test.upstash.io",
@@ -59,6 +60,7 @@ describe("DI Container", () => {
       });
 
       expect(container).toBeDefined();
+      expect(container.baseUrl).toBeDefined();
       expect(container.db).toBeDefined();
       expect(container.redis).toBeDefined();
       expect(container.repositories).toBeDefined();
@@ -68,6 +70,7 @@ describe("DI Container", () => {
 
     it("should create repository instances", () => {
       const container = createAppContainer({
+        baseUrl: "http://localhost:3000",
         databaseUrl: "postgres://test:test@localhost:5432/test",
         googleAiApiKey: "test-api-key",
         redisUrl: "https://test.upstash.io",
@@ -84,6 +87,7 @@ describe("DI Container", () => {
 
     it("should create service instances", () => {
       const container = createAppContainer({
+        baseUrl: "http://localhost:3000",
         databaseUrl: "postgres://test:test@localhost:5432/test",
         googleAiApiKey: "test-api-key",
         redisUrl: "https://test.upstash.io",
@@ -100,6 +104,7 @@ describe("DI Container", () => {
 
     it("should create use case instances", () => {
       const container = createAppContainer({
+        baseUrl: "http://localhost:3000",
         databaseUrl: "postgres://test:test@localhost:5432/test",
         googleAiApiKey: "test-api-key",
         redisUrl: "https://test.upstash.io",
@@ -117,6 +122,7 @@ describe("DI Container", () => {
 
     it("should use custom config when provided", () => {
       const customConfig = {
+        baseUrl: "http://localhost:3000",
         databaseUrl: "postgres://custom:custom@localhost:5432/custom",
         googleAiApiKey: "custom-api-key",
         redisUrl: "https://custom.upstash.io",
@@ -162,6 +168,7 @@ describe("DI Container", () => {
   describe("dependency injection", () => {
     it("should inject correct dependencies into use cases", () => {
       const container = createAppContainer({
+        baseUrl: "http://localhost:3000",
         databaseUrl: "postgres://test:test@localhost:5432/test",
         googleAiApiKey: "test-api-key",
         redisUrl: "https://test.upstash.io",
@@ -178,6 +185,7 @@ describe("DI Container", () => {
 
     it("should share repository instances across use cases", () => {
       const container = createAppContainer({
+        baseUrl: "http://localhost:3000",
         databaseUrl: "postgres://test:test@localhost:5432/test",
         googleAiApiKey: "test-api-key",
         redisUrl: "https://test.upstash.io",
@@ -193,6 +201,7 @@ describe("DI Container", () => {
   describe("container structure", () => {
     it("should have correct shape", () => {
       const container = createAppContainer({
+        baseUrl: "http://localhost:3000",
         databaseUrl: "postgres://test:test@localhost:5432/test",
         googleAiApiKey: "test-api-key",
         redisUrl: "https://test.upstash.io",

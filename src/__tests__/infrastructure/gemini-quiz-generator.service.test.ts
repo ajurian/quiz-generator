@@ -76,28 +76,6 @@ describe("GeminiQuizGeneratorService", () => {
     mockGenerateContent.mockReset();
   });
 
-  describe("constructor", () => {
-    it("should throw error when API key is not provided", () => {
-      // Temporarily remove env var
-      const originalKey = process.env.GOOGLE_AI_API_KEY;
-      delete process.env.GOOGLE_AI_API_KEY;
-
-      expect(() => new GeminiQuizGeneratorService()).toThrow(
-        "GOOGLE_AI_API_KEY environment variable is required"
-      );
-
-      // Restore
-      if (originalKey) {
-        process.env.GOOGLE_AI_API_KEY = originalKey;
-      }
-    });
-
-    it("should create service with provided API key", () => {
-      const service = new GeminiQuizGeneratorService("test-key");
-      expect(service).toBeInstanceOf(GeminiQuizGeneratorService);
-    });
-  });
-
   describe("generateQuestions", () => {
     it("should generate questions with correct structure", async () => {
       const service = new GeminiQuizGeneratorService(testApiKey);

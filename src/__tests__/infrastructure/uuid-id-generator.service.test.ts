@@ -3,16 +3,16 @@ import { UuidIdGenerator } from "../../infrastructure/services/uuid-id-generator
 
 describe("UuidIdGenerator", () => {
   describe("generate", () => {
-    it("should return a valid UUID v4 string", () => {
+    it("should return a valid UUID v7 string", () => {
       const generator = new UuidIdGenerator();
 
       const id = generator.generate();
 
-      // UUID v4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
-      const uuidV4Regex =
-        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      // UUID v7 format: xxxxxxxx-xxxx-7xxx-yxxx-xxxxxxxxxxxx
+      const uuidV7Regex =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-      expect(id).toMatch(uuidV4Regex);
+      expect(id).toMatch(uuidV7Regex);
     });
 
     it("should generate unique IDs on each call", () => {
@@ -37,13 +37,13 @@ describe("UuidIdGenerator", () => {
       expect(id.length).toBe(36);
     });
 
-    it("should have the correct version digit (4)", () => {
+    it("should have the correct version digit (7)", () => {
       const generator = new UuidIdGenerator();
 
       const id = generator.generate();
 
-      // The 13th character (index 14 after hyphen) should be '4' for UUID v4
-      expect(id.charAt(14)).toBe("4");
+      // The 13th character (index 14 after hyphen) should be '7' for UUID v7
+      expect(id.charAt(14)).toBe("7");
     });
 
     it("should have correct variant bits", () => {

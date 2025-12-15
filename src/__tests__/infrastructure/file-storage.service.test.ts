@@ -5,26 +5,6 @@ import type { FileMetadata } from "../../application";
 describe("FileStorageService", () => {
   const testApiKey = "test-api-key";
 
-  describe("constructor", () => {
-    it("should throw error when API key is not provided", () => {
-      const originalKey = process.env.GOOGLE_AI_API_KEY;
-      delete process.env.GOOGLE_AI_API_KEY;
-
-      expect(() => new FileStorageService()).toThrow(
-        "GOOGLE_AI_API_KEY environment variable is required"
-      );
-
-      if (originalKey) {
-        process.env.GOOGLE_AI_API_KEY = originalKey;
-      }
-    });
-
-    it("should create service with provided API key", () => {
-      const service = new FileStorageService(testApiKey);
-      expect(service).toBeInstanceOf(FileStorageService);
-    });
-  });
-
   describe("uploadFiles", () => {
     it("should upload multiple files and return metadata", async () => {
       const service = new FileStorageService(testApiKey);

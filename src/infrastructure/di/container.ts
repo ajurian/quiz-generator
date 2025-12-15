@@ -1,6 +1,5 @@
 import { Redis } from "@upstash/redis";
 import {
-  db,
   createDatabaseConnection,
   DrizzleQuizRepository,
   DrizzleQuestionRepository,
@@ -33,14 +32,16 @@ import type {
  * Application Container Configuration
  */
 export interface ContainerConfig {
-  /** Custom database URL (optional, uses env var by default) */
-  databaseUrl?: string;
-  /** Custom Google AI API key (optional, uses env var by default) */
-  googleAiApiKey?: string;
-  /** Custom Upstash Redis URL (optional, uses env var by default) */
-  redisUrl?: string;
-  /** Custom Upstash Redis token (optional, uses env var by default) */
-  redisToken?: string;
+  /** Base URL */
+  baseUrl: string;
+  /** Database URL */
+  databaseUrl: string;
+  /** Google AI API key */
+  googleAiApiKey: string;
+  /** Upstash Redis URL */
+  redisUrl: string;
+  /** Upstash Redis token */
+  redisToken: string;
 }
 
 /**
@@ -79,6 +80,8 @@ export interface UseCases {
  * All dependencies are lazily initialized when first accessed.
  */
 export interface AppContainer {
+  /** Base URL */
+  baseUrl: string;
   /** Database instance */
   db: DrizzleDatabase;
   /** Redis client */
@@ -103,20 +106,15 @@ export interface AppContainer {
  * @param config Optional configuration overrides
  * @returns Fully configured application container
  */
-export function createAppContainer(config: ContainerConfig = {}): AppContainer {
+export function createAppContainer(config: ContainerConfig): AppContainer {
   // Infrastructure - Database
-  const database = config.databaseUrl
-    ? createDatabaseConnection(config.databaseUrl)
-    : db;
+  const database = createDatabaseConnection(config.databaseUrl);
 
   // Infrastructure - Redis
   const redis = new Redis({
-    url: config.redisUrl ?? process.env.UPSTASH_REDIS_REST_URL!,
-    token: config.redisToken ?? process.env.UPSTASH_REDIS_REST_TOKEN!,
+    url: config.redisUrl,
+    token: config.redisToken,
   });
-
-  // Infrastructure - Auth
-  const auth = createAuth({ redis });
 
   // Repositories (implementing ports)
   const quizRepository = new DrizzleQuizRepository(database);
@@ -130,6 +128,23 @@ export function createAppContainer(config: ContainerConfig = {}): AppContainer {
     token: config.redisToken,
   });
   const idGenerator = new UuidIdGenerator();
+
+  // Infrastructure - Auth
+  const auth = createAuth({
+    idGenerator,
+    secret: process.env.BETTER_AUTH_SECRET!,
+    baseURL: config.baseUrl,
+    db: database,
+    redis,
+    googleClient: {
+      id: process.env.GOOGLE_CLIENT_ID!,
+      secret: process.env.GOOGLE_CLIENT_SECRET!,
+    },
+    microsoftClient: {
+      id: process.env.MICROSOFT_CLIENT_ID!,
+      secret: process.env.MICROSOFT_CLIENT_SECRET!,
+    },
+  });
 
   // Use Cases (Application layer - orchestrating domain logic)
   const createQuiz = new CreateQuizUseCase({
@@ -155,6 +170,7 @@ export function createAppContainer(config: ContainerConfig = {}): AppContainer {
   });
 
   return {
+    baseUrl: config.baseUrl,
     db: database,
     redis,
     auth,
@@ -188,7 +204,13 @@ let containerInstance: AppContainer | null = null;
  */
 export function getContainer(): AppContainer {
   if (!containerInstance) {
-    containerInstance = createAppContainer();
+    containerInstance = createAppContainer({
+      baseUrl: process.env.VITE_APP_URL!,
+      databaseUrl: process.env.DATABASE_URL!,
+      googleAiApiKey: process.env.GOOGLE_AI_API_KEY!,
+      redisUrl: process.env.UPSTASH_REDIS_REST_URL!,
+      redisToken: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    });
   }
   return containerInstance;
 }

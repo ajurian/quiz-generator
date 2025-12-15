@@ -133,7 +133,7 @@ describe("Quiz Entity", () => {
 
       const quiz = Quiz.reconstitute({
         id: "quiz-123",
-        userId: "user-456",
+        userId: "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
         title: "Reconstituted Quiz",
         createdAt,
         updatedAt,
@@ -142,7 +142,7 @@ describe("Quiz Entity", () => {
       });
 
       expect(quiz.id).toBe("quiz-123");
-      expect(quiz.userId).toBe("user-456");
+      expect(quiz.userId).toBe("018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10");
       expect(quiz.title).toBe("Reconstituted Quiz");
       expect(quiz.createdAt).toBe(createdAt);
       expect(quiz.updatedAt).toBe(updatedAt);
@@ -154,7 +154,7 @@ describe("Quiz Entity", () => {
       expect(() =>
         Quiz.reconstitute({
           id: "quiz-123",
-          userId: "user-456",
+          userId: "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
           title: "Test",
           createdAt: new Date("invalid"),
           updatedAt: new Date(),
@@ -325,47 +325,62 @@ describe("Quiz Entity", () => {
 
   describe("isOwnedBy", () => {
     it("should return true for the owner", () => {
-      const quiz = Quiz.create(createValidProps({ userId: "owner-123" }));
+      const ownerId = "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10";
+      const quiz = Quiz.create(createValidProps({ userId: ownerId }));
 
-      expect(quiz.isOwnedBy("owner-123")).toBe(true);
+      expect(quiz.isOwnedBy(ownerId)).toBe(true);
     });
 
     it("should return false for non-owner", () => {
-      const quiz = Quiz.create(createValidProps({ userId: "owner-123" }));
+      const ownerId = "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10";
+      const otherUserId = "019b2194-72a0-7000-a712-5e5bc5c313c0";
+      const quiz = Quiz.create(createValidProps({ userId: ownerId }));
 
-      expect(quiz.isOwnedBy("other-user")).toBe(false);
+      expect(quiz.isOwnedBy(otherUserId)).toBe(false);
     });
   });
 
   describe("canBeAccessedBy", () => {
     it("should return true for public quiz with any user", () => {
+      const otherUserId = "019b2194-72a0-7000-a712-5e5bc5c313c0";
       const quiz = Quiz.create(
-        createValidProps({ isPublic: true, userId: "owner-123" })
+        createValidProps({
+          isPublic: true,
+          userId: "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
+        })
       );
 
-      expect(quiz.canBeAccessedBy("other-user")).toBe(true);
+      expect(quiz.canBeAccessedBy(otherUserId)).toBe(true);
       expect(quiz.canBeAccessedBy(null)).toBe(true);
     });
 
     it("should return true for private quiz with owner", () => {
+      const ownerId = "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10";
       const quiz = Quiz.create(
-        createValidProps({ isPublic: false, userId: "owner-123" })
+        createValidProps({ isPublic: false, userId: ownerId })
       );
 
-      expect(quiz.canBeAccessedBy("owner-123")).toBe(true);
+      expect(quiz.canBeAccessedBy(ownerId)).toBe(true);
     });
 
     it("should return false for private quiz with non-owner", () => {
+      const otherUserId = "019b2194-72a0-7000-a712-5e5bc5c313c0";
       const quiz = Quiz.create(
-        createValidProps({ isPublic: false, userId: "owner-123" })
+        createValidProps({
+          isPublic: false,
+          userId: "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
+        })
       );
 
-      expect(quiz.canBeAccessedBy("other-user")).toBe(false);
+      expect(quiz.canBeAccessedBy(otherUserId)).toBe(false);
     });
 
     it("should return false for private quiz with null user", () => {
       const quiz = Quiz.create(
-        createValidProps({ isPublic: false, userId: "owner-123" })
+        createValidProps({
+          isPublic: false,
+          userId: "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
+        })
       );
 
       expect(quiz.canBeAccessedBy(null)).toBe(false);

@@ -21,7 +21,7 @@ export const distributionSchema = z
  * Schema for creating a new quiz
  */
 export const createQuizInputSchema = z.object({
-  userId: z.uuid(),
+  userId: z.uuidv7(),
   title: z.string().min(1).max(255),
   distribution: distributionSchema,
 });
@@ -35,7 +35,7 @@ export type CreateQuizInput = z.infer<typeof createQuizInputSchema>;
  * Schema for quiz response
  */
 export const quizResponseSchema = z.object({
-  id: z.uuid(),
+  id: z.uuidv7(),
   title: z.string(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),

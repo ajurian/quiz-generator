@@ -10,8 +10,8 @@ import type { QuestionOptionProps } from "../../../domain";
  * Questions are linked to a quiz and ordered by orderIndex.
  */
 export const questions = pgTable("questions", {
-  /** Unique identifier for the question (UUID v4) */
-  id: uuid("id").primaryKey().defaultRandom(),
+  /** Unique identifier for the question (UUID) */
+  id: uuid("id").primaryKey(),
 
   /** Reference to the parent quiz (cascade delete enabled) */
   quizId: uuid("quiz_id")

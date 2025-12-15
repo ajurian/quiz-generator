@@ -10,17 +10,17 @@ import type { ICacheService } from "../../application";
 export class RedisCacheService implements ICacheService {
   private readonly redis: Redis;
 
-  constructor(options?: { url?: string; token?: string }) {
-    const url = options?.url ?? process.env.UPSTASH_REDIS_REST_URL;
-    const token = options?.token ?? process.env.UPSTASH_REDIS_REST_TOKEN;
-
-    if (!url || !token) {
+  constructor(options: { url: string; token: string }) {
+    if (!options.url || !options.token) {
       throw new Error(
         "UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN environment variables are required"
       );
     }
 
-    this.redis = new Redis({ url, token });
+    this.redis = new Redis({
+      url: options.url,
+      token: options.token,
+    });
   }
 
   /**

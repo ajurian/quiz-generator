@@ -18,6 +18,7 @@ import {
   ExternalServiceError,
   QuotaExceededError,
 } from "../../application/errors";
+import { randomUUIDv7 } from "bun";
 
 describe("CreateQuizUseCase", () => {
   let useCase: CreateQuizUseCase;
@@ -27,8 +28,12 @@ describe("CreateQuizUseCase", () => {
   let mockFileStorage: IFileStorageService;
   let mockIdGenerator: IIdGenerator;
 
+  const FILE_ID = "019b2194-72a0-7000-a712-5e5bc5c313c0";
+  const QUIZ_ID = "019b2194-72a0-7000-a712-5e5bc5c313c1";
+  const QUESTION_ID = "019b2194-72a0-7000-a712-5e5bc5c313c2";
+
   const createValidInput = (): CreateQuizUseCaseInput => ({
-    userId: "user-123",
+    userId: "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
     title: "Test Quiz",
     distribution: {
       singleBestAnswer: 5,
@@ -40,7 +45,7 @@ describe("CreateQuizUseCase", () => {
 
   const createMockFileMetadata = (): FileMetadata[] => [
     {
-      id: "file-1",
+      id: FILE_ID,
       name: "test.pdf",
       mimeType: "application/pdf",
       uri: "gs://bucket/test.pdf",
@@ -83,9 +88,11 @@ describe("CreateQuizUseCase", () => {
   ];
 
   beforeEach(() => {
-    let idCounter = 0;
     mockIdGenerator = {
-      generate: () => `id-${++idCounter}`,
+      generate: (() => {
+        const ids = [QUIZ_ID, QUESTION_ID];
+        return () => ids.shift() ?? randomUUIDv7();
+      })(),
     };
 
     mockQuizRepository = {
@@ -134,7 +141,7 @@ describe("CreateQuizUseCase", () => {
       const input = createValidInput();
       const result = await useCase.execute(input);
 
-      expect(result.id).toBe("id-1");
+      expect(result.id).toBe(QUIZ_ID);
       expect(result.title).toBe("Test Quiz");
       expect(result.isPublic).toBe(false);
       expect(result.totalQuestions).toBe(10);

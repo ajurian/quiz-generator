@@ -12,6 +12,10 @@ describe("GetUserQuizzesUseCase", () => {
   let useCase: GetUserQuizzesUseCase;
   let mockQuizRepository: IQuizRepository;
 
+  const USER_ID = "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10";
+  const QUIZ_1_ID = "019b2194-72a0-7000-a712-5e5bc5c313c1";
+  const QUIZ_2_ID = "019b2194-72a0-7000-a712-5e5bc5c313c2";
+
   const createMockQuiz = (id: string, userId: string, title: string): Quiz => {
     return Quiz.create({
       id,
@@ -28,8 +32,8 @@ describe("GetUserQuizzesUseCase", () => {
       findById: mock(async () => null),
       findByUserId: mock(async (userId: string, pagination) => {
         const quizzes = [
-          createMockQuiz("quiz-1", userId, "Quiz 1"),
-          createMockQuiz("quiz-2", userId, "Quiz 2"),
+          createMockQuiz(QUIZ_1_ID, userId, "Quiz 1"),
+          createMockQuiz(QUIZ_2_ID, userId, "Quiz 2"),
         ];
         return {
           data: quizzes,
@@ -52,7 +56,7 @@ describe("GetUserQuizzesUseCase", () => {
   describe("successful execution", () => {
     it("should return paginated quizzes for a user", async () => {
       const input: GetUserQuizzesInput = {
-        userId: "user-123",
+        userId: USER_ID,
       };
 
       const result = await useCase.execute(input);
@@ -66,12 +70,12 @@ describe("GetUserQuizzesUseCase", () => {
 
     it("should use default pagination when not provided", async () => {
       const input: GetUserQuizzesInput = {
-        userId: "user-123",
+        userId: USER_ID,
       };
 
       await useCase.execute(input);
 
-      expect(mockQuizRepository.findByUserId).toHaveBeenCalledWith("user-123", {
+      expect(mockQuizRepository.findByUserId).toHaveBeenCalledWith(USER_ID, {
         page: 1,
         limit: 10,
       });
@@ -79,13 +83,13 @@ describe("GetUserQuizzesUseCase", () => {
 
     it("should use custom pagination when provided", async () => {
       const input: GetUserQuizzesInput = {
-        userId: "user-123",
+        userId: USER_ID,
         pagination: { page: 2, limit: 20 },
       };
 
       await useCase.execute(input);
 
-      expect(mockQuizRepository.findByUserId).toHaveBeenCalledWith("user-123", {
+      expect(mockQuizRepository.findByUserId).toHaveBeenCalledWith(USER_ID, {
         page: 2,
         limit: 20,
       });
@@ -93,7 +97,7 @@ describe("GetUserQuizzesUseCase", () => {
 
     it("should transform quizzes to response DTOs", async () => {
       const input: GetUserQuizzesInput = {
-        userId: "user-123",
+        userId: USER_ID,
       };
 
       const result = await useCase.execute(input);
@@ -111,7 +115,7 @@ describe("GetUserQuizzesUseCase", () => {
       mockQuizRepository.findByUserId = mock(
         async (userId: string, pagination) => {
           const quiz = Quiz.create({
-            id: "quiz-1",
+            id: QUIZ_1_ID,
             userId,
             title: "Public Quiz",
             distribution: {
@@ -132,13 +136,13 @@ describe("GetUserQuizzesUseCase", () => {
       );
 
       const input: GetUserQuizzesInput = {
-        userId: "user-123",
+        userId: USER_ID,
       };
 
       const result = await useCase.execute(input, "https://example.com");
 
       expect(result.data[0]!.shareLink).toBe(
-        "https://example.com/quiz/quiz-1/public"
+        `https://example.com/quiz/${QUIZ_1_ID}/public`
       );
     });
   });
@@ -154,7 +158,7 @@ describe("GetUserQuizzesUseCase", () => {
 
     it("should throw ValidationError for invalid page number", async () => {
       const input: GetUserQuizzesInput = {
-        userId: "user-123",
+        userId: USER_ID,
         pagination: { page: 0, limit: 10 },
       };
 
@@ -163,7 +167,7 @@ describe("GetUserQuizzesUseCase", () => {
 
     it("should throw ValidationError for limit exceeding 100", async () => {
       const input: GetUserQuizzesInput = {
-        userId: "user-123",
+        userId: USER_ID,
         pagination: { page: 1, limit: 101 },
       };
 
@@ -184,7 +188,7 @@ describe("GetUserQuizzesUseCase", () => {
       );
 
       const input: GetUserQuizzesInput = {
-        userId: "user-with-no-quizzes",
+        userId: USER_ID,
       };
 
       const result = await useCase.execute(input);

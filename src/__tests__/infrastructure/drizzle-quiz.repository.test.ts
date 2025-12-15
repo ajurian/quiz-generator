@@ -145,8 +145,14 @@ describe("DrizzleQuizRepository", () => {
 
   describe("findByUserId", () => {
     it("should return paginated quizzes for a user", async () => {
-      const quiz1 = createTestQuiz({ id: "quiz-1", userId: "user-123" });
-      const quiz2 = createTestQuiz({ id: "quiz-2", userId: "user-123" });
+      const quiz1 = createTestQuiz({
+        id: "quiz-1",
+        userId: "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
+      });
+      const quiz2 = createTestQuiz({
+        id: "quiz-2",
+        userId: "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
+      });
       const dbRows = [createMockDbRow(quiz1), createMockDbRow(quiz2)];
 
       // Mock count query
@@ -175,10 +181,13 @@ describe("DrizzleQuizRepository", () => {
         return (callCount === 1 ? countChain : dataChain) as unknown;
       }) as unknown as DrizzleDatabase["select"];
 
-      const result = await repository.findByUserId("user-123", {
-        page: 1,
-        limit: 10,
-      });
+      const result = await repository.findByUserId(
+        "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
+        {
+          page: 1,
+          limit: 10,
+        }
+      );
 
       expect(result.data).toHaveLength(2);
       expect(result.total).toBe(5);
@@ -212,10 +221,13 @@ describe("DrizzleQuizRepository", () => {
         return (callCount === 1 ? countChain : dataChain) as unknown;
       }) as unknown as DrizzleDatabase["select"];
 
-      const result = await repository.findByUserId("user-123", {
-        page: 1,
-        limit: 10,
-      });
+      const result = await repository.findByUserId(
+        "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
+        {
+          page: 1,
+          limit: 10,
+        }
+      );
 
       expect(result.totalPages).toBe(3); // 25 / 10 = 2.5, ceil = 3
     });

@@ -12,12 +12,11 @@ export class FileStorageService implements IFileStorageService {
   private readonly client: GoogleGenAI;
   private readonly uploadedFiles: Map<string, FileMetadata> = new Map();
 
-  constructor(apiKey?: string) {
-    const key = apiKey ?? process.env.GOOGLE_AI_API_KEY;
-    if (!key) {
+  constructor(apiKey: string) {
+    if (!apiKey) {
       throw new Error("GOOGLE_AI_API_KEY environment variable is required");
     }
-    this.client = new GoogleGenAI({ apiKey: key });
+    this.client = new GoogleGenAI({ apiKey });
   }
 
   /**

@@ -1,6 +1,5 @@
 import { Redis } from "@upstash/redis";
 import {
-  createDatabaseConnection,
   DrizzleQuizRepository,
   DrizzleQuestionRepository,
   type DrizzleDatabase,
@@ -11,7 +10,7 @@ import {
   RedisCacheService,
   UuidIdGenerator,
 } from "../services";
-import { createAuth, type Auth } from "../auth";
+import { createAuth, getAuth, type Auth } from "../auth";
 import {
   CreateQuizUseCase,
   GetUserQuizzesUseCase,
@@ -27,6 +26,7 @@ import type {
   ICacheService,
   IIdGenerator,
 } from "../../application";
+import { getDatabase } from "../database/connection";
 
 /**
  * Application Container Configuration
@@ -108,7 +108,7 @@ export interface AppContainer {
  */
 export function createAppContainer(config: ContainerConfig): AppContainer {
   // Infrastructure - Database
-  const database = createDatabaseConnection(config.databaseUrl);
+  const database = getDatabase(config.databaseUrl);
 
   // Infrastructure - Redis
   const redis = new Redis({
@@ -130,7 +130,7 @@ export function createAppContainer(config: ContainerConfig): AppContainer {
   const idGenerator = new UuidIdGenerator();
 
   // Infrastructure - Auth
-  const auth = createAuth({
+  const auth = getAuth({
     idGenerator,
     secret: process.env.BETTER_AUTH_SECRET!,
     baseURL: config.baseUrl,

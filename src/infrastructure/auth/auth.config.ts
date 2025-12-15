@@ -2,8 +2,10 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { DrizzleDatabase } from "../database";
 import { authSchema } from "./auth.schema";
-import type { Redis } from "@upstash/redis";
+import { Redis } from "@upstash/redis";
 import { IIdGenerator } from "@/application";
+import { UuidIdGenerator } from "../services";
+import { getDatabase } from "../database/connection";
 
 /**
  * Better Auth Configuration Options
@@ -109,11 +111,30 @@ export type Auth = ReturnType<typeof createAuth>;
 let authInstance: Auth | null = null;
 
 /**
- * Gets the auth instance, if initialized, otherwise throws an error
+ * Gets or creates the singleton auth instance
  */
-export function getAuth(): Auth {
+export function getAuth(options?: AuthConfigOptions): Auth {
   if (!authInstance) {
-    throw new Error("Auth instance has not been initialized.");
+    authInstance = createAuth({
+      idGenerator: options?.idGenerator ?? new UuidIdGenerator(),
+      secret: options?.secret ?? process.env.BETTER_AUTH_SECRET!,
+      baseURL: options?.baseURL ?? process.env.VITE_APP_URL!,
+      db: options?.db ?? getDatabase(),
+      redis:
+        options?.redis ??
+        new Redis({
+          url: process.env.UPSTASH_REDIS_REST_URL!,
+          token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+        }),
+      googleClient: options?.googleClient ?? {
+        id: process.env.GOOGLE_CLIENT_ID!,
+        secret: process.env.GOOGLE_CLIENT_SECRET!,
+      },
+      microsoftClient: options?.microsoftClient ?? {
+        id: process.env.MICROSOFT_CLIENT_ID!,
+        secret: process.env.MICROSOFT_CLIENT_SECRET!,
+      },
+    });
   }
   return authInstance;
 }

@@ -20,3 +20,20 @@ export function createDatabaseConnection(databaseUrl: string): DrizzleDatabase {
   const client = neon(databaseUrl);
   return drizzle({ client, schema });
 }
+
+/**
+ * Default database instance
+ */
+let databaseInstance: DrizzleDatabase | null = null;
+
+/**
+ * Gets or creates the singleton database instance
+ */
+export function getDatabase(databaseUrl?: string): DrizzleDatabase {
+  if (!databaseInstance) {
+    databaseInstance = createDatabaseConnection(
+      databaseUrl ?? process.env.DATABASE_URL!
+    );
+  }
+  return databaseInstance;
+}

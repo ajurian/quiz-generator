@@ -4,7 +4,13 @@ import {
   type CreateQuizUseCaseDeps,
   type CreateQuizUseCaseInput,
 } from "../../application/use-cases/create-quiz.use-case";
-import { Quiz, Question, QuestionType, GeminiModel } from "../../domain";
+import {
+  Quiz,
+  Question,
+  QuestionType,
+  GeminiModel,
+  QuizVisibility,
+} from "../../domain";
 import type {
   IQuizRepository,
   IQuestionRepository,
@@ -40,6 +46,7 @@ describe("CreateQuizUseCase", () => {
       twoStatements: 3,
       contextual: 2,
     },
+    visibility: QuizVisibility.PRIVATE,
     files: [new File(["content"], "test.pdf", { type: "application/pdf" })],
   });
 
@@ -108,6 +115,15 @@ describe("CreateQuizUseCase", () => {
       update: mock(async (quiz: Quiz) => quiz),
       delete: mock(async () => {}),
       exists: mock(async () => false),
+      findBySlug: mock(async () => null),
+      findPublic: mock(async () => ({
+        data: [],
+        total: 0,
+        page: 1,
+        limit: 10,
+        totalPages: 0,
+      })),
+      slugExists: mock(async () => false),
     };
 
     mockQuestionRepository = {
@@ -143,7 +159,7 @@ describe("CreateQuizUseCase", () => {
 
       expect(result.id).toBe(QUIZ_ID);
       expect(result.title).toBe("Test Quiz");
-      expect(result.isPublic).toBe(false);
+      expect(result.visibility).toBe(QuizVisibility.PRIVATE);
       expect(result.totalQuestions).toBe(10);
       expect(result.distribution).toEqual({
         singleBestAnswer: 5,

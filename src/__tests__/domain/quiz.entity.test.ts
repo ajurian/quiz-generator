@@ -4,21 +4,27 @@ import {
   QuizDistributionService,
   type QuizDistribution,
 } from "../../domain/services/quiz-distribution.service";
+import { QuizVisibility } from "../../domain";
 
 describe("Quiz Entity", () => {
+  // Valid UUIDs for testing (slug generation requires valid UUID format)
+  const QUIZ_ID = "019b2194-72a0-7000-a712-5e5bc5c313c1";
+  const USER_ID = "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10";
+  const OTHER_USER_ID = "019b2194-72a0-7000-a712-5e5bc5c313c0";
+
   // Helper to create valid props
   const createValidProps = (
     overrides?: Partial<CreateQuizProps>
   ): CreateQuizProps => ({
-    id: "quiz-123",
-    userId: "user-456",
+    id: QUIZ_ID,
+    userId: USER_ID,
     title: "Test Quiz",
     distribution: {
       singleBestAnswer: 5,
       twoStatements: 3,
       contextual: 2,
     },
-    isPublic: false,
+    visibility: QuizVisibility.PRIVATE,
     ...overrides,
   });
 
@@ -27,25 +33,27 @@ describe("Quiz Entity", () => {
       const props = createValidProps();
       const quiz = Quiz.create(props);
 
-      expect(quiz.id).toBe("quiz-123");
-      expect(quiz.userId).toBe("user-456");
+      expect(quiz.id).toBe(QUIZ_ID);
+      expect(quiz.userId).toBe(USER_ID);
       expect(quiz.title).toBe("Test Quiz");
-      expect(quiz.isPublic).toBe(false);
+      expect(quiz.visibility).toBe(QuizVisibility.PRIVATE);
       expect(quiz.createdAt).toBeInstanceOf(Date);
       expect(quiz.updatedAt).toBeInstanceOf(Date);
     });
 
-    it("should set isPublic to false by default", () => {
+    it("should set visibility to PRIVATE by default", () => {
       const props = createValidProps();
-      delete (props as any).isPublic;
+      delete (props as any).visibility;
       const quiz = Quiz.create(props);
 
-      expect(quiz.isPublic).toBe(false);
+      expect(quiz.visibility).toBe(QuizVisibility.PRIVATE);
     });
 
-    it("should set isPublic to true when specified", () => {
-      const quiz = Quiz.create(createValidProps({ isPublic: true }));
-      expect(quiz.isPublic).toBe(true);
+    it("should set visibility to PUBLIC when specified", () => {
+      const quiz = Quiz.create(
+        createValidProps({ visibility: QuizVisibility.PUBLIC })
+      );
+      expect(quiz.visibility).toBe(QuizVisibility.PUBLIC);
     });
 
     it("should encode distribution correctly", () => {
@@ -132,33 +140,36 @@ describe("Quiz Entity", () => {
       });
 
       const quiz = Quiz.reconstitute({
-        id: "quiz-123",
-        userId: "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
+        id: QUIZ_ID,
+        slug: "AZshlHKgcACnEl5bxcMTwQ",
+        userId: USER_ID,
         title: "Reconstituted Quiz",
         createdAt,
         updatedAt,
-        isPublic: true,
+        visibility: QuizVisibility.PUBLIC,
         questionDistribution: encodedDistribution,
       });
 
-      expect(quiz.id).toBe("quiz-123");
-      expect(quiz.userId).toBe("018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10");
+      expect(quiz.id).toBe(QUIZ_ID);
+      expect(quiz.slug).toBe("AZshlHKgcACnEl5bxcMTwQ");
+      expect(quiz.userId).toBe(USER_ID);
       expect(quiz.title).toBe("Reconstituted Quiz");
       expect(quiz.createdAt).toBe(createdAt);
       expect(quiz.updatedAt).toBe(updatedAt);
-      expect(quiz.isPublic).toBe(true);
+      expect(quiz.visibility).toBe(QuizVisibility.PUBLIC);
       expect(quiz.questionDistribution).toBe(encodedDistribution);
     });
 
     it("should throw for invalid dates", () => {
       expect(() =>
         Quiz.reconstitute({
-          id: "quiz-123",
-          userId: "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
+          id: QUIZ_ID,
+          slug: "AZshlHKgcACnEl5bxcMTwQ",
+          userId: USER_ID,
           title: "Test",
           createdAt: new Date("invalid"),
           updatedAt: new Date(),
-          isPublic: false,
+          visibility: QuizVisibility.PRIVATE,
           questionDistribution: 1,
         })
       ).toThrow("Valid createdAt date is required");
@@ -182,12 +193,13 @@ describe("Quiz Entity", () => {
 
     it("should handle edge case with all zeros after reconstitution", () => {
       const quiz = Quiz.reconstitute({
-        id: "quiz-123",
-        userId: "user-456",
+        id: QUIZ_ID,
+        slug: "AZshlHKgcACnEl5bxcMTwQ",
+        userId: USER_ID,
         title: "Test",
         createdAt: new Date(),
         updatedAt: new Date(),
-        isPublic: false,
+        visibility: QuizVisibility.PRIVATE,
         questionDistribution: 0,
       });
 
@@ -247,50 +259,45 @@ describe("Quiz Entity", () => {
   });
 
   describe("visibility methods", () => {
-    describe("makePublic", () => {
-      it("should make the quiz public", () => {
-        const quiz = Quiz.create(createValidProps({ isPublic: false }));
-        quiz.makePublic();
+    describe("setVisibility", () => {
+      it("should set the quiz to public", () => {
+        const quiz = Quiz.create(
+          createValidProps({ visibility: QuizVisibility.PRIVATE })
+        );
+        quiz.setVisibility(QuizVisibility.PUBLIC);
 
-        expect(quiz.isPublic).toBe(true);
+        expect(quiz.visibility).toBe(QuizVisibility.PUBLIC);
+      });
+
+      it("should set the quiz to unlisted", () => {
+        const quiz = Quiz.create(
+          createValidProps({ visibility: QuizVisibility.PRIVATE })
+        );
+        quiz.setVisibility(QuizVisibility.UNLISTED);
+
+        expect(quiz.visibility).toBe(QuizVisibility.UNLISTED);
+      });
+
+      it("should set the quiz to private", () => {
+        const quiz = Quiz.create(
+          createValidProps({ visibility: QuizVisibility.PUBLIC })
+        );
+        quiz.setVisibility(QuizVisibility.PRIVATE);
+
+        expect(quiz.visibility).toBe(QuizVisibility.PRIVATE);
       });
 
       it("should update updatedAt timestamp", () => {
-        const quiz = Quiz.create(createValidProps({ isPublic: false }));
+        const quiz = Quiz.create(
+          createValidProps({ visibility: QuizVisibility.PRIVATE })
+        );
         const originalUpdatedAt = quiz.updatedAt;
 
-        quiz.makePublic();
+        quiz.setVisibility(QuizVisibility.PUBLIC);
 
         expect(quiz.updatedAt.getTime()).toBeGreaterThanOrEqual(
           originalUpdatedAt.getTime()
         );
-      });
-    });
-
-    describe("makePrivate", () => {
-      it("should make the quiz private", () => {
-        const quiz = Quiz.create(createValidProps({ isPublic: true }));
-        quiz.makePrivate();
-
-        expect(quiz.isPublic).toBe(false);
-      });
-    });
-
-    describe("toggleVisibility", () => {
-      it("should toggle from private to public and return new state", () => {
-        const quiz = Quiz.create(createValidProps({ isPublic: false }));
-        const result = quiz.toggleVisibility();
-
-        expect(result).toBe(true);
-        expect(quiz.isPublic).toBe(true);
-      });
-
-      it("should toggle from public to private and return new state", () => {
-        const quiz = Quiz.create(createValidProps({ isPublic: true }));
-        const result = quiz.toggleVisibility();
-
-        expect(result).toBe(false);
-        expect(quiz.isPublic).toBe(false);
       });
     });
   });
@@ -345,7 +352,20 @@ describe("Quiz Entity", () => {
       const otherUserId = "019b2194-72a0-7000-a712-5e5bc5c313c0";
       const quiz = Quiz.create(
         createValidProps({
-          isPublic: true,
+          visibility: QuizVisibility.PUBLIC,
+          userId: "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
+        })
+      );
+
+      expect(quiz.canBeAccessedBy(otherUserId)).toBe(true);
+      expect(quiz.canBeAccessedBy(null)).toBe(true);
+    });
+
+    it("should return true for unlisted quiz with any user", () => {
+      const otherUserId = "019b2194-72a0-7000-a712-5e5bc5c313c0";
+      const quiz = Quiz.create(
+        createValidProps({
+          visibility: QuizVisibility.UNLISTED,
           userId: "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
         })
       );
@@ -357,7 +377,10 @@ describe("Quiz Entity", () => {
     it("should return true for private quiz with owner", () => {
       const ownerId = "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10";
       const quiz = Quiz.create(
-        createValidProps({ isPublic: false, userId: ownerId })
+        createValidProps({
+          visibility: QuizVisibility.PRIVATE,
+          userId: ownerId,
+        })
       );
 
       expect(quiz.canBeAccessedBy(ownerId)).toBe(true);
@@ -367,7 +390,7 @@ describe("Quiz Entity", () => {
       const otherUserId = "019b2194-72a0-7000-a712-5e5bc5c313c0";
       const quiz = Quiz.create(
         createValidProps({
-          isPublic: false,
+          visibility: QuizVisibility.PRIVATE,
           userId: "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
         })
       );
@@ -378,7 +401,7 @@ describe("Quiz Entity", () => {
     it("should return false for private quiz with null user", () => {
       const quiz = Quiz.create(
         createValidProps({
-          isPublic: false,
+          visibility: QuizVisibility.PRIVATE,
           userId: "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
         })
       );
@@ -392,10 +415,10 @@ describe("Quiz Entity", () => {
       const quiz = Quiz.create(createValidProps());
       const plain = quiz.toPlain();
 
-      expect(plain.id).toBe("quiz-123");
-      expect(plain.userId).toBe("user-456");
+      expect(plain.id).toBe(QUIZ_ID);
+      expect(plain.userId).toBe(USER_ID);
       expect(plain.title).toBe("Test Quiz");
-      expect(plain.isPublic).toBe(false);
+      expect(plain.visibility).toBe(QuizVisibility.PRIVATE);
       expect(plain.createdAt).toBeInstanceOf(Date);
       expect(plain.updatedAt).toBeInstanceOf(Date);
       expect(typeof plain.questionDistribution).toBe("number");

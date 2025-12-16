@@ -4,7 +4,7 @@ import {
   type ShareQuizUseCaseDeps,
   type ShareQuizInput,
 } from "../../application/use-cases/share-quiz.use-case";
-import { Quiz } from "../../domain";
+import { Quiz, QuizVisibility } from "../../domain";
 import type { IQuizRepository } from "../../application/ports";
 import {
   NotFoundError,
@@ -21,13 +21,16 @@ describe("ShareQuizUseCase", () => {
   const OTHER_USER_ID = "019b2194-72a0-7000-a712-5e5bc5c313c0";
   const NON_EXISTENT_QUIZ_ID = "019b2194-72a0-7000-a712-5e5bc5c313d0";
 
-  const createMockQuiz = (isPublic = false, userId = OWNER_ID): Quiz => {
+  const createMockQuiz = (
+    visibility = QuizVisibility.PRIVATE,
+    userId = OWNER_ID
+  ): Quiz => {
     return Quiz.create({
       id: QUIZ_ID,
       userId,
       title: "Test Quiz",
       distribution: { singleBestAnswer: 5, twoStatements: 3, contextual: 2 },
-      isPublic,
+      visibility,
     });
   };
 
@@ -50,6 +53,15 @@ describe("ShareQuizUseCase", () => {
       update: mock(async (quiz: Quiz) => quiz),
       delete: mock(async () => {}),
       exists: mock(async () => false),
+      findBySlug: mock(async () => null),
+      findPublic: mock(async () => ({
+        data: [],
+        total: 0,
+        page: 1,
+        limit: 10,
+        totalPages: 0,
+      })),
+      slugExists: mock(async () => false),
     };
 
     useCase = new ShareQuizUseCase({
@@ -58,7 +70,7 @@ describe("ShareQuizUseCase", () => {
   });
 
   describe("successful execution", () => {
-    it("should make quiz public and return share link", async () => {
+    it("should make quiz unlisted and return share link", async () => {
       const input: ShareQuizInput = {
         quizId: QUIZ_ID,
         userId: OWNER_ID,
@@ -66,10 +78,10 @@ describe("ShareQuizUseCase", () => {
 
       const result = await useCase.execute(input, "https://example.com");
 
-      expect(result.quiz.isPublic).toBe(true);
-      expect(result.shareLink).toBe(
-        `https://example.com/quiz/${QUIZ_ID}/public`
-      );
+      // ShareQuiz defaults to UNLISTED visibility
+      expect(result.quiz.visibility).toBe(QuizVisibility.UNLISTED);
+      // Share link uses slug format: /quiz/a/{slug}
+      expect(result.shareLink).toContain("https://example.com/quiz/a/");
     });
 
     it("should call update on repository", async () => {
@@ -83,8 +95,11 @@ describe("ShareQuizUseCase", () => {
       expect(mockQuizRepository.update).toHaveBeenCalledTimes(1);
     });
 
-    it("should not change already public quiz", async () => {
-      mockQuizRepository.findById = mock(async () => createMockQuiz(true));
+    it("should not change visibility if already at target visibility", async () => {
+      // Mock a quiz that's already UNLISTED (the default share visibility)
+      mockQuizRepository.findById = mock(async () =>
+        createMockQuiz(QuizVisibility.UNLISTED)
+      );
 
       const input: ShareQuizInput = {
         quizId: QUIZ_ID,
@@ -93,10 +108,11 @@ describe("ShareQuizUseCase", () => {
 
       const result = await useCase.execute(input, "https://example.com");
 
-      expect(result.quiz.isPublic).toBe(true);
+      // Already unlisted quiz stays unlisted
+      expect(result.quiz.visibility).toBe(QuizVisibility.UNLISTED);
     });
 
-    it("should return correct share link format", async () => {
+    it("should return correct share link format with slug", async () => {
       const input: ShareQuizInput = {
         quizId: QUIZ_ID,
         userId: OWNER_ID,
@@ -104,8 +120,9 @@ describe("ShareQuizUseCase", () => {
 
       const result = await useCase.execute(input, "https://my-app.example.com");
 
-      expect(result.shareLink).toBe(
-        `https://my-app.example.com/quiz/${QUIZ_ID}/public`
+      // Share link uses slug format: /quiz/a/{slug}
+      expect(result.shareLink).toMatch(
+        /^https:\/\/my-app\.example\.com\/quiz\/a\/[A-Za-z0-9_-]{22}$/
       );
     });
   });

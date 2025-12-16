@@ -4,7 +4,7 @@ import {
   distributionSchema,
   toQuizResponseDTO,
 } from "../../application/dtos/quiz.dto";
-import { Quiz } from "../../domain";
+import { Quiz, QuizVisibility } from "../../domain";
 
 describe("Quiz DTOs", () => {
   describe("distributionSchema", () => {
@@ -70,7 +70,6 @@ describe("Quiz DTOs", () => {
           contextual: 2,
         },
       });
-      console.log(result.error);
 
       expect(result.success).toBe(true);
     });
@@ -107,13 +106,15 @@ describe("Quiz DTOs", () => {
   });
 
   describe("toQuizResponseDTO", () => {
-    const createMockQuiz = (isPublic = false): Quiz => {
+    const QUIZ_ID = "019b2194-72a0-7000-a712-5e5bc5c313c1";
+
+    const createMockQuiz = (visibility = QuizVisibility.PRIVATE): Quiz => {
       return Quiz.create({
-        id: "quiz-123",
+        id: QUIZ_ID,
         userId: "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
         title: "Test Quiz",
         distribution: { singleBestAnswer: 5, twoStatements: 3, contextual: 2 },
-        isPublic,
+        visibility,
       });
     };
 
@@ -121,9 +122,9 @@ describe("Quiz DTOs", () => {
       const quiz = createMockQuiz();
       const dto = toQuizResponseDTO(quiz);
 
-      expect(dto.id).toBe("quiz-123");
+      expect(dto.id).toBe(QUIZ_ID);
       expect(dto.title).toBe("Test Quiz");
-      expect(dto.isPublic).toBe(false);
+      expect(dto.visibility).toBe(QuizVisibility.PRIVATE);
       expect(dto.totalQuestions).toBe(10);
       expect(dto.distribution).toEqual({
         singleBestAnswer: 5,
@@ -135,21 +136,24 @@ describe("Quiz DTOs", () => {
     });
 
     it("should include share link when baseUrl provided and quiz is public", () => {
-      const quiz = createMockQuiz(true);
+      const quiz = createMockQuiz(QuizVisibility.PUBLIC);
       const dto = toQuizResponseDTO(quiz, "https://example.com");
 
-      expect(dto.shareLink).toBe("https://example.com/quiz/quiz-123/public");
+      // Share link uses slug format: /quiz/a/{slug}
+      expect(dto.shareLink).toMatch(
+        /^https:\/\/example\.com\/quiz\/a\/[A-Za-z0-9_-]{22}$/
+      );
     });
 
     it("should not include share link for private quiz", () => {
-      const quiz = createMockQuiz(false);
+      const quiz = createMockQuiz(QuizVisibility.PRIVATE);
       const dto = toQuizResponseDTO(quiz, "https://example.com");
 
       expect(dto.shareLink).toBeUndefined();
     });
 
     it("should not include share link when baseUrl not provided", () => {
-      const quiz = createMockQuiz(true);
+      const quiz = createMockQuiz(QuizVisibility.PUBLIC);
       const dto = toQuizResponseDTO(quiz);
 
       expect(dto.shareLink).toBeUndefined();

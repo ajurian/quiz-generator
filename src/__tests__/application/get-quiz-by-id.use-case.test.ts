@@ -4,7 +4,13 @@ import {
   type GetQuizByIdUseCaseDeps,
   type GetQuizByIdInput,
 } from "../../application/use-cases/get-quiz-by-id.use-case";
-import { Quiz, Question, QuestionType, QuestionOption } from "../../domain";
+import {
+  Quiz,
+  Question,
+  QuestionType,
+  QuestionOption,
+  QuizVisibility,
+} from "../../domain";
 import type {
   IQuizRepository,
   IQuestionRepository,
@@ -26,13 +32,16 @@ describe("GetQuizByIdUseCase", () => {
   const NON_EXISTENT_QUIZ_ID = "019b2194-72a0-7000-a712-5e5bc5c313d0";
   const QUESTION_ID = "019b2194-72a0-7000-a712-5e5bc5c313c2";
 
-  const createMockQuiz = (isPublic = false, userId = OWNER_ID): Quiz => {
+  const createMockQuiz = (
+    visibility = QuizVisibility.PRIVATE,
+    userId = OWNER_ID
+  ): Quiz => {
     const quiz = Quiz.create({
       id: QUIZ_ID,
       userId,
       title: "Test Quiz",
       distribution: { singleBestAnswer: 5, twoStatements: 3, contextual: 2 },
-      isPublic,
+      visibility,
     });
     return quiz;
   };
@@ -74,6 +83,15 @@ describe("GetQuizByIdUseCase", () => {
       update: mock(async (quiz: Quiz) => quiz),
       delete: mock(async () => {}),
       exists: mock(async () => false),
+      findBySlug: mock(async () => null),
+      findPublic: mock(async () => ({
+        data: [],
+        total: 0,
+        page: 1,
+        limit: 10,
+        totalPages: 0,
+      })),
+      slugExists: mock(async () => false),
     };
 
     mockQuestionRepository = {
@@ -104,7 +122,9 @@ describe("GetQuizByIdUseCase", () => {
     });
 
     it("should return public quiz without authentication", async () => {
-      mockQuizRepository.findById = mock(async () => createMockQuiz(true));
+      mockQuizRepository.findById = mock(async () =>
+        createMockQuiz(QuizVisibility.PUBLIC)
+      );
 
       const input: GetQuizByIdInput = {
         quizId: QUIZ_ID,
@@ -114,11 +134,13 @@ describe("GetQuizByIdUseCase", () => {
       const result = await useCase.execute(input);
 
       expect(result.quiz.id).toBe(QUIZ_ID);
-      expect(result.quiz.isPublic).toBe(true);
+      expect(result.quiz.visibility).toBe(QuizVisibility.PUBLIC);
     });
 
     it("should return public quiz to any user", async () => {
-      mockQuizRepository.findById = mock(async () => createMockQuiz(true));
+      mockQuizRepository.findById = mock(async () =>
+        createMockQuiz(QuizVisibility.PUBLIC)
+      );
 
       const input: GetQuizByIdInput = {
         quizId: QUIZ_ID,
@@ -147,7 +169,9 @@ describe("GetQuizByIdUseCase", () => {
     });
 
     it("should include share link for public quiz with baseUrl", async () => {
-      mockQuizRepository.findById = mock(async () => createMockQuiz(true));
+      mockQuizRepository.findById = mock(async () =>
+        createMockQuiz(QuizVisibility.PUBLIC)
+      );
 
       const input: GetQuizByIdInput = {
         quizId: QUIZ_ID,
@@ -156,29 +180,32 @@ describe("GetQuizByIdUseCase", () => {
 
       const result = await useCase.execute(input, "https://example.com");
 
-      expect(result.quiz.shareLink).toBe(
-        `https://example.com/quiz/${QUIZ_ID}/public`
+      // Share link uses slug format: /quiz/a/{slug}
+      expect(result.quiz.shareLink).toMatch(
+        /^https:\/\/example\.com\/quiz\/a\/[A-Za-z0-9_-]{22}$/
       );
     });
   });
 
   describe("access control", () => {
-    it("should throw ForbiddenError when non-owner accesses private quiz", async () => {
+    it("should throw NotFoundError when non-owner accesses private quiz (prevents existence leak)", async () => {
       const input: GetQuizByIdInput = {
         quizId: QUIZ_ID,
         userId: OTHER_USER_ID,
       };
 
-      await expect(useCase.execute(input)).rejects.toThrow(ForbiddenError);
+      // NotFoundError is returned instead of ForbiddenError to prevent leaking quiz existence
+      await expect(useCase.execute(input)).rejects.toThrow(NotFoundError);
     });
 
-    it("should throw ForbiddenError when unauthenticated user accesses private quiz", async () => {
+    it("should throw NotFoundError when unauthenticated user accesses private quiz (prevents existence leak)", async () => {
       const input: GetQuizByIdInput = {
         quizId: QUIZ_ID,
         userId: null,
       };
 
-      await expect(useCase.execute(input)).rejects.toThrow(ForbiddenError);
+      // NotFoundError is returned instead of ForbiddenError to prevent leaking quiz existence
+      await expect(useCase.execute(input)).rejects.toThrow(NotFoundError);
     });
   });
 

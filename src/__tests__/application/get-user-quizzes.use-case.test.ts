@@ -4,7 +4,7 @@ import {
   type GetUserQuizzesUseCaseDeps,
   type GetUserQuizzesInput,
 } from "../../application/use-cases/get-user-quizzes.use-case";
-import { Quiz } from "../../domain";
+import { Quiz, QuizVisibility } from "../../domain";
 import type { IQuizRepository, PaginatedResult } from "../../application/ports";
 import { ValidationError } from "../../application/errors";
 
@@ -22,7 +22,7 @@ describe("GetUserQuizzesUseCase", () => {
       userId,
       title,
       distribution: { singleBestAnswer: 5, twoStatements: 3, contextual: 2 },
-      isPublic: false,
+      visibility: QuizVisibility.PRIVATE,
     });
   };
 
@@ -46,6 +46,15 @@ describe("GetUserQuizzesUseCase", () => {
       update: mock(async (quiz: Quiz) => quiz),
       delete: mock(async () => {}),
       exists: mock(async () => false),
+      findBySlug: mock(async () => null),
+      findPublic: mock(async () => ({
+        data: [],
+        total: 0,
+        page: 1,
+        limit: 10,
+        totalPages: 0,
+      })),
+      slugExists: mock(async () => false),
     };
 
     useCase = new GetUserQuizzesUseCase({
@@ -106,7 +115,7 @@ describe("GetUserQuizzesUseCase", () => {
       expect(result.data[0]).toHaveProperty("title");
       expect(result.data[0]).toHaveProperty("createdAt");
       expect(result.data[0]).toHaveProperty("totalQuestions");
-      expect(result.data[0]).toHaveProperty("isPublic");
+      expect(result.data[0]).toHaveProperty("visibility");
       expect(result.data[0]).toHaveProperty("distribution");
     });
 
@@ -123,7 +132,7 @@ describe("GetUserQuizzesUseCase", () => {
               twoStatements: 3,
               contextual: 2,
             },
-            isPublic: true,
+            visibility: QuizVisibility.PUBLIC,
           });
           return {
             data: [quiz],
@@ -141,8 +150,9 @@ describe("GetUserQuizzesUseCase", () => {
 
       const result = await useCase.execute(input, "https://example.com");
 
-      expect(result.data[0]!.shareLink).toBe(
-        `https://example.com/quiz/${QUIZ_1_ID}/public`
+      // Share link uses slug format: /quiz/a/{slug}
+      expect(result.data[0]!.shareLink).toMatch(
+        /^https:\/\/example\.com\/quiz\/a\/[A-Za-z0-9_-]{22}$/
       );
     });
   });

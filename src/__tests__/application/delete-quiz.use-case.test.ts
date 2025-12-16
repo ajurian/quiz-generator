@@ -4,7 +4,7 @@ import {
   type DeleteQuizUseCaseDeps,
   type DeleteQuizInput,
 } from "../../application/use-cases/delete-quiz.use-case";
-import { Quiz, Question, QuestionType } from "../../domain";
+import { Quiz, Question, QuestionType, QuizVisibility } from "../../domain";
 import type {
   IQuizRepository,
   IQuestionRepository,
@@ -31,7 +31,7 @@ describe("DeleteQuizUseCase", () => {
       userId,
       title: "Test Quiz",
       distribution: { singleBestAnswer: 5, twoStatements: 3, contextual: 2 },
-      isPublic: false,
+      visibility: QuizVisibility.PRIVATE,
     });
   };
 
@@ -54,6 +54,15 @@ describe("DeleteQuizUseCase", () => {
       update: mock(async (quiz: Quiz) => quiz),
       delete: mock(async () => {}),
       exists: mock(async () => false),
+      findBySlug: mock(async () => null),
+      findPublic: mock(async () => ({
+        data: [],
+        total: 0,
+        page: 1,
+        limit: 10,
+        totalPages: 0,
+      })),
+      slugExists: mock(async () => false),
     };
 
     mockQuestionRepository = {

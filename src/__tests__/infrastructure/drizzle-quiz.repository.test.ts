@@ -1,11 +1,15 @@
 import { describe, expect, it, beforeEach, mock, spyOn } from "bun:test";
 import { DrizzleQuizRepository } from "../../infrastructure/database/repositories/drizzle-quiz.repository";
-import { Quiz, QuizDistributionService } from "../../domain";
+import { Quiz, QuizDistributionService, QuizVisibility } from "../../domain";
 import type { DrizzleDatabase } from "../../infrastructure/database/connection";
 
 describe("DrizzleQuizRepository", () => {
   let repository: DrizzleQuizRepository;
   let mockDb: DrizzleDatabase;
+
+  // Valid UUIDs for testing (slug generation requires valid UUID format)
+  const QUIZ_ID = "019b2194-72a0-7000-a712-5e5bc5c313c1";
+  const USER_ID = "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10";
 
   // Helper to create a valid Quiz entity
   const createTestQuiz = (
@@ -13,29 +17,30 @@ describe("DrizzleQuizRepository", () => {
       id: string;
       userId: string;
       title: string;
-      isPublic: boolean;
+      visibility: QuizVisibility;
     }> = {}
   ): Quiz => {
     return Quiz.create({
-      id: overrides.id ?? "quiz-123",
-      userId: overrides.userId ?? "user-456",
+      id: overrides.id ?? QUIZ_ID,
+      userId: overrides.userId ?? USER_ID,
       title: overrides.title ?? "Test Quiz",
       distribution: {
         singleBestAnswer: 5,
         twoStatements: 3,
         contextual: 2,
       },
-      isPublic: overrides.isPublic ?? false,
+      visibility: overrides.visibility ?? QuizVisibility.PRIVATE,
     });
   };
 
   // Helper to create a mock database row
   const createMockDbRow = (quiz: Quiz) => ({
     id: quiz.id,
+    slug: quiz.slug,
     userId: quiz.userId,
     title: quiz.title,
     questionDistribution: quiz.questionDistribution,
-    isPublic: quiz.isPublic,
+    visibility: quiz.visibility,
     createdAt: quiz.createdAt,
     updatedAt: quiz.updatedAt,
   });
@@ -105,7 +110,7 @@ describe("DrizzleQuizRepository", () => {
 
   describe("findById", () => {
     it("should return a quiz when found", async () => {
-      const quiz = createTestQuiz({ id: "existing-quiz" });
+      const quiz = createTestQuiz({ id: QUIZ_ID });
       const dbRow = createMockDbRow(quiz);
 
       const mockChain = {
@@ -119,10 +124,10 @@ describe("DrizzleQuizRepository", () => {
         () => mockChain as unknown
       ) as unknown as DrizzleDatabase["select"];
 
-      const result = await repository.findById("existing-quiz");
+      const result = await repository.findById(QUIZ_ID);
 
       expect(result).toBeInstanceOf(Quiz);
-      expect(result?.id).toBe("existing-quiz");
+      expect(result?.id).toBe(QUIZ_ID);
     });
 
     it("should return null when quiz is not found", async () => {
@@ -145,13 +150,15 @@ describe("DrizzleQuizRepository", () => {
 
   describe("findByUserId", () => {
     it("should return paginated quizzes for a user", async () => {
+      const QUIZ_ID_1 = "019b2194-72a0-7001-a712-5e5bc5c31311";
+      const QUIZ_ID_2 = "019b2194-72a0-7002-a712-5e5bc5c31312";
       const quiz1 = createTestQuiz({
-        id: "quiz-1",
-        userId: "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
+        id: QUIZ_ID_1,
+        userId: USER_ID,
       });
       const quiz2 = createTestQuiz({
-        id: "quiz-2",
-        userId: "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
+        id: QUIZ_ID_2,
+        userId: USER_ID,
       });
       const dbRows = [createMockDbRow(quiz1), createMockDbRow(quiz2)];
 
@@ -181,13 +188,10 @@ describe("DrizzleQuizRepository", () => {
         return (callCount === 1 ? countChain : dataChain) as unknown;
       }) as unknown as DrizzleDatabase["select"];
 
-      const result = await repository.findByUserId(
-        "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
-        {
-          page: 1,
-          limit: 10,
-        }
-      );
+      const result = await repository.findByUserId(USER_ID, {
+        page: 1,
+        limit: 10,
+      });
 
       expect(result.data).toHaveLength(2);
       expect(result.total).toBe(5);
@@ -221,13 +225,10 @@ describe("DrizzleQuizRepository", () => {
         return (callCount === 1 ? countChain : dataChain) as unknown;
       }) as unknown as DrizzleDatabase["select"];
 
-      const result = await repository.findByUserId(
-        "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
-        {
-          page: 1,
-          limit: 10,
-        }
-      );
+      const result = await repository.findByUserId(USER_ID, {
+        page: 1,
+        limit: 10,
+      });
 
       expect(result.totalPages).toBe(3); // 25 / 10 = 2.5, ceil = 3
     });

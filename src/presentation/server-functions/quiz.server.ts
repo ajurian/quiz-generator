@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getContainer } from "@/infrastructure/di";
+import { QuizVisibility } from "@/domain";
 
 // Validation schemas
 const paginationSchema = z.object({
@@ -81,6 +82,10 @@ export const createQuiz = createServerFn({ method: "POST" })
         twoStatements: z.number().int().min(0).max(255),
         contextual: z.number().int().min(0).max(255),
       }),
+      visibility: z
+        .nativeEnum(QuizVisibility)
+        .optional()
+        .default(QuizVisibility.PRIVATE),
       files: z.array(serializableFileSchema),
     })
   )
@@ -95,6 +100,7 @@ export const createQuiz = createServerFn({ method: "POST" })
         userId: data.userId,
         title: data.title,
         distribution: data.distribution,
+        visibility: data.visibility,
         files,
       },
       container.baseUrl

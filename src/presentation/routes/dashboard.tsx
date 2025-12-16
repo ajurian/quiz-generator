@@ -81,7 +81,7 @@ function DashboardLayout() {
 
           <div className="flex items-center gap-3">
             <Button asChild size="sm" className="glow-primary">
-              <Link to="/dashboard/quiz/new">
+              <Link to="/quiz/new">
                 <Sparkles className="mr-2 h-4 w-4" />
                 New Quiz
               </Link>

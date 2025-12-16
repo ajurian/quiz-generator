@@ -9,16 +9,24 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as QuizRouteImport } from './routes/quiz'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
+import { Route as QuizNewRouteImport } from './routes/quiz/new'
 import { Route as AuthSignupRouteImport } from './routes/auth/signup'
 import { Route as AuthSigninRouteImport } from './routes/auth/signin'
-import { Route as QuizQuizIdPublicRouteImport } from './routes/quiz/$quizId/public'
-import { Route as DashboardQuizNewRouteImport } from './routes/dashboard/quiz/new'
-import { Route as DashboardQuizQuizIdRouteImport } from './routes/dashboard/quiz/$quizId'
+import { Route as QuizMSlugRouteImport } from './routes/quiz/m/$slug'
+import { Route as QuizASlugRouteImport } from './routes/quiz/a/$slug'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as QuizHSlugIndexRouteImport } from './routes/quiz/h/$slug/index'
+import { Route as QuizHSlugAttemptSlugRouteImport } from './routes/quiz/h/$slug/$attemptSlug'
 
+const QuizRoute = QuizRouteImport.update({
+  id: '/quiz',
+  path: '/quiz',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -34,6 +42,11 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardRoute,
 } as any)
+const QuizNewRoute = QuizNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => QuizRoute,
+} as any)
 const AuthSignupRoute = AuthSignupRouteImport.update({
   id: '/auth/signup',
   path: '/auth/signup',
@@ -44,106 +57,136 @@ const AuthSigninRoute = AuthSigninRouteImport.update({
   path: '/auth/signin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const QuizQuizIdPublicRoute = QuizQuizIdPublicRouteImport.update({
-  id: '/quiz/$quizId/public',
-  path: '/quiz/$quizId/public',
-  getParentRoute: () => rootRouteImport,
+const QuizMSlugRoute = QuizMSlugRouteImport.update({
+  id: '/m/$slug',
+  path: '/m/$slug',
+  getParentRoute: () => QuizRoute,
 } as any)
-const DashboardQuizNewRoute = DashboardQuizNewRouteImport.update({
-  id: '/quiz/new',
-  path: '/quiz/new',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardQuizQuizIdRoute = DashboardQuizQuizIdRouteImport.update({
-  id: '/quiz/$quizId',
-  path: '/quiz/$quizId',
-  getParentRoute: () => DashboardRoute,
+const QuizASlugRoute = QuizASlugRouteImport.update({
+  id: '/a/$slug',
+  path: '/a/$slug',
+  getParentRoute: () => QuizRoute,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const QuizHSlugIndexRoute = QuizHSlugIndexRouteImport.update({
+  id: '/h/$slug/',
+  path: '/h/$slug/',
+  getParentRoute: () => QuizRoute,
+} as any)
+const QuizHSlugAttemptSlugRoute = QuizHSlugAttemptSlugRouteImport.update({
+  id: '/h/$slug/$attemptSlug',
+  path: '/h/$slug/$attemptSlug',
+  getParentRoute: () => QuizRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/quiz': typeof QuizRouteWithChildren
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
+  '/quiz/new': typeof QuizNewRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/dashboard/quiz/$quizId': typeof DashboardQuizQuizIdRoute
-  '/dashboard/quiz/new': typeof DashboardQuizNewRoute
-  '/quiz/$quizId/public': typeof QuizQuizIdPublicRoute
+  '/quiz/a/$slug': typeof QuizASlugRoute
+  '/quiz/m/$slug': typeof QuizMSlugRoute
+  '/quiz/h/$slug/$attemptSlug': typeof QuizHSlugAttemptSlugRoute
+  '/quiz/h/$slug': typeof QuizHSlugIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/quiz': typeof QuizRouteWithChildren
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
+  '/quiz/new': typeof QuizNewRoute
   '/dashboard': typeof DashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/dashboard/quiz/$quizId': typeof DashboardQuizQuizIdRoute
-  '/dashboard/quiz/new': typeof DashboardQuizNewRoute
-  '/quiz/$quizId/public': typeof QuizQuizIdPublicRoute
+  '/quiz/a/$slug': typeof QuizASlugRoute
+  '/quiz/m/$slug': typeof QuizMSlugRoute
+  '/quiz/h/$slug/$attemptSlug': typeof QuizHSlugAttemptSlugRoute
+  '/quiz/h/$slug': typeof QuizHSlugIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/quiz': typeof QuizRouteWithChildren
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
+  '/quiz/new': typeof QuizNewRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/dashboard/quiz/$quizId': typeof DashboardQuizQuizIdRoute
-  '/dashboard/quiz/new': typeof DashboardQuizNewRoute
-  '/quiz/$quizId/public': typeof QuizQuizIdPublicRoute
+  '/quiz/a/$slug': typeof QuizASlugRoute
+  '/quiz/m/$slug': typeof QuizMSlugRoute
+  '/quiz/h/$slug/$attemptSlug': typeof QuizHSlugAttemptSlugRoute
+  '/quiz/h/$slug/': typeof QuizHSlugIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/dashboard'
+    | '/quiz'
     | '/auth/signin'
     | '/auth/signup'
+    | '/quiz/new'
     | '/dashboard/'
     | '/api/auth/$'
-    | '/dashboard/quiz/$quizId'
-    | '/dashboard/quiz/new'
-    | '/quiz/$quizId/public'
+    | '/quiz/a/$slug'
+    | '/quiz/m/$slug'
+    | '/quiz/h/$slug/$attemptSlug'
+    | '/quiz/h/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/quiz'
     | '/auth/signin'
     | '/auth/signup'
+    | '/quiz/new'
     | '/dashboard'
     | '/api/auth/$'
-    | '/dashboard/quiz/$quizId'
-    | '/dashboard/quiz/new'
-    | '/quiz/$quizId/public'
+    | '/quiz/a/$slug'
+    | '/quiz/m/$slug'
+    | '/quiz/h/$slug/$attemptSlug'
+    | '/quiz/h/$slug'
   id:
     | '__root__'
     | '/'
     | '/dashboard'
+    | '/quiz'
     | '/auth/signin'
     | '/auth/signup'
+    | '/quiz/new'
     | '/dashboard/'
     | '/api/auth/$'
-    | '/dashboard/quiz/$quizId'
-    | '/dashboard/quiz/new'
-    | '/quiz/$quizId/public'
+    | '/quiz/a/$slug'
+    | '/quiz/m/$slug'
+    | '/quiz/h/$slug/$attemptSlug'
+    | '/quiz/h/$slug/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRouteWithChildren
+  QuizRoute: typeof QuizRouteWithChildren
   AuthSigninRoute: typeof AuthSigninRoute
   AuthSignupRoute: typeof AuthSignupRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
-  QuizQuizIdPublicRoute: typeof QuizQuizIdPublicRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/quiz': {
+      id: '/quiz'
+      path: '/quiz'
+      fullPath: '/quiz'
+      preLoaderRoute: typeof QuizRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
@@ -165,6 +208,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/quiz/new': {
+      id: '/quiz/new'
+      path: '/new'
+      fullPath: '/quiz/new'
+      preLoaderRoute: typeof QuizNewRouteImport
+      parentRoute: typeof QuizRoute
+    }
     '/auth/signup': {
       id: '/auth/signup'
       path: '/auth/signup'
@@ -179,26 +229,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSigninRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/quiz/$quizId/public': {
-      id: '/quiz/$quizId/public'
-      path: '/quiz/$quizId/public'
-      fullPath: '/quiz/$quizId/public'
-      preLoaderRoute: typeof QuizQuizIdPublicRouteImport
-      parentRoute: typeof rootRouteImport
+    '/quiz/m/$slug': {
+      id: '/quiz/m/$slug'
+      path: '/m/$slug'
+      fullPath: '/quiz/m/$slug'
+      preLoaderRoute: typeof QuizMSlugRouteImport
+      parentRoute: typeof QuizRoute
     }
-    '/dashboard/quiz/new': {
-      id: '/dashboard/quiz/new'
-      path: '/quiz/new'
-      fullPath: '/dashboard/quiz/new'
-      preLoaderRoute: typeof DashboardQuizNewRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/quiz/$quizId': {
-      id: '/dashboard/quiz/$quizId'
-      path: '/quiz/$quizId'
-      fullPath: '/dashboard/quiz/$quizId'
-      preLoaderRoute: typeof DashboardQuizQuizIdRouteImport
-      parentRoute: typeof DashboardRoute
+    '/quiz/a/$slug': {
+      id: '/quiz/a/$slug'
+      path: '/a/$slug'
+      fullPath: '/quiz/a/$slug'
+      preLoaderRoute: typeof QuizASlugRouteImport
+      parentRoute: typeof QuizRoute
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -207,32 +250,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/quiz/h/$slug/': {
+      id: '/quiz/h/$slug/'
+      path: '/h/$slug'
+      fullPath: '/quiz/h/$slug'
+      preLoaderRoute: typeof QuizHSlugIndexRouteImport
+      parentRoute: typeof QuizRoute
+    }
+    '/quiz/h/$slug/$attemptSlug': {
+      id: '/quiz/h/$slug/$attemptSlug'
+      path: '/h/$slug/$attemptSlug'
+      fullPath: '/quiz/h/$slug/$attemptSlug'
+      preLoaderRoute: typeof QuizHSlugAttemptSlugRouteImport
+      parentRoute: typeof QuizRoute
+    }
   }
 }
 
 interface DashboardRouteChildren {
   DashboardIndexRoute: typeof DashboardIndexRoute
-  DashboardQuizQuizIdRoute: typeof DashboardQuizQuizIdRoute
-  DashboardQuizNewRoute: typeof DashboardQuizNewRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardIndexRoute: DashboardIndexRoute,
-  DashboardQuizQuizIdRoute: DashboardQuizQuizIdRoute,
-  DashboardQuizNewRoute: DashboardQuizNewRoute,
 }
 
 const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
   DashboardRouteChildren,
 )
 
+interface QuizRouteChildren {
+  QuizNewRoute: typeof QuizNewRoute
+  QuizASlugRoute: typeof QuizASlugRoute
+  QuizMSlugRoute: typeof QuizMSlugRoute
+  QuizHSlugAttemptSlugRoute: typeof QuizHSlugAttemptSlugRoute
+  QuizHSlugIndexRoute: typeof QuizHSlugIndexRoute
+}
+
+const QuizRouteChildren: QuizRouteChildren = {
+  QuizNewRoute: QuizNewRoute,
+  QuizASlugRoute: QuizASlugRoute,
+  QuizMSlugRoute: QuizMSlugRoute,
+  QuizHSlugAttemptSlugRoute: QuizHSlugAttemptSlugRoute,
+  QuizHSlugIndexRoute: QuizHSlugIndexRoute,
+}
+
+const QuizRouteWithChildren = QuizRoute._addFileChildren(QuizRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRouteWithChildren,
+  QuizRoute: QuizRouteWithChildren,
   AuthSigninRoute: AuthSigninRoute,
   AuthSignupRoute: AuthSignupRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
-  QuizQuizIdPublicRoute: QuizQuizIdPublicRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

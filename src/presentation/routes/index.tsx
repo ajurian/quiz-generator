@@ -44,7 +44,7 @@ function HomePage() {
                 </Button>
               </Link>
               <Button asChild size="sm" className="glow-primary">
-                <Link to="/dashboard/quiz/new">
+                <Link to="/quiz/new">
                   <Sparkles className="mr-2 h-4 w-4" />
                   Create Quiz
                 </Link>
@@ -85,7 +85,7 @@ function HomePage() {
 
               <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <Button size="lg" className="glow-primary px-8" asChild>
-                  <Link to="/dashboard/quiz/new">
+                  <Link to="/quiz/new">
                     <Sparkles className="mr-2 h-5 w-5" />
                     Get Started Free
                     <ArrowRight className="ml-2 h-4 w-4" />
@@ -229,7 +229,7 @@ function HomePage() {
                 assessments.
               </p>
               <Button size="lg" className="glow-primary px-8" asChild>
-                <Link to="/dashboard/quiz/new">
+                <Link to="/quiz/new">
                   <Sparkles className="mr-2 h-5 w-5" />
                   Start Creating Now
                 </Link>

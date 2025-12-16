@@ -1,6 +1,7 @@
 import type { IQuizRepository } from "../ports";
 import { toQuizResponseDTO, type QuizResponseDTO } from "../dtos";
 import { NotFoundError, ForbiddenError, ValidationError } from "../errors";
+import { QuizVisibility } from "../../domain";
 
 /**
  * Input for ShareQuizUseCase
@@ -8,6 +9,7 @@ import { NotFoundError, ForbiddenError, ValidationError } from "../errors";
 export interface ShareQuizInput {
   quizId: string;
   userId: string;
+  visibility?: QuizVisibility;
 }
 
 /**
@@ -26,13 +28,13 @@ export interface ShareQuizUseCaseDeps {
 }
 
 /**
- * Use case for sharing a quiz publicly
+ * Use case for sharing a quiz by setting visibility
  *
  * Flow:
  * 1. Validate input
  * 2. Find quiz by ID
  * 3. Verify ownership
- * 4. Toggle public visibility
+ * 4. Set visibility (defaults to UNLISTED for sharing)
  * 5. Persist changes
  * 6. Generate share link
  */
@@ -76,16 +78,17 @@ export class ShareQuizUseCase {
       throw new ForbiddenError("You can only share quizzes that you own");
     }
 
-    // 4. Make public (if not already)
-    if (!quiz.isPublic) {
-      quiz.makePublic();
+    // 4. Set visibility (defaults to UNLISTED for sharing)
+    const targetVisibility = input.visibility ?? QuizVisibility.UNLISTED;
+    if (quiz.visibility !== targetVisibility) {
+      quiz.setVisibility(targetVisibility);
     }
 
     // 5. Persist changes
     const updatedQuiz = await this.deps.quizRepository.update(quiz);
 
-    // 6. Generate share link
-    const shareLink = `${baseUrl}/quiz/${quiz.id}/public`;
+    // 6. Generate share link using the quiz slug
+    const shareLink = `${baseUrl}/quiz/a/${quiz.slug}`;
 
     return {
       quiz: toQuizResponseDTO(updatedQuiz.toPlain(), baseUrl),

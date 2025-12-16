@@ -2,6 +2,7 @@ import { Redis } from "@upstash/redis";
 import {
   DrizzleQuizRepository,
   DrizzleQuestionRepository,
+  DrizzleAttemptRepository,
   type DrizzleDatabase,
 } from "../database";
 import {
@@ -17,10 +18,19 @@ import {
   GetQuizByIdUseCase,
   ShareQuizUseCase,
   DeleteQuizUseCase,
+  UpdateQuizVisibilityUseCase,
+  StartAttemptUseCase,
+  ForceStartAttemptUseCase,
+  SubmitAttemptUseCase,
+  GetUserAttemptsUseCase,
+  GetAttemptDetailUseCase,
+  AutosaveAnswerUseCase,
+  ResetAttemptUseCase,
 } from "../../application";
 import type {
   IQuizRepository,
   IQuestionRepository,
+  IAttemptRepository,
   IAIQuizGenerator,
   IFileStorageService,
   ICacheService,
@@ -50,6 +60,7 @@ export interface ContainerConfig {
 export interface Repositories {
   quizRepository: IQuizRepository;
   questionRepository: IQuestionRepository;
+  attemptRepository: IAttemptRepository;
 }
 
 /**
@@ -71,6 +82,14 @@ export interface UseCases {
   getQuizById: GetQuizByIdUseCase;
   shareQuiz: ShareQuizUseCase;
   deleteQuiz: DeleteQuizUseCase;
+  updateQuizVisibility: UpdateQuizVisibilityUseCase;
+  startAttempt: StartAttemptUseCase;
+  forceStartAttempt: ForceStartAttemptUseCase;
+  submitAttempt: SubmitAttemptUseCase;
+  getUserAttempts: GetUserAttemptsUseCase;
+  getAttemptDetail: GetAttemptDetailUseCase;
+  autosaveAnswer: AutosaveAnswerUseCase;
+  resetAttempt: ResetAttemptUseCase;
 }
 
 /**
@@ -119,6 +138,7 @@ export function createAppContainer(config: ContainerConfig): AppContainer {
   // Repositories (implementing ports)
   const quizRepository = new DrizzleQuizRepository(database);
   const questionRepository = new DrizzleQuestionRepository(database);
+  const attemptRepository = new DrizzleAttemptRepository(database);
 
   // Services (implementing ports)
   const aiGenerator = new GeminiQuizGeneratorService(config.googleAiApiKey);
@@ -169,6 +189,45 @@ export function createAppContainer(config: ContainerConfig): AppContainer {
     questionRepository,
   });
 
+  const updateQuizVisibility = new UpdateQuizVisibilityUseCase({
+    quizRepository,
+  });
+
+  const startAttempt = new StartAttemptUseCase({
+    quizRepository,
+    attemptRepository,
+    idGenerator,
+  });
+
+  const forceStartAttempt = new ForceStartAttemptUseCase({
+    quizRepository,
+    attemptRepository,
+    idGenerator,
+  });
+
+  const submitAttempt = new SubmitAttemptUseCase({
+    attemptRepository,
+  });
+
+  const getUserAttempts = new GetUserAttemptsUseCase({
+    quizRepository,
+    attemptRepository,
+  });
+
+  const getAttemptDetail = new GetAttemptDetailUseCase({
+    quizRepository,
+    attemptRepository,
+    questionRepository,
+  });
+
+  const autosaveAnswer = new AutosaveAnswerUseCase({
+    attemptRepository,
+  });
+
+  const resetAttempt = new ResetAttemptUseCase({
+    attemptRepository,
+  });
+
   return {
     baseUrl: config.baseUrl,
     db: database,
@@ -177,6 +236,7 @@ export function createAppContainer(config: ContainerConfig): AppContainer {
     repositories: {
       quizRepository,
       questionRepository,
+      attemptRepository,
     },
     services: {
       aiGenerator,
@@ -190,6 +250,14 @@ export function createAppContainer(config: ContainerConfig): AppContainer {
       getQuizById,
       shareQuiz,
       deleteQuiz,
+      updateQuizVisibility,
+      startAttempt,
+      forceStartAttempt,
+      submitAttempt,
+      getUserAttempts,
+      getAttemptDetail,
+      autosaveAnswer,
+      resetAttempt,
     },
   };
 }

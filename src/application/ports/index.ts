@@ -2,6 +2,7 @@
 export type {
   IQuizRepository,
   IQuestionRepository,
+  IAttemptRepository,
   PaginationParams,
   PaginatedResult,
 } from "./repositories";

@@ -2,6 +2,8 @@ import {
   QuizDistributionService,
   type QuizDistribution,
 } from "../services/quiz-distribution.service";
+import { QuizVisibility } from "../enums/quiz-visibility.enum";
+import { uuidToSlug } from "../value-objects/slug.vo";
 
 /**
  * Properties required to create a Quiz entity
@@ -10,9 +12,10 @@ export interface QuizProps {
   id: string;
   userId: string;
   title: string;
+  slug: string;
   createdAt: Date;
   updatedAt: Date;
-  isPublic: boolean;
+  visibility: QuizVisibility;
   questionDistribution: number;
 }
 
@@ -24,7 +27,7 @@ export interface CreateQuizProps {
   userId: string;
   title: string;
   distribution: QuizDistribution;
-  isPublic?: boolean;
+  visibility?: QuizVisibility;
 }
 
 /**
@@ -32,23 +35,30 @@ export interface CreateQuizProps {
  *
  * Represents a quiz containing multiple questions.
  * The question distribution is stored as a bit-packed 32-bit integer.
+ *
+ * Visibility levels:
+ * - PRIVATE: Only owner can view/attempt
+ * - UNLISTED: Anyone with the link can view/attempt; not listed in public directories
+ * - PUBLIC: Discoverable in app directories; anyone can view/attempt
  */
 export class Quiz {
   private readonly _id: string;
   private readonly _userId: string;
+  private readonly _slug: string;
   private _title: string;
   private readonly _createdAt: Date;
   private _updatedAt: Date;
-  private _isPublic: boolean;
+  private _visibility: QuizVisibility;
   private _questionDistribution: number;
 
   private constructor(props: QuizProps) {
     this._id = props.id;
     this._userId = props.userId;
+    this._slug = props.slug;
     this._title = props.title;
     this._createdAt = props.createdAt;
     this._updatedAt = props.updatedAt;
-    this._isPublic = props.isPublic;
+    this._visibility = props.visibility;
     this._questionDistribution = props.questionDistribution;
   }
 
@@ -64,13 +74,17 @@ export class Quiz {
       props.distribution
     );
 
+    // Generate slug from UUID (deterministic)
+    const slug = uuidToSlug(props.id);
+
     return new Quiz({
       id: props.id,
       userId: props.userId,
       title: props.title,
+      slug,
       createdAt: now,
       updatedAt: now,
-      isPublic: props.isPublic ?? false,
+      visibility: props.visibility ?? QuizVisibility.PRIVATE,
       questionDistribution: encodedDistribution,
     });
   }
@@ -111,6 +125,13 @@ export class Quiz {
     if (!QuizDistributionService.validate(props.distribution)) {
       throw new Error("Invalid question distribution");
     }
+
+    if (
+      props.visibility !== undefined &&
+      !Object.values(QuizVisibility).includes(props.visibility)
+    ) {
+      throw new Error("Invalid visibility value");
+    }
   }
 
   /**
@@ -129,6 +150,10 @@ export class Quiz {
       throw new Error("Quiz title is required");
     }
 
+    if (!props.slug || typeof props.slug !== "string") {
+      throw new Error("Quiz slug is required");
+    }
+
     if (
       !(props.createdAt instanceof Date) ||
       isNaN(props.createdAt.getTime())
@@ -143,8 +168,8 @@ export class Quiz {
       throw new Error("Valid updatedAt date is required");
     }
 
-    if (typeof props.isPublic !== "boolean") {
-      throw new Error("isPublic must be a boolean");
+    if (!Object.values(QuizVisibility).includes(props.visibility)) {
+      throw new Error("visibility must be a valid QuizVisibility value");
     }
 
     if (typeof props.questionDistribution !== "number") {
@@ -161,6 +186,10 @@ export class Quiz {
     return this._userId;
   }
 
+  get slug(): string {
+    return this._slug;
+  }
+
   get title(): string {
     return this._title;
   }
@@ -173,8 +202,15 @@ export class Quiz {
     return this._updatedAt;
   }
 
+  get visibility(): QuizVisibility {
+    return this._visibility;
+  }
+
+  /**
+   * @deprecated Use visibility instead. This getter is for backward compatibility.
+   */
   get isPublic(): boolean {
-    return this._isPublic;
+    return this._visibility === QuizVisibility.PUBLIC;
   }
 
   get questionDistribution(): number {
@@ -216,10 +252,21 @@ export class Quiz {
   }
 
   /**
+   * Sets the quiz visibility
+   */
+  public setVisibility(visibility: QuizVisibility): void {
+    if (!Object.values(QuizVisibility).includes(visibility)) {
+      throw new Error("Invalid visibility value");
+    }
+    this._visibility = visibility;
+    this._updatedAt = new Date();
+  }
+
+  /**
    * Makes the quiz public for sharing
    */
   public makePublic(): void {
-    this._isPublic = true;
+    this._visibility = QuizVisibility.PUBLIC;
     this._updatedAt = new Date();
   }
 
@@ -227,17 +274,16 @@ export class Quiz {
    * Makes the quiz private
    */
   public makePrivate(): void {
-    this._isPublic = false;
+    this._visibility = QuizVisibility.PRIVATE;
     this._updatedAt = new Date();
   }
 
   /**
-   * Toggles the public/private status
+   * Makes the quiz unlisted (accessible via link only)
    */
-  public toggleVisibility(): boolean {
-    this._isPublic = !this._isPublic;
+  public makeUnlisted(): void {
+    this._visibility = QuizVisibility.UNLISTED;
     this._updatedAt = new Date();
-    return this._isPublic;
   }
 
   /**
@@ -260,13 +306,30 @@ export class Quiz {
   }
 
   /**
-   * Checks if a user can access this quiz
+   * Checks if a user can access this quiz based on visibility rules
+   *
+   * Access rules:
+   * - PRIVATE: Only owner can view/attempt
+   * - UNLISTED: Anyone with the link can view/attempt
+   * - PUBLIC: Anyone can view/attempt
    */
   public canBeAccessedBy(userId: string | null): boolean {
-    if (this._isPublic) {
-      return true;
+    switch (this._visibility) {
+      case QuizVisibility.PUBLIC:
+      case QuizVisibility.UNLISTED:
+        return true;
+      case QuizVisibility.PRIVATE:
+        return userId !== null && this.isOwnedBy(userId);
+      default:
+        return false;
     }
-    return userId !== null && this.isOwnedBy(userId);
+  }
+
+  /**
+   * Checks if this quiz should be listed in public directories
+   */
+  public isDiscoverable(): boolean {
+    return this._visibility === QuizVisibility.PUBLIC;
   }
 
   /**
@@ -277,9 +340,10 @@ export class Quiz {
       id: this._id,
       userId: this._userId,
       title: this._title,
+      slug: this._slug,
       createdAt: this._createdAt,
       updatedAt: this._updatedAt,
-      isPublic: this._isPublic,
+      visibility: this._visibility,
       questionDistribution: this._questionDistribution,
     };
   }

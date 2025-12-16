@@ -4,3 +4,8 @@ export {
   type QuestionProps,
   type CreateQuestionProps,
 } from "./question.entity";
+export {
+  QuizAttempt,
+  type QuizAttemptProps,
+  type CreateQuizAttemptProps,
+} from "./quiz-attempt.entity";

@@ -3,7 +3,7 @@ import {
   uuid,
   text,
   integer,
-  boolean,
+  varchar,
   timestamp,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
@@ -20,8 +20,11 @@ export const quizzes = pgTable("quizzes", {
   /** Unique identifier for the quiz (UUID) */
   id: uuid("id").primaryKey(),
 
+  /** URL-safe slug derived from UUID (22 chars, base64url) */
+  slug: varchar("slug", { length: 22 }).notNull().unique(),
+
   /** Reference to the user who created the quiz */
-  userId: text("user_id")
+  userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
 
@@ -36,8 +39,10 @@ export const quizzes = pgTable("quizzes", {
    */
   questionDistribution: integer("question_distribution").notNull(),
 
-  /** Whether the quiz is publicly accessible */
-  isPublic: boolean("is_public").default(false).notNull(),
+  /** Quiz visibility: private, unlisted, or public */
+  visibility: varchar("visibility", { length: 20 })
+    .default("private")
+    .notNull(),
 
   /** Timestamp when the quiz was created */
   createdAt: timestamp("created_at").defaultNow().notNull(),

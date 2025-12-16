@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { QuizDistributionService } from "../../domain";
+import { QuizDistributionService, QuizVisibility } from "../../domain";
 
 /**
  * Validation schema for question distribution
@@ -18,12 +18,18 @@ export const distributionSchema = z
   );
 
 /**
+ * Validation schema for quiz visibility
+ */
+export const visibilitySchema = z.enum(QuizVisibility);
+
+/**
  * Schema for creating a new quiz
  */
 export const createQuizInputSchema = z.object({
   userId: z.uuidv7(),
   title: z.string().min(1).max(255),
   distribution: distributionSchema,
+  visibility: visibilitySchema.optional().default(QuizVisibility.PRIVATE),
 });
 
 /**
@@ -36,11 +42,12 @@ export type CreateQuizInput = z.infer<typeof createQuizInputSchema>;
  */
 export const quizResponseSchema = z.object({
   id: z.uuidv7(),
+  slug: z.string().length(22),
   title: z.string(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
   totalQuestions: z.number().int().min(0),
-  isPublic: z.boolean(),
+  visibility: visibilitySchema,
   shareLink: z.string().optional(),
   distribution: distributionSchema,
 });
@@ -56,10 +63,11 @@ export type QuizResponseDTO = z.infer<typeof quizResponseSchema>;
 export function toQuizResponseDTO(
   quiz: {
     id: string;
+    slug: string;
     title: string;
     createdAt: Date;
     updatedAt: Date;
-    isPublic: boolean;
+    visibility: QuizVisibility;
     questionDistribution: number;
   },
   baseUrl?: string
@@ -71,17 +79,37 @@ export function toQuizResponseDTO(
     quiz.questionDistribution
   );
 
+  // Share link is generated for unlisted and public quizzes
+  const canShare =
+    quiz.visibility === QuizVisibility.UNLISTED ||
+    quiz.visibility === QuizVisibility.PUBLIC;
+
   return {
     id: quiz.id,
+    slug: quiz.slug,
     title: quiz.title,
     createdAt: quiz.createdAt.toISOString(),
     updatedAt: quiz.updatedAt.toISOString(),
     totalQuestions,
-    isPublic: quiz.isPublic,
+    visibility: quiz.visibility,
     shareLink:
-      quiz.isPublic && baseUrl
-        ? `${baseUrl}/quiz/${quiz.id}/public`
-        : undefined,
+      canShare && baseUrl ? `${baseUrl}/quiz/a/${quiz.slug}` : undefined,
     distribution,
   };
 }
+
+/**
+ * Schema for updating quiz visibility
+ */
+export const updateQuizVisibilitySchema = z.object({
+  quizId: z.uuidv7(),
+  userId: z.uuidv7(),
+  visibility: visibilitySchema,
+});
+
+/**
+ * Input DTO for updating quiz visibility
+ */
+export type UpdateQuizVisibilityInput = z.infer<
+  typeof updateQuizVisibilitySchema
+>;

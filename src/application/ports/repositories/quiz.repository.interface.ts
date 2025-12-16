@@ -36,12 +36,23 @@ export interface IQuizRepository {
   findById(id: string): Promise<Quiz | null>;
 
   /**
+   * Finds a quiz by its URL-safe slug
+   * @returns Quiz if found, null otherwise
+   */
+  findBySlug(slug: string): Promise<Quiz | null>;
+
+  /**
    * Finds all quizzes owned by a specific user with pagination
    */
   findByUserId(
     userId: string,
     pagination: PaginationParams
   ): Promise<PaginatedResult<Quiz>>;
+
+  /**
+   * Finds all public quizzes with pagination (for discovery)
+   */
+  findPublic(pagination: PaginationParams): Promise<PaginatedResult<Quiz>>;
 
   /**
    * Updates an existing quiz
@@ -58,4 +69,9 @@ export interface IQuizRepository {
    * Checks if a quiz exists
    */
   exists(id: string): Promise<boolean>;
+
+  /**
+   * Checks if a slug exists (for uniqueness validation)
+   */
+  slugExists(slug: string): Promise<boolean>;
 }

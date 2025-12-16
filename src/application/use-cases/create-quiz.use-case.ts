@@ -111,7 +111,6 @@ export class CreateQuizUseCase {
       userId: input.userId,
       title: input.title,
       distribution: input.distribution,
-      isPublic: false,
     });
 
     // 5. Create Question entities

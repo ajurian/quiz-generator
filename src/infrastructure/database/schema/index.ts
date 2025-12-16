@@ -14,3 +14,10 @@ export {
   type InsertQuestion,
   type SelectQuestion,
 } from "./question.schema";
+
+export {
+  quizAttempts,
+  quizAttemptsRelations,
+  type InsertQuizAttempt,
+  type SelectQuizAttempt,
+} from "./quiz-attempt.schema";

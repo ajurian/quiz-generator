@@ -3,9 +3,12 @@ export {
   createQuizInputSchema,
   quizResponseSchema,
   distributionSchema,
+  visibilitySchema,
+  updateQuizVisibilitySchema,
   toQuizResponseDTO,
   type CreateQuizInput,
   type QuizResponseDTO,
+  type UpdateQuizVisibilityInput,
 } from "./quiz.dto";
 
 // Question DTOs
@@ -23,3 +26,21 @@ export {
   type PaginationInput,
   type PaginatedResponseDTO,
 } from "./pagination.dto";
+
+// Attempt DTOs
+export {
+  attemptStatusSchema,
+  startAttemptInputSchema,
+  submitAttemptInputSchema,
+  attemptResponseSchema,
+  getUserAttemptsInputSchema,
+  getAttemptBySlugInputSchema,
+  toAttemptResponseDTO,
+  createAttemptSummary,
+  type StartAttemptInput,
+  type SubmitAttemptInput,
+  type AttemptResponseDTO,
+  type GetUserAttemptsInput,
+  type GetAttemptBySlugInput,
+  type AttemptSummaryDTO,
+} from "./attempt.dto";

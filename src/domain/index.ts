@@ -9,6 +9,13 @@ export {
   GeminiModel,
   isGeminiModel,
   getGeminiModelDisplayName,
+  QuizVisibility,
+  isQuizVisibility,
+  getQuizVisibilityDisplayName,
+  getQuizVisibilityDescription,
+  AttemptStatus,
+  isAttemptStatus,
+  getAttemptStatusDisplayName,
 } from "./enums";
 
 // Value Objects
@@ -18,6 +25,10 @@ export {
   type OptionIndex,
   VALID_OPTION_INDICES,
   isValidOptionIndex,
+  Slug,
+  uuidToSlug,
+  slugToUuid,
+  isValidSlug,
 } from "./value-objects";
 
 // Entities
@@ -28,6 +39,9 @@ export {
   Question,
   type QuestionProps,
   type CreateQuestionProps,
+  QuizAttempt,
+  type QuizAttemptProps,
+  type CreateQuizAttemptProps,
 } from "./entities";
 
 // Domain Services

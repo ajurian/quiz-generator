@@ -3,3 +3,4 @@
 
 export { DrizzleQuizRepository } from "./drizzle-quiz.repository";
 export { DrizzleQuestionRepository } from "./drizzle-question.repository";
+export { DrizzleAttemptRepository } from "./drizzle-attempt.repository";

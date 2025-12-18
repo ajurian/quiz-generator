@@ -49,7 +49,7 @@ function TakeQuizPage() {
 
   // Show dialog only if in-progress with existing answers
   const [showResumeDialog, setShowResumeDialog] = React.useState(
-    isInProgressAttempt && hasAnswers
+    isInProgressAttempt && hasAnswers && !router.state.location.state?.resume
   );
   const [currentAnswers, setCurrentAnswers] = React.useState(
     attemptResult.attempt.answers
@@ -115,7 +115,9 @@ function TakeQuizPage() {
   };
 
   React.useEffect(() => {
-    setShowResumeDialog(isInProgressAttempt && hasAnswers);
+    setShowResumeDialog(
+      isInProgressAttempt && hasAnswers && !router.state.location.state?.resume
+    );
     setCurrentAnswers(attemptResult.attempt.answers);
   }, [isInProgressAttempt, hasAnswers, attemptResult.attempt.answers]);
 

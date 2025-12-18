@@ -109,7 +109,11 @@ function AttemptCard({ attempt, quizSlug, attemptNumber }: AttemptCardProps) {
           </div>
           <Button variant="ghost" size="sm" asChild>
             {isInProgress ? (
-              <Link to="/quiz/a/$slug" params={{ slug: quizSlug }}>
+              <Link
+                to="/quiz/a/$slug"
+                params={{ slug: quizSlug }}
+                state={(prev) => ({ ...prev, resume: true })}
+              >
                 <Play className="h-4 w-4 mr-2" />
                 Continue
               </Link>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React from "react";
 import {
   Card,
   CardContent,
@@ -8,32 +8,80 @@ import {
 import { Badge } from "@/presentation/components/ui/badge";
 import { Button } from "@/presentation/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Check, X, Eye, EyeOff } from "lucide-react";
-import type { QuestionType } from "@/domain/enums/question-type.enum";
+import {
+  Check,
+  X,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  Lightbulb,
+  Loader2,
+  ArrowRight,
+} from "lucide-react";
 
-interface QuestionOption {
-  index: "A" | "B" | "C" | "D";
+// ============================================================================
+// Types
+// ============================================================================
+
+export interface QuestionOption {
+  index: string;
   text: string;
   explanation: string;
   isCorrect: boolean;
 }
 
-interface Question {
+export interface Question {
   id: string;
   questionText: string;
-  questionType: QuestionType | string;
+  questionType: string;
   options: QuestionOption[];
   orderIndex: number;
 }
 
-interface QuestionCardProps {
+/**
+ * State machine for the QuestionCard:
+ * - `selecting`: User can select/change options, primary CTA is "Check answer"
+ * - `checked`: Answer has been evaluated, shows feedback, CTA is "Next" or "Submit"
+ * - `review`: Read-only review mode (used on history page)
+ */
+export type QuestionCardState = "selecting" | "checked" | "review";
+
+interface QuestionCardBaseProps {
   question: Question;
-  index: number;
-  showAnswer?: boolean;
-  onAnswer?: (optionIndex: string) => void;
-  selectedAnswer?: string;
-  isReview?: boolean;
+  /** 1-based question number */
+  questionNumber: number;
 }
+
+interface QuestionCardSelectingProps extends QuestionCardBaseProps {
+  state: "selecting";
+  selectedAnswer: string | undefined;
+  onSelectAnswer: (optionIndex: string) => void;
+  onCheckAnswer: () => void;
+  isChecking?: boolean;
+  isLastQuestion?: boolean;
+}
+
+interface QuestionCardCheckedProps extends QuestionCardBaseProps {
+  state: "checked";
+  selectedAnswer: string;
+  isLastQuestion: boolean;
+  onNext: () => void;
+  isSubmitting?: boolean;
+}
+
+interface QuestionCardReviewProps extends QuestionCardBaseProps {
+  state: "review";
+  selectedAnswer: string | undefined;
+}
+
+export type QuestionCardProps =
+  | QuestionCardSelectingProps
+  | QuestionCardCheckedProps
+  | QuestionCardReviewProps;
+
+// ============================================================================
+// Constants
+// ============================================================================
 
 const QUESTION_TYPE_LABELS: Record<string, string> = {
   single_best_answer: "Single Best Answer",
@@ -41,132 +89,301 @@ const QUESTION_TYPE_LABELS: Record<string, string> = {
   contextual: "Contextual",
 };
 
-export function QuestionCard({
-  question,
-  index,
-  showAnswer = false,
-  onAnswer,
-  selectedAnswer,
-  isReview = false,
-}: QuestionCardProps) {
-  const [localShowAnswer, setLocalShowAnswer] = useState(showAnswer);
+const RATIONALE_TRUNCATE_LENGTH = 200;
+
+// ============================================================================
+// Main Component
+// ============================================================================
+
+export function QuestionCard(props: QuestionCardProps) {
+  const { question, questionNumber, state } = props;
+
   const correctOption = question.options.find((o) => o.isCorrect);
+  const showFeedback = state === "checked" || state === "review";
 
-  const getOptionClassName = (option: QuestionOption) => {
-    const isSelected = selectedAnswer === option.index;
-    const reveal = localShowAnswer || isReview;
+  // Determine correctness for feedback
+  const selectedAnswer =
+    state === "selecting" ? props.selectedAnswer : props.selectedAnswer;
+  const isCorrect = showFeedback && selectedAnswer === correctOption?.index;
 
-    if (!reveal && !isSelected) {
-      return "border-muted hover:border-primary/50 cursor-pointer";
+  return (
+    <Card className="mb-6">
+      <CardHeader>
+        <div className="flex items-center gap-2 mb-2">
+          <Badge variant="secondary">Question {questionNumber}</Badge>
+          <Badge variant="outline" className="capitalize">
+            {QUESTION_TYPE_LABELS[question.questionType] ||
+              question.questionType.replace(/_/g, " ")}
+          </Badge>
+          {showFeedback && selectedAnswer && (
+            <CorrectnessBadge isCorrect={isCorrect} />
+          )}
+        </div>
+        <CardTitle className="text-lg leading-relaxed">
+          {question.questionText}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Options */}
+        <div className="space-y-3">
+          {question.options.map((option) => (
+            <OptionItem
+              key={option.index}
+              option={option}
+              selectedAnswer={selectedAnswer}
+              showFeedback={showFeedback}
+              isInteractive={state === "selecting"}
+              onSelect={
+                state === "selecting"
+                  ? () => props.onSelectAnswer(option.index)
+                  : undefined
+              }
+            />
+          ))}
+        </div>
+
+        {/* Rationale (shown after checking or in review) */}
+        {showFeedback && correctOption?.explanation && (
+          <RationaleSection explanation={correctOption.explanation} />
+        )}
+
+        {/* Primary CTA */}
+        {state === "selecting" && (
+          <div className="pt-2 flex w-full">
+            <Button
+              onClick={props.onCheckAnswer}
+              disabled={!props.selectedAnswer || props.isChecking}
+              className="w-full sm:w-auto sm:ml-auto"
+              size="lg"
+            >
+              {props.isChecking ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Checking...
+                </>
+              ) : (
+                "Check answer"
+              )}
+            </Button>
+          </div>
+        )}
+
+        {state === "checked" && (
+          <div className="pt-2 flex w-full">
+            <Button
+              onClick={props.onNext}
+              disabled={props.isSubmitting}
+              className="w-full sm:w-auto sm:ml-auto"
+              size="lg"
+            >
+              {props.isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Submiting...
+                </>
+              ) : props.isLastQuestion ? (
+                "Submit"
+              ) : (
+                <>
+                  Next
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </>
+              )}
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ============================================================================
+// Sub-components
+// ============================================================================
+
+interface CorrectnessBadgeProps {
+  isCorrect: boolean;
+}
+
+function CorrectnessBadge({ isCorrect }: CorrectnessBadgeProps) {
+  return (
+    <Badge
+      variant={isCorrect ? "default" : "destructive"}
+      className={cn(
+        isCorrect
+          ? "bg-green-500/10 text-green-600 dark:text-green-400"
+          : "bg-red-500/10 text-red-600 dark:text-red-400"
+      )}
+    >
+      {isCorrect ? (
+        <>
+          <Check className="h-3 w-3 mr-1" />
+          Correct
+        </>
+      ) : (
+        <>
+          <X className="h-3 w-3 mr-1" />
+          Incorrect
+        </>
+      )}
+    </Badge>
+  );
+}
+
+interface OptionItemProps {
+  option: QuestionOption;
+  selectedAnswer: string | undefined;
+  showFeedback: boolean;
+  isInteractive: boolean;
+  onSelect?: () => void;
+}
+
+function OptionItem({
+  option,
+  selectedAnswer,
+  showFeedback,
+  isInteractive,
+  onSelect,
+}: OptionItemProps) {
+  const isSelected = selectedAnswer === option.index;
+  const isCorrect = option.isCorrect;
+  const isWrongSelection = isSelected && !isCorrect;
+
+  // Determine styling based on state
+  const getOptionClasses = () => {
+    if (showFeedback) {
+      if (isCorrect) {
+        return "border-green-500 bg-green-500/5";
+      }
+      if (isWrongSelection) {
+        return "border-red-500 bg-red-500/5";
+      }
+      return "border-border opacity-60";
     }
 
-    if (reveal && option.isCorrect) {
-      return "border-green-500 bg-green-50 dark:bg-green-950/20";
+    // Selecting state
+    if (isSelected) {
+      return "border-primary bg-primary/5 ring-2 ring-primary";
     }
 
-    if (reveal && isSelected && !option.isCorrect) {
-      return "border-red-500 bg-red-50 dark:bg-red-950/20";
+    if (isInteractive) {
+      return "border-border hover:border-primary/50 hover:bg-muted/50 cursor-pointer";
+    }
+
+    return "border-border";
+  };
+
+  const getIndicatorClasses = () => {
+    if (showFeedback) {
+      if (isCorrect) {
+        return "bg-green-500 text-white";
+      }
+      if (isWrongSelection) {
+        return "bg-red-500 text-white";
+      }
+      return "bg-muted text-muted-foreground";
     }
 
     if (isSelected) {
-      return "border-primary bg-primary/5";
+      return "bg-primary text-primary-foreground";
     }
 
-    return "border-muted";
+    return "bg-muted text-muted-foreground";
   };
 
+  const renderIndicatorContent = () => {
+    if (showFeedback && isCorrect) {
+      return <Check className="h-4 w-4" />;
+    }
+    if (showFeedback && isWrongSelection) {
+      return <X className="h-4 w-4" />;
+    }
+    return option.index;
+  };
+
+  const Component = isInteractive ? "button" : "div";
+
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="font-mono">
-              Q{index}
-            </Badge>
-            <Badge variant="secondary">
-              {QUESTION_TYPE_LABELS[question.questionType] ||
-                question.questionType}
-            </Badge>
+    <Component
+      type={isInteractive ? "button" : undefined}
+      onClick={isInteractive ? onSelect : undefined}
+      className={cn(
+        "w-full text-left p-4 rounded-lg border transition-all",
+        getOptionClasses()
+      )}
+    >
+      <div className="flex items-start gap-3">
+        <span
+          className={cn(
+            "flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-sm font-medium",
+            getIndicatorClasses()
+          )}
+        >
+          {renderIndicatorContent()}
+        </span>
+        <div className="flex-1 pt-0.5">
+          <span
+            className={cn(
+              showFeedback && (isCorrect || isSelected) && "font-medium"
+            )}
+          >
+            {option.text}
+          </span>
+          {showFeedback && isSelected && (
+            <span className="ml-2 text-xs text-muted-foreground">
+              (Your answer)
+            </span>
+          )}
+        </div>
+      </div>
+    </Component>
+  );
+}
+
+interface RationaleSectionProps {
+  explanation: string;
+}
+
+function RationaleSection({ explanation }: RationaleSectionProps) {
+  const [isExpanded, setIsExpanded] = React.useState(false);
+  const isLong = explanation.length > RATIONALE_TRUNCATE_LENGTH;
+
+  const displayText =
+    isLong && !isExpanded
+      ? `${explanation.slice(0, RATIONALE_TRUNCATE_LENGTH)}...`
+      : explanation;
+
+  return (
+    <div className="p-4 rounded-lg bg-blue-500/5 border border-blue-500/20">
+      <div className="flex items-start gap-2">
+        <Lightbulb className="h-4 w-4 mt-0.5 text-blue-500 flex-shrink-0" />
+        <div className="flex-1">
+          <div className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-1">
+            Explanation
           </div>
-          {!isReview && (
+          <div className="text-sm text-muted-foreground">{displayText}</div>
+          {isLong && (
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setLocalShowAnswer(!localShowAnswer)}
+              className="mt-2 h-auto p-0 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+              onClick={() => setIsExpanded(!isExpanded)}
             >
-              {localShowAnswer ? (
+              {isExpanded ? (
                 <>
-                  <EyeOff className="mr-1 h-4 w-4" />
-                  Hide
+                  Show less
+                  <ChevronUp className="h-3 w-3 ml-1" />
                 </>
               ) : (
                 <>
-                  <Eye className="mr-1 h-4 w-4" />
-                  Show
+                  Show more
+                  <ChevronDown className="h-3 w-3 ml-1" />
                 </>
               )}
             </Button>
           )}
         </div>
-        <CardTitle className="text-base font-medium leading-relaxed mt-2">
-          {question.questionText}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {/* Options */}
-        {question.options.map((option) => (
-          <div
-            key={option.index}
-            className={cn(
-              "flex items-start gap-3 p-3 rounded-lg border transition-colors",
-              getOptionClassName(option),
-              onAnswer && "cursor-pointer"
-            )}
-            onClick={() => onAnswer?.(option.index)}
-          >
-            <span
-              className={cn(
-                "flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-sm font-medium",
-                localShowAnswer && option.isCorrect
-                  ? "bg-green-500 text-white"
-                  : localShowAnswer && selectedAnswer === option.index
-                    ? "bg-red-500 text-white"
-                    : "bg-muted"
-              )}
-            >
-              {localShowAnswer && option.isCorrect ? (
-                <Check className="h-4 w-4" />
-              ) : localShowAnswer && selectedAnswer === option.index ? (
-                <X className="h-4 w-4" />
-              ) : (
-                option.index
-              )}
-            </span>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm">{option.text}</p>
-              {localShowAnswer && option.explanation && (
-                <p className="text-xs text-muted-foreground mt-2 italic">
-                  {option.explanation}
-                </p>
-              )}
-            </div>
-          </div>
-        ))}
-
-        {/* Correct Answer Summary */}
-        {localShowAnswer && correctOption && (
-          <div className="mt-4 p-3 bg-muted rounded-lg">
-            <p className="text-sm font-medium text-green-600 dark:text-green-400">
-              Correct Answer: {correctOption.index}
-            </p>
-            {correctOption.explanation && (
-              <p className="text-sm text-muted-foreground mt-1">
-                {correctOption.explanation}
-              </p>
-            )}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

@@ -12,15 +12,8 @@ import { Badge } from "@/presentation/components/ui/badge";
 import { Skeleton } from "@/presentation/components/ui/skeleton";
 import { attemptDetailQueryOptions } from "@/presentation/queries";
 import { AttemptStatus } from "@/domain";
-import {
-  Clock,
-  Play,
-  Trophy,
-  ArrowLeft,
-  CheckCircle2,
-  XCircle,
-  Lightbulb,
-} from "lucide-react";
+import { QuestionCard } from "@/presentation/components/quiz/question-card";
+import { Clock, Play, Trophy, ArrowLeft, CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/quiz/h/$slug/$attemptSlug")({
   loader: async ({ params, context }) => {
@@ -146,113 +139,15 @@ function AttemptDetailPage() {
             </Button>
           </div>
 
-          {questions.map((question, index) => {
-            const userAnswer = attempt.answers[question.id];
-            const correctOption = question.options.find((o) => o.isCorrect);
-            const userWasCorrect = userAnswer === correctOption?.index;
-
-            return (
-              <Card key={question.id}>
-                <CardHeader>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Badge variant="secondary">Question {index + 1}</Badge>
-                    <Badge variant="outline" className="capitalize">
-                      {question.questionType.replace(/_/g, " ")}
-                    </Badge>
-                    {userAnswer && (
-                      <Badge
-                        variant={userWasCorrect ? "default" : "destructive"}
-                        className={
-                          userWasCorrect
-                            ? "bg-green-500/10 text-green-500"
-                            : "bg-red-500/10 text-red-500"
-                        }
-                      >
-                        {userWasCorrect ? "Correct" : "Incorrect"}
-                      </Badge>
-                    )}
-                  </div>
-                  <CardTitle className="text-base leading-relaxed">
-                    {question.questionText}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Options */}
-                  <div className="space-y-2">
-                    {question.options.map((option) => {
-                      const isCorrect = option.isCorrect;
-                      const isUserAnswer = userAnswer === option.index;
-                      const isWrongUserAnswer = isUserAnswer && !isCorrect;
-
-                      return (
-                        <div
-                          key={option.index}
-                          className={`p-3 rounded-lg border ${
-                            isCorrect
-                              ? "border-green-500 bg-green-500/5"
-                              : isWrongUserAnswer
-                                ? "border-red-500 bg-red-500/5"
-                                : "border-border"
-                          }`}
-                        >
-                          <div className="flex items-start gap-3">
-                            <span
-                              className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium ${
-                                isCorrect
-                                  ? "bg-green-500 text-white"
-                                  : isWrongUserAnswer
-                                    ? "bg-red-500 text-white"
-                                    : "bg-muted text-muted-foreground"
-                              }`}
-                            >
-                              {option.index}
-                            </span>
-                            <div className="flex-1">
-                              <span
-                                className={
-                                  isCorrect || isUserAnswer ? "font-medium" : ""
-                                }
-                              >
-                                {option.text}
-                              </span>
-                              {isCorrect && (
-                                <CheckCircle2 className="inline h-4 w-4 ml-2 text-green-500" />
-                              )}
-                              {isWrongUserAnswer && (
-                                <XCircle className="inline h-4 w-4 ml-2 text-red-500" />
-                              )}
-                              {isUserAnswer && (
-                                <span className="ml-2 text-xs text-muted-foreground">
-                                  (Your answer)
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Explanation for correct answer */}
-                  {correctOption?.explanation && (
-                    <div className="p-4 rounded-lg bg-blue-500/5 border border-blue-500/20">
-                      <div className="flex items-start gap-2">
-                        <Lightbulb className="h-4 w-4 mt-0.5 text-blue-500 flex-shrink-0" />
-                        <div>
-                          <div className="text-sm font-medium text-blue-500 mb-1">
-                            Explanation
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {correctOption.explanation}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
+          {questions.map((question, index) => (
+            <QuestionCard
+              key={question.id}
+              question={question}
+              questionNumber={index + 1}
+              state="review"
+              selectedAnswer={attempt.answers[question.id]}
+            />
+          ))}
         </div>
       </div>
     </div>

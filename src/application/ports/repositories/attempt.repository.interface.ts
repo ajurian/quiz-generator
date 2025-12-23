@@ -87,4 +87,13 @@ export interface IAttemptRepository {
     quizId: string,
     userId: string
   ): Promise<QuizAttempt | null>;
+
+  /**
+   * Finds the latest attempt for each quiz a user has attempted
+   * Returns an array of objects containing attempt and quiz info
+   * Ordered by attempt startedAt DESC (most recent first)
+   */
+  findLatestAttemptPerQuizByUser(
+    userId: string
+  ): Promise<{ attempt: QuizAttempt; quizId: string }[]>;
 }

@@ -7,3 +7,6 @@ export {
 } from "./dashboard-stats-grid";
 export type { DashboardStats } from "./dashboard-stats-grid";
 export { QuizList } from "./quiz-list";
+export { QuizCard } from "./quiz-card";
+export { AttemptHistoryCard } from "./attempt-history-card";
+export { AttemptHistorySection } from "./attempt-history-section";

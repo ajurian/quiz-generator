@@ -1,4 +1,4 @@
-import { eq, desc, count } from "drizzle-orm";
+import { eq, desc, count, inArray } from "drizzle-orm";
 import type {
   IQuizRepository,
   PaginationParams,
@@ -74,6 +74,22 @@ export class DrizzleQuizRepository implements IQuizRepository {
     }
 
     return this.mapToDomain(result);
+  }
+
+  /**
+   * Finds multiple quizzes by their identifiers
+   */
+  async findByIds(ids: string[]): Promise<Quiz[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const results = await this.db
+      .select()
+      .from(quizzes)
+      .where(inArray(quizzes.id, ids));
+
+    return results.map((row) => this.mapToDomain(row));
   }
 
   /**

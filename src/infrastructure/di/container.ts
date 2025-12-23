@@ -26,6 +26,7 @@ import {
   GetAttemptDetailUseCase,
   AutosaveAnswerUseCase,
   ResetAttemptUseCase,
+  GetUserAttemptHistoryUseCase,
 } from "../../application";
 import type {
   IQuizRepository,
@@ -90,6 +91,7 @@ export interface UseCases {
   getAttemptDetail: GetAttemptDetailUseCase;
   autosaveAnswer: AutosaveAnswerUseCase;
   resetAttempt: ResetAttemptUseCase;
+  getUserAttemptHistory: GetUserAttemptHistoryUseCase;
 }
 
 /**
@@ -228,6 +230,11 @@ export function createAppContainer(config: ContainerConfig): AppContainer {
     attemptRepository,
   });
 
+  const getUserAttemptHistory = new GetUserAttemptHistoryUseCase({
+    quizRepository,
+    attemptRepository,
+  });
+
   return {
     baseUrl: config.baseUrl,
     db: database,
@@ -258,6 +265,7 @@ export function createAppContainer(config: ContainerConfig): AppContainer {
       getAttemptDetail,
       autosaveAnswer,
       resetAttempt,
+      getUserAttemptHistory,
     },
   };
 }

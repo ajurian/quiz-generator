@@ -20,6 +20,7 @@ export {
   getAttemptDetail,
   autosaveAnswer,
   resetAttempt,
+  getUserAttemptHistory,
 } from "./attempt.server";
 
 export { getServerSession, type ServerSession } from "./auth.server";

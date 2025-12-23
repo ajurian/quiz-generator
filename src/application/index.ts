@@ -24,7 +24,7 @@ export {
   // Quiz DTOs
   createQuizInputSchema,
   quizResponseSchema,
-  distributionSchema,
+  quizDistributionSchema,
   visibilitySchema,
   updateQuizVisibilitySchema,
   toQuizResponseDTO,
@@ -87,7 +87,6 @@ export {
   type StartAttemptUseCaseDeps,
   type ForceStartAttemptInput,
   SubmitAttemptUseCase,
-  type SubmitAttemptInput as SubmitAttemptUseCaseInput,
   type SubmitAttemptOutput,
   type SubmitAttemptUseCaseDeps,
   GetUserAttemptsUseCase,
@@ -106,6 +105,11 @@ export {
   type ResetAttemptInput,
   type ResetAttemptOutput,
   type ResetAttemptUseCaseDeps,
+  GetUserAttemptHistoryUseCase,
+  type GetUserAttemptHistoryInput,
+  type GetUserAttemptHistoryOutput,
+  type AttemptHistoryItemDTO,
+  type GetUserAttemptHistoryUseCaseDeps,
 } from "./use-cases";
 
 // Errors

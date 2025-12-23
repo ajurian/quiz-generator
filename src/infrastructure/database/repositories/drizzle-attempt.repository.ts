@@ -1,4 +1,4 @@
-import { eq, desc, and, count, isNull } from "drizzle-orm";
+import { eq, desc, and, count, isNull, sql } from "drizzle-orm";
 import type {
   IAttemptRepository,
   PaginationParams,
@@ -283,6 +283,44 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
       .limit(1);
 
     return !!result;
+  }
+
+  /**
+   * Finds the latest attempt for each quiz a user has attempted
+   * Uses a window function to get the most recent attempt per quiz
+   */
+  async findLatestAttemptPerQuizByUser(
+    userId: string
+  ): Promise<{ attempt: QuizAttempt; quizId: string }[]> {
+    // Use a subquery with ROW_NUMBER() to get the latest attempt per quiz
+    const latestAttemptsSubquery = this.db
+      .select({
+        id: quizAttempts.id,
+        rowNum:
+          sql<number>`ROW_NUMBER() OVER (PARTITION BY ${quizAttempts.quizId} ORDER BY ${quizAttempts.startedAt} DESC)`.as(
+            "row_num"
+          ),
+      })
+      .from(quizAttempts)
+      .where(eq(quizAttempts.userId, userId))
+      .as("latest_attempts");
+
+    const results = await this.db
+      .select()
+      .from(quizAttempts)
+      .innerJoin(
+        latestAttemptsSubquery,
+        and(
+          eq(quizAttempts.id, latestAttemptsSubquery.id),
+          eq(latestAttemptsSubquery.rowNum, 1)
+        )
+      )
+      .orderBy(desc(quizAttempts.startedAt));
+
+    return results.map((row) => ({
+      attempt: this.mapToDomain(row.quiz_attempts),
+      quizId: row.quiz_attempts.quizId,
+    }));
   }
 
   /**

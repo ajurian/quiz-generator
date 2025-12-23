@@ -1,15 +1,20 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import {
   useMutation,
   useQueryClient,
   useSuspenseQuery,
 } from "@tanstack/react-query";
-import { quizListQueryOptions, quizKeys } from "@/presentation/queries";
+import {
+  quizListQueryOptions,
+  quizKeys,
+  userAttemptHistoryQueryOptions,
+} from "@/presentation/queries";
 import {
   DashboardSkeleton,
   DashboardHeader,
   DashboardStatsGrid,
   QuizList,
+  AttemptHistorySection,
   calculateDashboardStats,
 } from "@/presentation/components/dashboard";
 import { updateQuizVisibility } from "@/presentation/server-functions";
@@ -17,16 +22,31 @@ import { QuizVisibility } from "@/domain";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/")({
-  loader: ({ context: { queryClient, user } }) =>
-    queryClient.ensureQueryData(quizListQueryOptions(user.id)),
+  loader: async ({ context }) => {
+    const user = context.session?.user;
+    if (!user) {
+      throw redirect({ to: "/auth/signin" });
+    }
+
+    await Promise.all([
+      context.queryClient.ensureQueryData(quizListQueryOptions(user.id)),
+      context.queryClient.ensureQueryData(
+        userAttemptHistoryQueryOptions(user.id)
+      ),
+    ]);
+  },
   pendingComponent: DashboardSkeleton,
   component: DashboardIndex,
 });
 
 function DashboardIndex() {
-  const { user } = Route.useRouteContext();
+  const { session } = Route.useRouteContext();
+  const user = session!.user;
   const queryClient = useQueryClient();
   const { data: response } = useSuspenseQuery(quizListQueryOptions(user.id));
+  const { data: attemptHistory } = useSuspenseQuery(
+    userAttemptHistoryQueryOptions(user.id)
+  );
   const quizzes = response.data;
   const stats = calculateDashboardStats(quizzes);
 
@@ -69,6 +89,7 @@ function DashboardIndex() {
         onVisibilityChange={handleVisibilityChange}
         isPendingVisibility={visibilityMutation.isPending}
       />
+      <AttemptHistorySection items={attemptHistory.items} />
     </div>
   );
 }

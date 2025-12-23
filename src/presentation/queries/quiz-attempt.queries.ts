@@ -1,8 +1,8 @@
 import { queryOptions } from "@tanstack/react-query";
 import {
-  getQuizBySlug,
   getUserAttempts,
   getAttemptDetail,
+  getUserAttemptHistory,
 } from "@/presentation/server-functions/attempt.server";
 
 /**
@@ -17,6 +17,7 @@ export const attemptKeys = {
   details: () => [...attemptKeys.all, "detail"] as const,
   detail: (quizSlug: string, attemptSlug: string) =>
     [...attemptKeys.details(), quizSlug, attemptSlug] as const,
+  history: (userId: string) => [...attemptKeys.all, "history", userId] as const,
 } as const;
 
 /**
@@ -49,5 +50,19 @@ export function attemptDetailQueryOptions(
     queryFn: () =>
       getAttemptDetail({ data: { quizSlug, attemptSlug, userId } }),
     staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+}
+
+/**
+ * Query options for fetching a user's attempt history across all quizzes
+ * Returns the latest attempt per quiz
+ * @param userId - The authenticated user's ID
+ */
+export function userAttemptHistoryQueryOptions(userId: string) {
+  return queryOptions({
+    queryKey: attemptKeys.history(userId),
+    queryFn: () => getUserAttemptHistory({ data: { userId } }),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    enabled: !!userId,
   });
 }

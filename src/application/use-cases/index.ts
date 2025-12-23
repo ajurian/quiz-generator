@@ -48,7 +48,6 @@ export {
 
 export {
   SubmitAttemptUseCase,
-  type SubmitAttemptInput,
   type SubmitAttemptOutput,
   type SubmitAttemptUseCaseDeps,
 } from "./submit-attempt.use-case";
@@ -80,3 +79,11 @@ export {
   type ResetAttemptOutput,
   type ResetAttemptUseCaseDeps,
 } from "./reset-attempt.use-case";
+
+export {
+  GetUserAttemptHistoryUseCase,
+  type GetUserAttemptHistoryInput,
+  type GetUserAttemptHistoryOutput,
+  type AttemptHistoryItemDTO,
+  type GetUserAttemptHistoryUseCaseDeps,
+} from "./get-user-attempt-history.use-case";

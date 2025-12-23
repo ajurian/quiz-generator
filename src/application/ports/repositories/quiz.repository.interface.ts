@@ -42,6 +42,12 @@ export interface IQuizRepository {
   findBySlug(slug: string): Promise<Quiz | null>;
 
   /**
+   * Finds multiple quizzes by their identifiers
+   * @returns Array of found quizzes (may be fewer than requested if some don't exist)
+   */
+  findByIds(ids: string[]): Promise<Quiz[]>;
+
+  /**
    * Finds all quizzes owned by a specific user with pagination
    */
   findByUserId(

@@ -176,3 +176,19 @@ export const resetAttempt = createServerFn({ method: "POST" })
     });
     return result;
   });
+
+// GET User's Attempt History (latest attempt per quiz)
+export const getUserAttemptHistory = createServerFn({ method: "GET" })
+  .inputValidator(
+    z.object({
+      userId: z.uuidv7(),
+    })
+  )
+  .handler(async ({ data }) => {
+    const container = getContainer();
+    const result = await container.useCases.getUserAttemptHistory.execute(
+      { userId: data.userId },
+      container.baseUrl
+    );
+    return result;
+  });

@@ -4,6 +4,8 @@ node_modules/
 .env.development
 .env.production
 
+test.md
 test.ts
+test2.ts
 test1.mjs
 test2.mjs

@@ -2,7 +2,7 @@
 export {
   createQuizInputSchema,
   quizResponseSchema,
-  distributionSchema,
+  quizDistributionSchema,
   visibilitySchema,
   updateQuizVisibilitySchema,
   toQuizResponseDTO,

@@ -1,7 +1,20 @@
-import { pgTable, uuid, text, integer, jsonb } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  uuid,
+  text,
+  integer,
+  jsonb,
+  pgEnum,
+} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { quizzes } from "./quiz.schema";
-import type { QuestionOptionProps } from "../../../domain";
+import { QuestionType, type QuestionOptionProps } from "../../../domain";
+
+export const questionTypeEnum = pgEnum("question_type", [
+  QuestionType.DIRECT_QUESTION,
+  QuestionType.TWO_STATEMENT_COMPOUND,
+  QuestionType.CONTEXTUAL,
+]);
 
 /**
  * Questions table schema
@@ -18,17 +31,17 @@ export const questions = pgTable("questions", {
     .notNull()
     .references(() => quizzes.id, { onDelete: "cascade" }),
 
-  /** The question text content */
-  questionText: text("question_text").notNull(),
+  /** Display order within the quiz */
+  orderIndex: integer("order_index").notNull(),
 
-  /** Type of question (single_best_answer, two_statements, contextual) */
-  questionType: text("question_type").notNull(),
+  /** Type of question (direct_question, two_statement_compound, contextual) */
+  type: questionTypeEnum("type").notNull(),
+
+  /** The stem of the question */
+  stem: text("stem").notNull(),
 
   /** Answer options stored as JSONB array */
   options: jsonb("options").$type<QuestionOptionProps[]>().notNull(),
-
-  /** Display order within the quiz */
-  orderIndex: integer("order_index").notNull(),
 });
 
 /**

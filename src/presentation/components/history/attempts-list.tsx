@@ -24,9 +24,13 @@ export function AttemptsList({ quizSlug, attempts }: AttemptsListProps) {
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">All Attempts</h2>
         <Button asChild>
-          <Link to="/quiz/a/$slug" params={{ slug: quizSlug }}>
+          <Link
+            to="/quiz/a/$slug"
+            params={{ slug: quizSlug }}
+            state={{ restart: true }}
+          >
             <Play className="h-4 w-4 mr-2" />
-            Take Again
+            Try Again
           </Link>
         </Button>
       </div>

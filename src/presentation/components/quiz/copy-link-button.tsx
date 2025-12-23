@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React from "react";
 import { Button } from "@/presentation/components/ui/button";
 import { Copy, Check } from "lucide-react";
 import { toast } from "sonner";
@@ -8,7 +8,7 @@ interface CopyLinkButtonProps {
 }
 
 export function CopyLinkButton({ shareLink }: CopyLinkButtonProps) {
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = React.useState(false);
 
   if (!shareLink) return null;
 

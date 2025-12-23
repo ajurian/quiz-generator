@@ -30,7 +30,11 @@ describe("DeleteQuizUseCase", () => {
       id: QUIZ_ID,
       userId,
       title: "Test Quiz",
-      distribution: { singleBestAnswer: 5, twoStatements: 3, contextual: 2 },
+      distribution: {
+        directQuestion: 5,
+        twoStatementCompound: 3,
+        contextual: 2,
+      },
       visibility: QuizVisibility.PRIVATE,
     });
   };
@@ -63,6 +67,7 @@ describe("DeleteQuizUseCase", () => {
         totalPages: 0,
       })),
       slugExists: mock(async () => false),
+      findByIds: mock(async () => []),
     };
 
     mockQuestionRepository = {

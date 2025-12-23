@@ -1,13 +1,13 @@
 /**
  * Enum representing the different types of quiz questions.
  *
- * - SINGLE_BEST_ANSWER: A question with one correct answer from multiple choices
- * - TWO_STATEMENTS: A question based on evaluating two statements
- * - CONTEXTUAL: A scenario-based question testing judgment
+ * - DIRECT_QUESTION: A simple question or list-selection task identifying a single correct answer
+ * - TWO_STATEMENT_COMPOUND: A logic-based task evaluating the truth or relationship of two specific statements
+ * - CONTEXTUAL: A situational task requiring the analysis of a provided scenario or case study
  */
 export enum QuestionType {
-  SINGLE_BEST_ANSWER = "single_best_answer",
-  TWO_STATEMENTS = "two_statements",
+  DIRECT_QUESTION = "direct_question",
+  TWO_STATEMENT_COMPOUND = "two_statement_compound",
   CONTEXTUAL = "contextual",
 }
 
@@ -26,8 +26,8 @@ export function isQuestionType(value: unknown): value is QuestionType {
  */
 export function getQuestionTypeDisplayName(type: QuestionType): string {
   const displayNames: Record<QuestionType, string> = {
-    [QuestionType.SINGLE_BEST_ANSWER]: "Single Best Answer",
-    [QuestionType.TWO_STATEMENTS]: "Two Statements",
+    [QuestionType.DIRECT_QUESTION]: "Direct Question",
+    [QuestionType.TWO_STATEMENT_COMPOUND]: "Two-Statement Compound",
     [QuestionType.CONTEXTUAL]: "Contextual",
   };
   return displayNames[type];

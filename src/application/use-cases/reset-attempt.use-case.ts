@@ -27,8 +27,8 @@ export interface ResetAttemptUseCaseDeps {
 /**
  * Use case for resetting an in-progress attempt (Start Over)
  *
- * This clears all answers but keeps the same attempt record.
- * Used when user chooses "Start Over" instead of "Continue".
+ * This clears all answers and resets the timer, treating it as a fresh start
+ * while keeping the same attempt ID. Used when user chooses "Start Over" instead of "Continue".
  */
 export class ResetAttemptUseCase {
   constructor(private readonly deps: ResetAttemptUseCaseDeps) {}
@@ -57,8 +57,8 @@ export class ResetAttemptUseCase {
       throw new ForbiddenError("Cannot reset a submitted attempt");
     }
 
-    // 5. Reset all answers
-    attempt.resetAnswers();
+    // 5. Fully reset the attempt (answers, timer, and all state)
+    attempt.reset();
 
     // 6. Persist the updated attempt
     const updatedAttempt = await this.deps.attemptRepository.update(attempt);

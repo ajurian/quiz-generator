@@ -1,6 +1,7 @@
 import type { IAttemptRepository } from "../ports";
 import { toAttemptResponseDTO, type AttemptResponseDTO } from "../dtos";
 import { NotFoundError, ForbiddenError, ValidationError } from "../errors";
+import { uuidToSlug } from "@/domain";
 
 /**
  * Input for AutosaveAnswerUseCase

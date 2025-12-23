@@ -41,15 +41,15 @@ describe("DrizzleQuestionRepository", () => {
     overrides: Partial<{
       id: string;
       quizId: string;
-      questionText: string;
       orderIndex: number;
+      stem: string;
     }> = {}
   ): Question => {
     return Question.create({
       id: overrides.id ?? "question-123",
       quizId: overrides.quizId ?? "quiz-456",
-      questionText: overrides.questionText ?? "What is the answer?",
-      questionType: QuestionType.SINGLE_BEST_ANSWER,
+      stem: overrides.stem ?? "What is the answer?",
+      type: QuestionType.DIRECT_QUESTION,
       options: createValidOptions(),
       orderIndex: overrides.orderIndex ?? 0,
     });
@@ -59,10 +59,10 @@ describe("DrizzleQuestionRepository", () => {
   const createMockDbRow = (question: Question) => ({
     id: question.id,
     quizId: question.quizId,
-    questionText: question.questionText,
-    questionType: question.questionType,
-    options: question.options.map((opt) => opt.toPlain()),
     orderIndex: question.orderIndex,
+    type: question.type,
+    stem: question.stem,
+    options: question.options.map((opt) => opt.toPlain()),
   });
 
   beforeEach(() => {

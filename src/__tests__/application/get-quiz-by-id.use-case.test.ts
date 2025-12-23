@@ -40,7 +40,11 @@ describe("GetQuizByIdUseCase", () => {
       id: QUIZ_ID,
       userId,
       title: "Test Quiz",
-      distribution: { singleBestAnswer: 5, twoStatements: 3, contextual: 2 },
+      distribution: {
+        directQuestion: 5,
+        twoStatementCompound: 3,
+        contextual: 2,
+      },
       visibility,
     });
     return quiz;
@@ -51,15 +55,15 @@ describe("GetQuizByIdUseCase", () => {
       Question.create({
         id: QUESTION_ID,
         quizId,
-        questionText: "What is 2+2?",
-        questionType: QuestionType.SINGLE_BEST_ANSWER,
+        orderIndex: 0,
+        type: QuestionType.DIRECT_QUESTION,
+        stem: "What is 2+2?",
         options: [
           { index: "A", text: "3", explanation: "Incorrect", isCorrect: false },
           { index: "B", text: "4", explanation: "Correct", isCorrect: true },
           { index: "C", text: "5", explanation: "Incorrect", isCorrect: false },
           { index: "D", text: "6", explanation: "Incorrect", isCorrect: false },
         ],
-        orderIndex: 0,
       }),
     ];
   };
@@ -92,6 +96,7 @@ describe("GetQuizByIdUseCase", () => {
         totalPages: 0,
       })),
       slugExists: mock(async () => false),
+      findByIds: mock(async () => []),
     };
 
     mockQuestionRepository = {
@@ -118,7 +123,7 @@ describe("GetQuizByIdUseCase", () => {
       expect(result.quiz.id).toBe(QUIZ_ID);
       expect(result.quiz.title).toBe("Test Quiz");
       expect(result.questions).toHaveLength(1);
-      expect(result.questions[0]!.questionText).toBe("What is 2+2?");
+      expect(result.questions[0]!.stem).toBe("What is 2+2?");
     });
 
     it("should return public quiz without authentication", async () => {
@@ -162,8 +167,8 @@ describe("GetQuizByIdUseCase", () => {
 
       expect(result.questions[0]).toHaveProperty("id");
       expect(result.questions[0]).toHaveProperty("quizId");
-      expect(result.questions[0]).toHaveProperty("questionText");
-      expect(result.questions[0]).toHaveProperty("questionType");
+      expect(result.questions[0]).toHaveProperty("stem");
+      expect(result.questions[0]).toHaveProperty("type");
       expect(result.questions[0]).toHaveProperty("options");
       expect(result.questions[0]).toHaveProperty("orderIndex");
     });

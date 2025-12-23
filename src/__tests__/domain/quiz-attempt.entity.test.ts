@@ -407,6 +407,148 @@ describe("QuizAttempt Entity", () => {
     });
   });
 
+  describe("reset", () => {
+    it("should clear all answers for in-progress attempt", () => {
+      const attempt = QuizAttempt.create(
+        createValidCreateProps({ answers: { q1: "A", q2: "B", q3: "C" } })
+      );
+
+      attempt.reset();
+
+      expect(attempt.answers).toEqual({});
+      expect(Object.keys(attempt.answers).length).toBe(0);
+    });
+
+    it("should reset startedAt to current time", () => {
+      const oldStartTime = new Date("2024-01-01T10:00:00Z");
+      const attempt = QuizAttempt.reconstitute(
+        createValidProps({ startedAt: oldStartTime })
+      );
+
+      const beforeReset = Date.now();
+      attempt.reset();
+      const afterReset = Date.now();
+
+      expect(attempt.startedAt.getTime()).toBeGreaterThanOrEqual(beforeReset);
+      expect(attempt.startedAt.getTime()).toBeLessThanOrEqual(afterReset);
+    });
+
+    it("should reset status to IN_PROGRESS", () => {
+      const attempt = QuizAttempt.reconstitute(
+        createValidProps({ status: AttemptStatus.IN_PROGRESS })
+      );
+
+      attempt.reset();
+
+      expect(attempt.status).toBe(AttemptStatus.IN_PROGRESS);
+      expect(attempt.isInProgress).toBe(true);
+    });
+
+    it("should reset score to null", () => {
+      const attempt = QuizAttempt.reconstitute(
+        createValidProps({
+          status: AttemptStatus.IN_PROGRESS,
+          score: null,
+        })
+      );
+
+      attempt.reset();
+
+      expect(attempt.score).toBeNull();
+    });
+
+    it("should reset durationMs to null", () => {
+      const attempt = QuizAttempt.reconstitute(
+        createValidProps({
+          status: AttemptStatus.IN_PROGRESS,
+          durationMs: 60000,
+        })
+      );
+
+      attempt.reset();
+
+      expect(attempt.durationMs).toBeNull();
+    });
+
+    it("should reset submittedAt to null", () => {
+      const attempt = QuizAttempt.reconstitute(
+        createValidProps({
+          status: AttemptStatus.IN_PROGRESS,
+          submittedAt: null,
+        })
+      );
+
+      attempt.reset();
+
+      expect(attempt.submittedAt).toBeNull();
+    });
+
+    it("should preserve attempt id, slug, quizId, and userId", () => {
+      const attempt = QuizAttempt.reconstitute(
+        createValidProps({
+          id: ATTEMPT_ID,
+          slug: "AZshk0egcAAKcS5bxcMTwQ",
+          quizId: QUIZ_ID,
+          userId: USER_ID,
+          answers: { q1: "A" },
+        })
+      );
+
+      attempt.reset();
+
+      expect(attempt.id).toBe(ATTEMPT_ID);
+      expect(attempt.slug).toBe("AZshk0egcAAKcS5bxcMTwQ");
+      expect(attempt.quizId).toBe(QUIZ_ID);
+      expect(attempt.userId).toBe(USER_ID);
+    });
+
+    it("should work when attempt has no answers", () => {
+      const attempt = QuizAttempt.create(createValidCreateProps());
+
+      attempt.reset();
+
+      expect(attempt.answers).toEqual({});
+    });
+
+    it("should throw when resetting submitted attempt", () => {
+      const attempt = QuizAttempt.reconstitute(
+        createValidProps({
+          status: AttemptStatus.SUBMITTED,
+          score: 80,
+          answers: { q1: "A" },
+        })
+      );
+
+      expect(() => attempt.reset()).toThrow("Cannot reset a submitted attempt");
+    });
+
+    it("should allow continuing after reset (equivalent to fresh start)", () => {
+      const attempt = QuizAttempt.create(
+        createValidCreateProps({ answers: { q1: "A", q2: "B" } })
+      );
+
+      attempt.reset();
+      attempt.updateAnswer("q1", "C");
+      attempt.updateAnswer("q3", "D");
+
+      expect(attempt.answers).toEqual({ q1: "C", q3: "D" });
+      expect(attempt.isInProgress).toBe(true);
+    });
+
+    it("should allow submission after reset", () => {
+      const attempt = QuizAttempt.create(
+        createValidCreateProps({ answers: { q1: "A" } })
+      );
+
+      attempt.reset();
+      attempt.submit(100, { q1: "B", q2: "C" });
+
+      expect(attempt.isSubmitted).toBe(true);
+      expect(attempt.score).toBe(100);
+      expect(attempt.answers).toEqual({ q1: "B", q2: "C" });
+    });
+  });
+
   describe("computed properties", () => {
     describe("isInProgress", () => {
       it("should return true for in-progress attempt", () => {

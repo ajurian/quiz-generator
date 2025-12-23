@@ -1,6 +1,6 @@
 /**
  * Service interface for generating unique identifiers
- * This is a port - implementation can use UUID v4 or other strategies
+ * This is a port - implementation can use UUID or other strategies
  */
 export interface IIdGenerator {
   /**

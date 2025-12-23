@@ -31,8 +31,8 @@ describe("GeminiQuizGeneratorService", () => {
   const createValidParams = (): GenerateQuizParams => ({
     files: createMockFiles(),
     distribution: {
-      singleBestAnswer: 3,
-      twoStatements: 2,
+      directQuestion: 3,
+      twoStatementCompound: 2,
       contextual: 1,
     },
     model: GeminiModel.FLASH_2_5,
@@ -40,8 +40,9 @@ describe("GeminiQuizGeneratorService", () => {
 
   const createMockGeneratedQuestions = () => [
     {
-      questionText: "What is the primary function of mitochondria?",
-      questionType: QuestionType.SINGLE_BEST_ANSWER,
+      orderIndex: 0,
+      type: QuestionType.DIRECT_QUESTION,
+      stem: "What is the primary function of mitochondria?",
       options: [
         {
           index: "A",
@@ -68,7 +69,6 @@ describe("GeminiQuizGeneratorService", () => {
           isCorrect: false,
         },
       ],
-      orderIndex: 0,
     },
   ];
 
@@ -91,10 +91,10 @@ describe("GeminiQuizGeneratorService", () => {
       const result = await service.generateQuestions(params);
 
       expect(result).toHaveLength(1);
-      expect(result[0]!.questionText).toBe(
+      expect(result[0]!.stem).toBe(
         "What is the primary function of mitochondria?"
       );
-      expect(result[0]!.questionType).toBe(QuestionType.SINGLE_BEST_ANSWER);
+      expect(result[0]!.type).toBe(QuestionType.DIRECT_QUESTION);
       expect(result[0]!.options).toHaveLength(4);
     });
 

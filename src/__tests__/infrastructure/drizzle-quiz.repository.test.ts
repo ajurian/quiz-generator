@@ -25,8 +25,8 @@ describe("DrizzleQuizRepository", () => {
       userId: overrides.userId ?? USER_ID,
       title: overrides.title ?? "Test Quiz",
       distribution: {
-        singleBestAnswer: 5,
-        twoStatements: 3,
+        directQuestion: 5,
+        twoStatementCompound: 3,
         contextual: 2,
       },
       visibility: overrides.visibility ?? QuizVisibility.PRIVATE,

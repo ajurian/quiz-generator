@@ -1,5 +1,5 @@
+import React from "react";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import { useState } from "react";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
@@ -27,12 +27,12 @@ export const Route = createFileRoute("/auth/signup")({
 });
 
 function SignUpPage() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [name, setName] = React.useState("");
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [confirmPassword, setConfirmPassword] = React.useState("");
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = React.useState(false);
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,7 +83,7 @@ function SignUpPage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
               <Brain className="h-5 w-5" />
             </div>
-            <span className="text-xl font-semibold tracking-tight">
+            <span className="text-xl font-display font-semibold tracking-tight">
               Quiz Generator
             </span>
           </Link>
@@ -221,7 +221,7 @@ function SignUpPage() {
             <p className="text-center text-sm text-muted-foreground w-full">
               Already have an account?{" "}
               <Link
-                to={"/auth/signin" as "/"}
+                to="/auth/signin"
                 className="font-medium text-primary hover:underline"
               >
                 Sign in

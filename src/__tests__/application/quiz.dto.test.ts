@@ -1,17 +1,17 @@
 import { describe, expect, it } from "bun:test";
 import {
   createQuizInputSchema,
-  distributionSchema,
+  quizDistributionSchema,
   toQuizResponseDTO,
 } from "../../application/dtos/quiz.dto";
 import { Quiz, QuizVisibility } from "../../domain";
 
 describe("Quiz DTOs", () => {
-  describe("distributionSchema", () => {
+  describe("quizDistributionSchema", () => {
     it("should validate valid distribution", () => {
-      const result = distributionSchema.safeParse({
-        singleBestAnswer: 5,
-        twoStatements: 3,
+      const result = quizDistributionSchema.safeParse({
+        directQuestion: 5,
+        twoStatementCompound: 3,
         contextual: 2,
       });
 
@@ -19,9 +19,9 @@ describe("Quiz DTOs", () => {
     });
 
     it("should reject negative numbers", () => {
-      const result = distributionSchema.safeParse({
-        singleBestAnswer: -1,
-        twoStatements: 3,
+      const result = quizDistributionSchema.safeParse({
+        directQuestion: -1,
+        twoStatementCompound: 3,
         contextual: 2,
       });
 
@@ -29,9 +29,9 @@ describe("Quiz DTOs", () => {
     });
 
     it("should reject non-integer numbers", () => {
-      const result = distributionSchema.safeParse({
-        singleBestAnswer: 5.5,
-        twoStatements: 3,
+      const result = quizDistributionSchema.safeParse({
+        directQuestion: 5.5,
+        twoStatementCompound: 3,
         contextual: 2,
       });
 
@@ -39,9 +39,9 @@ describe("Quiz DTOs", () => {
     });
 
     it("should reject values exceeding maximum (255)", () => {
-      const result = distributionSchema.safeParse({
-        singleBestAnswer: 256,
-        twoStatements: 3,
+      const result = quizDistributionSchema.safeParse({
+        directQuestion: 256,
+        twoStatementCompound: 3,
         contextual: 2,
       });
 
@@ -49,9 +49,9 @@ describe("Quiz DTOs", () => {
     });
 
     it("should reject zero total questions", () => {
-      const result = distributionSchema.safeParse({
-        singleBestAnswer: 0,
-        twoStatements: 0,
+      const result = quizDistributionSchema.safeParse({
+        directQuestion: 0,
+        twoStatementCompound: 0,
         contextual: 0,
       });
 
@@ -65,8 +65,8 @@ describe("Quiz DTOs", () => {
         userId: "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
         title: "Test Quiz",
         distribution: {
-          singleBestAnswer: 5,
-          twoStatements: 3,
+          directQuestion: 5,
+          twoStatementCompound: 3,
           contextual: 2,
         },
       });
@@ -78,7 +78,11 @@ describe("Quiz DTOs", () => {
       const result = createQuizInputSchema.safeParse({
         userId: "",
         title: "Test Quiz",
-        distribution: { singleBestAnswer: 5, twoStatements: 3, contextual: 2 },
+        distribution: {
+          directQuestion: 5,
+          twoStatementCompound: 3,
+          contextual: 2,
+        },
       });
 
       expect(result.success).toBe(false);
@@ -88,7 +92,11 @@ describe("Quiz DTOs", () => {
       const result = createQuizInputSchema.safeParse({
         userId: "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
         title: "",
-        distribution: { singleBestAnswer: 5, twoStatements: 3, contextual: 2 },
+        distribution: {
+          directQuestion: 5,
+          twoStatementCompound: 3,
+          contextual: 2,
+        },
       });
 
       expect(result.success).toBe(false);
@@ -98,7 +106,11 @@ describe("Quiz DTOs", () => {
       const result = createQuizInputSchema.safeParse({
         userId: "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
         title: "a".repeat(256),
-        distribution: { singleBestAnswer: 5, twoStatements: 3, contextual: 2 },
+        distribution: {
+          directQuestion: 5,
+          twoStatementCompound: 3,
+          contextual: 2,
+        },
       });
 
       expect(result.success).toBe(false);
@@ -113,7 +125,11 @@ describe("Quiz DTOs", () => {
         id: QUIZ_ID,
         userId: "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
         title: "Test Quiz",
-        distribution: { singleBestAnswer: 5, twoStatements: 3, contextual: 2 },
+        distribution: {
+          directQuestion: 5,
+          twoStatementCompound: 3,
+          contextual: 2,
+        },
         visibility,
       });
     };
@@ -127,8 +143,8 @@ describe("Quiz DTOs", () => {
       expect(dto.visibility).toBe(QuizVisibility.PRIVATE);
       expect(dto.totalQuestions).toBe(10);
       expect(dto.distribution).toEqual({
-        singleBestAnswer: 5,
-        twoStatements: 3,
+        directQuestion: 5,
+        twoStatementCompound: 3,
         contextual: 2,
       });
       expect(typeof dto.createdAt).toBe("string");

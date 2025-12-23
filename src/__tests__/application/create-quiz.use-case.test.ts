@@ -42,8 +42,8 @@ describe("CreateQuizUseCase", () => {
     userId: "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10",
     title: "Test Quiz",
     distribution: {
-      singleBestAnswer: 5,
-      twoStatements: 3,
+      directQuestion: 5,
+      twoStatementCompound: 3,
       contextual: 2,
     },
     visibility: QuizVisibility.PRIVATE,
@@ -62,8 +62,9 @@ describe("CreateQuizUseCase", () => {
 
   const createMockGeneratedQuestions = () => [
     {
-      questionText: "What is the capital of France?",
-      questionType: QuestionType.SINGLE_BEST_ANSWER,
+      orderIndex: 0,
+      type: QuestionType.DIRECT_QUESTION,
+      stem: "What is the capital of France?",
       options: [
         {
           index: "A" as const,
@@ -90,7 +91,6 @@ describe("CreateQuizUseCase", () => {
           isCorrect: false,
         },
       ],
-      orderIndex: 0,
     },
   ];
 
@@ -124,6 +124,7 @@ describe("CreateQuizUseCase", () => {
         totalPages: 0,
       })),
       slugExists: mock(async () => false),
+      findByIds: mock(async () => []),
     };
 
     mockQuestionRepository = {
@@ -162,8 +163,8 @@ describe("CreateQuizUseCase", () => {
       expect(result.visibility).toBe(QuizVisibility.PRIVATE);
       expect(result.totalQuestions).toBe(10);
       expect(result.distribution).toEqual({
-        singleBestAnswer: 5,
-        twoStatements: 3,
+        directQuestion: 5,
+        twoStatementCompound: 3,
         contextual: 2,
       });
     });
@@ -222,8 +223,8 @@ describe("CreateQuizUseCase", () => {
     it("should throw ValidationError for zero total questions", async () => {
       const input = createValidInput();
       input.distribution = {
-        singleBestAnswer: 0,
-        twoStatements: 0,
+        directQuestion: 0,
+        twoStatementCompound: 0,
         contextual: 0,
       };
 

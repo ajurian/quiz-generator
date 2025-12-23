@@ -21,7 +21,7 @@ export function HistoryHeader({
       </Link>
 
       <div className="mb-8">
-        <h1 className="text-2xl font-bold mb-2">{quizTitle}</h1>
+        <h1 className="text-2xl font-display font-bold mb-2">{quizTitle}</h1>
         <p className="text-muted-foreground">
           Your attempt history for this quiz
         </p>

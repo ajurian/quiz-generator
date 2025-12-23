@@ -25,10 +25,10 @@ export class DrizzleQuestionRepository implements IQuestionRepository {
     const values = questionEntities.map((q) => ({
       id: q.id,
       quizId: q.quizId,
-      questionText: q.questionText,
-      questionType: q.questionType,
-      options: q.options.map((opt) => opt.toPlain()),
       orderIndex: q.orderIndex,
+      type: q.type,
+      stem: q.stem,
+      options: q.options.map((opt) => opt.toPlain()),
     }));
 
     const inserted = await this.db.insert(questions).values(values).returning();
@@ -65,10 +65,10 @@ export class DrizzleQuestionRepository implements IQuestionRepository {
     return Question.fromPlain({
       id: row.id,
       quizId: row.quizId,
-      questionText: row.questionText,
-      questionType: row.questionType,
-      options: row.options,
       orderIndex: row.orderIndex,
+      type: row.type,
+      stem: row.stem,
+      options: row.options,
     });
   }
 }

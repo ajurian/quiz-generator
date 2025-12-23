@@ -24,7 +24,7 @@ The Domain layer contains enterprise-wide business logic and is completely indep
 - visibility: QuizVisibility (enum: private | unlisted | public)
 - questionDistribution: number (int32 bit-packed)
   * Bits 0-7: Single-Answer count (0-255)
-  * Bits 8-15: Two Statements count (0-255)
+  * Bits 8-15: Two-Statement Compound count (0-255)
   * Bits 16-23: Contextual count (0-255)
 - totalQuestions: number (computed property)
 
@@ -56,8 +56,8 @@ Questions and answers can be previewed by creators at /quiz/m/{slug}.
 ```typescript
 - id: string (UUID)
 - quizId: string (foreign key)
-- questionText: string
-- questionType: QuestionType (enum)
+- stem: string
+- type: QuestionType (enum)
 - options: QuestionOption[] (JSONB)
 - orderIndex: number
 ```
@@ -93,8 +93,8 @@ Utility functions:
 
 ```typescript
 enum QuestionType {
-  SINGLE_BEST_ANSWER = 'single_best_answer',
-  TWO_STATEMENTS = 'two_statements',
+  DIRECT_QUESTION = 'direct_question',
+  TWO_STATEMENT_COMPOUND = 'two_statement_compound',
   CONTEXTUAL = 'contextual'
 }
 
@@ -119,7 +119,7 @@ enum AttemptStatus {
 
 #### QuizDistributionService
 
-- `encodeDistribution(singleBest, twoStatements, contextual): number`
+- `encodeDistribution(directQuestion, twoStatements, contextual): number`
 - `decodeDistribution(encoded: number): QuizDistribution`
 - `validateDistribution(distribution): boolean`
 
@@ -284,8 +284,8 @@ interface CreateQuizDTO {
   totalQuestions: number
   visibility?: QuizVisibility  // defaults to PRIVATE
   distribution: {
-    singleBestAnswer: number
-    twoStatements: number
+    directQuestion: number
+    twoStatementCompound: number
     contextual: number
   }
 }
@@ -350,10 +350,10 @@ export const quizzes = pgTable('quizzes', {
 export const questions = pgTable('questions', {
   id: uuid('id').primaryKey().defaultRandom(),
   quizId: uuid('quiz_id').notNull().references(() => quizzes.id, { onDelete: 'cascade' }),
-  questionText: text('question_text').notNull(),
-  questionType: text('question_type').notNull(),
-  options: jsonb('options').$type<QuestionOption[]>().notNull(),
   orderIndex: integer('order_index').notNull()
+  type: text('question_type').notNull(),
+  stem: text('question_text').notNull(),
+  options: jsonb('options').$type<QuestionOption[]>().notNull(),
 })
 
 export const quizAttempts = pgTable('quiz_attempts', {
@@ -606,7 +606,7 @@ Routes are organized by role with clear affordances:
 - Shows quizzes where ownerId = current user
 - Card click → `/quiz/m/{quiz_slug}` (management view)
 - Primary CTA: "Take" (starts real attempt)
-- Secondary CTA: "Share" (copies link)
+- Secondary CTA: "Share" (dialog prompt)
 
 #### "Taken" Section
 - Shows quizzes the user has attempted (including own)

@@ -11,10 +11,10 @@ import {
 export interface QuestionProps {
   id: string;
   quizId: string;
-  questionText: string;
-  questionType: QuestionType;
-  options: QuestionOption[];
   orderIndex: number;
+  type: QuestionType;
+  stem: string;
+  options: QuestionOption[];
 }
 
 /**
@@ -23,33 +23,33 @@ export interface QuestionProps {
 export interface CreateQuestionProps {
   id: string;
   quizId: string;
-  questionText: string;
-  questionType: QuestionType;
-  options: QuestionOptionProps[];
   orderIndex: number;
+  type: QuestionType;
+  stem: string;
+  options: QuestionOptionProps[];
 }
 
 /**
  * Question Entity
  *
  * Represents a single question within a quiz.
- * Contains the question text, type, answer options, and ordering information.
+ * Contains the stem, type, answer options, and ordering information.
  */
 export class Question {
   private readonly _id: string;
   private readonly _quizId: string;
-  private _questionText: string;
-  private _questionType: QuestionType;
-  private _options: QuestionOption[];
   private _orderIndex: number;
+  private _type: QuestionType;
+  private _stem: string;
+  private _options: QuestionOption[];
 
   private constructor(props: QuestionProps) {
     this._id = props.id;
     this._quizId = props.quizId;
-    this._questionText = props.questionText;
-    this._questionType = props.questionType;
-    this._options = props.options;
     this._orderIndex = props.orderIndex;
+    this._type = props.type;
+    this._stem = props.stem;
+    this._options = props.options;
   }
 
   /**
@@ -64,10 +64,10 @@ export class Question {
     return new Question({
       id: props.id,
       quizId: props.quizId,
-      questionText: props.questionText,
-      questionType: props.questionType,
-      options,
       orderIndex: props.orderIndex,
+      type: props.type,
+      stem: props.stem,
+      options,
     });
   }
 
@@ -86,15 +86,13 @@ export class Question {
   public static fromPlain(data: {
     id: string;
     quizId: string;
-    questionText: string;
-    questionType: string;
-    options: unknown[];
     orderIndex: number;
+    type: string;
+    stem: string;
+    options: unknown[];
   }): Question {
-    if (
-      !Object.values(QuestionType).includes(data.questionType as QuestionType)
-    ) {
-      throw new Error(`Invalid question type: ${data.questionType}`);
+    if (!Object.values(QuestionType).includes(data.type as QuestionType)) {
+      throw new Error(`Invalid question type: ${data.type}`);
     }
 
     const options = data.options.map((opt) => QuestionOption.fromPlain(opt));
@@ -102,10 +100,10 @@ export class Question {
     return Question.reconstitute({
       id: data.id,
       quizId: data.quizId,
-      questionText: data.questionText,
-      questionType: data.questionType as QuestionType,
-      options,
       orderIndex: data.orderIndex,
+      type: data.type as QuestionType,
+      stem: data.stem,
+      options,
     });
   }
 
@@ -122,15 +120,15 @@ export class Question {
     }
 
     if (
-      !props.questionText ||
-      typeof props.questionText !== "string" ||
-      props.questionText.trim().length === 0
+      !props.stem ||
+      typeof props.stem !== "string" ||
+      props.stem.trim().length === 0
     ) {
-      throw new Error("Question text is required and cannot be empty");
+      throw new Error("Stem is required and cannot be empty");
     }
 
-    if (!Object.values(QuestionType).includes(props.questionType)) {
-      throw new Error(`Invalid question type: ${props.questionType}`);
+    if (!Object.values(QuestionType).includes(props.type)) {
+      throw new Error(`Invalid question type: ${props.type}`);
     }
 
     if (!Array.isArray(props.options) || props.options.length !== 4) {
@@ -169,12 +167,12 @@ export class Question {
       throw new Error("Quiz ID is required");
     }
 
-    if (!props.questionText || typeof props.questionText !== "string") {
-      throw new Error("Question text is required");
+    if (!props.stem || typeof props.stem !== "string") {
+      throw new Error("Stem is required");
     }
 
-    if (!Object.values(QuestionType).includes(props.questionType)) {
-      throw new Error(`Invalid question type: ${props.questionType}`);
+    if (!Object.values(QuestionType).includes(props.type)) {
+      throw new Error(`Invalid question type: ${props.type}`);
     }
 
     if (!Array.isArray(props.options) || props.options.length !== 4) {
@@ -195,12 +193,12 @@ export class Question {
     return this._quizId;
   }
 
-  get questionText(): string {
-    return this._questionText;
+  get stem(): string {
+    return this._stem;
   }
 
-  get questionType(): QuestionType {
-    return this._questionType;
+  get type(): QuestionType {
+    return this._type;
   }
 
   get options(): readonly QuestionOption[] {
@@ -247,13 +245,13 @@ export class Question {
   }
 
   /**
-   * Updates the question text
+   * Updates the stem
    */
-  public updateQuestionText(text: string): void {
+  public updatestem(text: string): void {
     if (!text || typeof text !== "string" || text.trim().length === 0) {
-      throw new Error("Question text is required and cannot be empty");
+      throw new Error("Stem is required and cannot be empty");
     }
-    this._questionText = text.trim();
+    this._stem = text.trim();
   }
 
   /**
@@ -272,18 +270,18 @@ export class Question {
   public toPlain(): {
     id: string;
     quizId: string;
-    questionText: string;
-    questionType: QuestionType;
-    options: QuestionOptionProps[];
     orderIndex: number;
+    type: QuestionType;
+    stem: string;
+    options: QuestionOptionProps[];
   } {
     return {
       id: this._id,
       quizId: this._quizId,
-      questionText: this._questionText,
-      questionType: this._questionType,
-      options: this._options.map((opt) => opt.toPlain()),
       orderIndex: this._orderIndex,
+      type: this._type,
+      stem: this._stem,
+      options: this._options.map((opt) => opt.toPlain()),
     };
   }
 }

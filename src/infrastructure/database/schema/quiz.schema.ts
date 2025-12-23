@@ -5,10 +5,18 @@ import {
   integer,
   varchar,
   timestamp,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { questions } from "./question.schema";
 import { users } from "../../auth/auth.schema";
+import { QuizVisibility } from "@/domain";
+
+export const quizVisibilityEnum = pgEnum("quiz_visibility", [
+  QuizVisibility.PRIVATE,
+  QuizVisibility.UNLISTED,
+  QuizVisibility.PUBLIC,
+]);
 
 /**
  * Quizzes table schema
@@ -40,8 +48,8 @@ export const quizzes = pgTable("quizzes", {
   questionDistribution: integer("question_distribution").notNull(),
 
   /** Quiz visibility: private, unlisted, or public */
-  visibility: varchar("visibility", { length: 20 })
-    .default("private")
+  visibility: quizVisibilityEnum("visibility")
+    .default(QuizVisibility.PRIVATE)
     .notNull(),
 
   /** Timestamp when the quiz was created */

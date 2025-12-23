@@ -6,7 +6,9 @@ export function DashboardHeader() {
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <h1 className="text-3xl font-display font-bold tracking-tight">
+          Dashboard
+        </h1>
         <p className="mt-1 text-muted-foreground">
           Manage your quizzes and track progress
         </p>

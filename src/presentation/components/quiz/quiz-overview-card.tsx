@@ -1,3 +1,4 @@
+import { QuizDistribution } from "@/domain";
 import {
   Card,
   CardContent,
@@ -6,12 +7,6 @@ import {
   CardTitle,
 } from "@/presentation/components/ui/card";
 import { FileText } from "lucide-react";
-
-interface QuizDistribution {
-  singleBestAnswer: number;
-  twoStatements: number;
-  contextual: number;
-}
 
 interface QuizOverviewCardProps {
   totalQuestions: number;
@@ -37,13 +32,13 @@ export function QuizOverviewCard({
         <div className="grid grid-cols-3 gap-4 text-sm">
           <div>
             <p className="text-muted-foreground">Single Best Answer</p>
-            <p className="text-2xl font-bold">
-              {distribution.singleBestAnswer}
-            </p>
+            <p className="text-2xl font-bold">{distribution.directQuestion}</p>
           </div>
           <div>
             <p className="text-muted-foreground">Two Statements</p>
-            <p className="text-2xl font-bold">{distribution.twoStatements}</p>
+            <p className="text-2xl font-bold">
+              {distribution.twoStatementCompound}
+            </p>
           </div>
           <div>
             <p className="text-muted-foreground">Contextual</p>

@@ -20,7 +20,7 @@ import {
 export const Route = createFileRoute("/quiz/m/$slug")({
   beforeLoad: ({ context }) => {
     if (!context.session?.user) {
-      throw redirect({ to: "/auth/signin" as "/" });
+      throw redirect({ to: "/auth/signin" });
     }
   },
   loader: async ({ params, context }) => {
@@ -30,7 +30,7 @@ export const Route = createFileRoute("/quiz/m/$slug")({
     );
 
     if (!result.isOwner) {
-      throw redirect({ to: "/dashboard" as "/" });
+      throw redirect({ to: "/dashboard" });
     }
 
     return { userId };

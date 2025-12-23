@@ -5,6 +5,7 @@
  * - FLASH_2_5_LITE: Fallback model with lower quota requirements
  */
 export enum GeminiModel {
+  FLASH_3_0 = "gemini-3.0-flash-preview",
   FLASH_2_5 = "gemini-2.5-flash",
   FLASH_2_5_LITE = "gemini-2.5-flash-lite",
 }
@@ -24,6 +25,7 @@ export function isGeminiModel(value: unknown): value is GeminiModel {
  */
 export function getGeminiModelDisplayName(model: GeminiModel): string {
   const displayNames: Record<GeminiModel, string> = {
+    [GeminiModel.FLASH_3_0]: "Gemini 3.0 Flash Preview",
     [GeminiModel.FLASH_2_5]: "Gemini 2.5 Flash",
     [GeminiModel.FLASH_2_5_LITE]: "Gemini 2.5 Flash Lite",
   };

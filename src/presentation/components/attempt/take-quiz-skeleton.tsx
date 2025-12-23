@@ -5,7 +5,7 @@ import {
 } from "@/presentation/components/ui/card";
 import { Skeleton } from "@/presentation/components/ui/skeleton";
 
-export function TakeQuizSkeleton() {
+export function AttemptQuizSkeleton() {
   return (
     <div className="min-h-screen bg-muted/20 py-8">
       <div className="container max-w-4xl mx-auto px-4">

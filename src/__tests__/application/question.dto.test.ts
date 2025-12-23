@@ -8,8 +8,9 @@ describe("Question DTOs", () => {
       return Question.create({
         id: "question-123",
         quizId: "quiz-123",
-        questionText: "What is the capital of France?",
-        questionType: QuestionType.SINGLE_BEST_ANSWER,
+        orderIndex: 0,
+        type: QuestionType.DIRECT_QUESTION,
+        stem: "What is the capital of France?",
         options: [
           {
             index: "A",
@@ -36,7 +37,6 @@ describe("Question DTOs", () => {
             isCorrect: false,
           },
         ],
-        orderIndex: 0,
       });
     };
 
@@ -46,8 +46,8 @@ describe("Question DTOs", () => {
 
       expect(dto.id).toBe("question-123");
       expect(dto.quizId).toBe("quiz-123");
-      expect(dto.questionText).toBe("What is the capital of France?");
-      expect(dto.questionType).toBe(QuestionType.SINGLE_BEST_ANSWER);
+      expect(dto.stem).toBe("What is the capital of France?");
+      expect(dto.type).toBe(QuestionType.DIRECT_QUESTION);
       expect(dto.orderIndex).toBe(0);
     });
 
@@ -75,18 +75,19 @@ describe("Question DTOs", () => {
     });
 
     it("should correctly map all question types", () => {
-      const questionTypes = [
-        QuestionType.SINGLE_BEST_ANSWER,
-        QuestionType.TWO_STATEMENTS,
+      const types = [
+        QuestionType.DIRECT_QUESTION,
+        QuestionType.TWO_STATEMENT_COMPOUND,
         QuestionType.CONTEXTUAL,
       ];
 
-      questionTypes.forEach((type) => {
+      types.forEach((type) => {
         const question = Question.create({
           id: "question-123",
           quizId: "quiz-123",
-          questionText: "Test question",
-          questionType: type,
+          orderIndex: 0,
+          type: type,
+          stem: "Test question",
           options: [
             {
               index: "A",
@@ -113,11 +114,10 @@ describe("Question DTOs", () => {
               isCorrect: false,
             },
           ],
-          orderIndex: 0,
         });
 
         const dto = toQuestionResponseDTO(question);
-        expect(dto.questionType).toBe(type);
+        expect(dto.type).toBe(type);
       });
     });
   });

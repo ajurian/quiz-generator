@@ -48,7 +48,7 @@ export class QuizAttempt {
   private _status: AttemptStatus;
   private _score: number | null;
   private _durationMs: number | null;
-  private readonly _startedAt: Date;
+  private _startedAt: Date;
   private _submittedAt: Date | null;
   private _answers: Record<string, string>;
 
@@ -298,12 +298,31 @@ export class QuizAttempt {
    * Resets all answers for 'Start Over' functionality
    * Keeps the same attempt but clears all answers
    * @throws {Error} if already submitted
+   * @deprecated Use reset() instead which also resets the timer
    */
   public resetAnswers(): void {
     if (this._status === AttemptStatus.SUBMITTED) {
       throw new Error("Cannot reset answers on submitted attempt");
     }
     this._answers = {};
+  }
+
+  /**
+   * Fully resets the attempt for 'Start Over' functionality
+   * Keeps the same attempt ID but clears all answers and resets the timer.
+   * This is equivalent to creating a new attempt but reusing the same ID.
+   * @throws {Error} if already submitted
+   */
+  public reset(): void {
+    if (this._status === AttemptStatus.SUBMITTED) {
+      throw new Error("Cannot reset a submitted attempt");
+    }
+    this._answers = {};
+    this._startedAt = new Date();
+    this._status = AttemptStatus.IN_PROGRESS;
+    this._score = null;
+    this._durationMs = null;
+    this._submittedAt = null;
   }
 
   /**

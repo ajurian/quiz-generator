@@ -37,10 +37,29 @@ interface QuizAttemptViewProps {
 }
 
 /**
+ * Creates a stable string key from questions and answers for comparison.
+ * This prevents useEffect loops when props have same content but new references.
+ */
+function useStableKey(
+  questions: Question[],
+  initialAnswers: Record<string, string>
+): string {
+  return React.useMemo(() => {
+    const questionIds = questions.map((q) => q.id).join(",");
+    const answerEntries = Object.entries(initialAnswers)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([k, v]) => `${k}:${v}`)
+      .join(",");
+    return `${questionIds}|${answerEntries}`;
+  }, [questions, initialAnswers]);
+}
+
+/**
  * Hook for saving answer when user checks it (no debouncing)
  */
 function useSaveAnswer(attemptId: string, userId: string | null) {
   const [saveStatus, setSaveStatus] = React.useState<SaveStatus>("idle");
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const saveAnswer = React.useCallback(
     async (questionId: string, optionIndex: string) => {
@@ -56,12 +75,14 @@ function useSaveAnswer(attemptId: string, userId: string | null) {
         });
         setSaveStatus("saved");
         // Reset to idle after showing "saved" state
-        setTimeout(() => setSaveStatus("idle"), 3000);
+        clearTimeout(timeoutRef.current ?? undefined);
+        timeoutRef.current = setTimeout(() => setSaveStatus("idle"), 3000);
       } catch (error) {
         console.error("Save failed:", error);
         setSaveStatus("error");
         // Reset to idle after showing error
-        setTimeout(() => setSaveStatus("idle"), 5000);
+        clearTimeout(timeoutRef.current ?? undefined);
+        timeoutRef.current = setTimeout(() => setSaveStatus("idle"), 3000);
         throw error; // Re-throw to handle in the caller
       }
     },
@@ -116,6 +137,12 @@ export function QuizAttemptView({
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const { saveStatus, saveAnswer } = useSaveAnswer(attemptId, userId);
+
+  // Create a stable key to detect actual content changes (not just reference changes)
+  const stableKey = useStableKey(questions, initialAnswers);
+  // Track previous key to detect real changes
+  const prevKeyRef = React.useRef(stableKey);
+  const isInitialMount = React.useRef(true);
 
   const currentQuestion = questions[currentIndex];
   const isLastQuestion = currentIndex === questions.length - 1;
@@ -214,15 +241,28 @@ export function QuizAttemptView({
     }
   };
 
-  // Reset state when questions or initialAnswers change
+  // Reset state when questions or initialAnswers actually change (content-based comparison)
+  // Using stableKey prevents loops when props have new references but same content
   React.useEffect(() => {
+    // Skip effect on initial mount (state is already initialized correctly)
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    // Only reset if the content actually changed
+    if (prevKeyRef.current === stableKey) {
+      return;
+    }
+    prevKeyRef.current = stableKey;
+
     const startIdx = getStartingIndex();
     setCurrentIndex(startIdx);
     setAnswers(initialAnswers);
     setCheckedQuestions(new Set(Object.keys(initialAnswers)));
     setQuestionState(getInitialQuestionState(startIdx));
     setCurrentSelection(undefined);
-  }, [questions, initialAnswers, getStartingIndex, getInitialQuestionState]);
+  }, [stableKey, getStartingIndex, getInitialQuestionState, initialAnswers]);
 
   if (!currentQuestion) {
     return (
@@ -290,7 +330,7 @@ function ProgressHeader({
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-2">
-        <h1 className="text-xl font-semibold">{title}</h1>
+        <h1 className="text-xl font-display font-semibold">{title}</h1>
         <div className="flex items-center gap-3">
           <SaveStatusIndicator status={saveStatus} />
           <Badge variant="outline">

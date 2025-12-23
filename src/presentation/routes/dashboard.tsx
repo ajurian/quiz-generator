@@ -25,15 +25,15 @@ import { ThemeToggle } from "@/presentation/components/shared/theme-toggle";
 export const Route = createFileRoute("/dashboard")({
   beforeLoad: ({ context }) => {
     if (!context.session?.user) {
-      throw redirect({ to: "/auth/signin" as "/" });
+      throw redirect({ to: "/auth/signin" });
     }
-    return { user: context.session.user };
   },
   component: DashboardLayout,
 });
 
 function DashboardLayout() {
-  const { user } = Route.useRouteContext();
+  const { session } = Route.useRouteContext();
+  const user = session!.user;
 
   const initials = user.name
     ? user.name
@@ -59,7 +59,7 @@ function DashboardLayout() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                 <Brain className="h-4 w-4" />
               </div>
-              <span className="font-semibold tracking-tight">
+              <span className="font-display font-semibold tracking-tight">
                 Quiz Generator
               </span>
             </Link>

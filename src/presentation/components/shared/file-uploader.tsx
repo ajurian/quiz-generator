@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import React from "react";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/presentation/components/ui/button";
 import { Card, CardContent } from "@/presentation/components/ui/card";
@@ -42,9 +42,9 @@ export function FileUploader({
   acceptedTypes = DEFAULT_ACCEPTED_TYPES,
   disabled = false,
 }: FileUploaderProps) {
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
 
-  const onDrop = useCallback(
+  const onDrop = React.useCallback(
     (acceptedFiles: File[], rejectedFiles: unknown[]) => {
       setError(null);
 
@@ -72,10 +72,7 @@ export function FileUploader({
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: acceptedTypes.reduce(
-      (acc, type) => ({ ...acc, [type]: [] }),
-      {}
-    ),
+    accept: acceptedTypes.reduce((acc, type) => ({ ...acc, [type]: [] }), {}),
     maxSize,
     maxFiles: maxFiles - files.length,
     disabled: disabled || files.length >= maxFiles,
@@ -92,7 +89,8 @@ export function FileUploader({
   };
 
   const getFileIcon = (type: string) => {
-    if (type.includes("pdf")) return <FileText className="h-5 w-5 text-red-500" />;
+    if (type.includes("pdf"))
+      return <FileText className="h-5 w-5 text-red-500" />;
     return <File className="h-5 w-5 text-blue-500" />;
   };
 

@@ -13,21 +13,21 @@ You are implementing quiz visibility, identifiers, routes, and UX for an AI‑ge
     - Quiz.id: UUID (v7); Quiz.slug: base64url of raw 16‑byte UUID (no padding, URL‑safe, deterministic).
     - Attempt.id: UUID v7; Attempt.slug: base64url derived from Attempt.id.
     - Persist both id and slug; add unique index on slug in each table. Never regenerate slugs.
-    - base64url = standard Base64 with “+”→“-”, “/”→“_”, remove “=” padding.
+    - base64url
 - Entities (new/updated)
     - quiz { id, ownerId, visibility, slug, createdAt, updatedAt, … }
     - quiz_attempt { id, slug, quizId, userId, status: in_progress|submitted, score, durationMs, startedAt, submittedAt, mode: preview|normal, … }
     - Optional: quiz_version snapshotting for publish workflows (future‑proofing), but not required for this task.
 - Routes (stable contracts)
-    - Answer: /quiz/t/{quiz_slug} → starts attempt flow or shows “already completed” screen (see UX below).
+    - Answer: /quiz/a/{quiz_slug} → starts attempt flow or shows “already completed” screen (see UX below).
     - History (list): /quiz/h/{quiz_slug} → user’s attempt list for that quiz.
     - History (detail): /quiz/h/{quiz_slug}/{attempt_slug} → review a specific attempt.
     - Creator manage: /quiz/m/{quiz_slug} → visibility controls, share link, correct answers/rationales preview, creator actions.
     - Behavior with visibility:
         - Enforce access rules on all routes server‑side; return 404/403 appropriately without leaking existence.
-- Attempt UX on /quiz/t/{quiz_slug}
+- Attempt UX on /quiz/a/{quiz_slug}
     - If 0 attempts by current user: start a new attempt immediately (normal mode).
-    - If ≥1 attempts by current user: show “You already completed this quiz” with last attempt summary (score, date, time spent) and three CTAs:
+    - If greater than or equal to 1 attempts by current user: show “You already completed this quiz” with last attempt summary (score, date, time spent) and three CTAs:
         - “View all attempts” → /quiz/h/{quiz_slug}
         - “Review last attempt” → /quiz/h/{quiz_slug}/{last_attempt_slug}
         - “Try again” → starts a new attempt immediately (bypass the same prompt next time once they click).
@@ -38,16 +38,16 @@ You are implementing quiz visibility, identifiers, routes, and UX for an AI‑ge
         - Real attempt (mode=normal; included in their history).
     - On /quiz/m/{quiz_slug} expose:
         - Visibility selector: private/unlisted/public (persist immediately).
-        - Share link copy (uses the answer URL /quiz/t/{quiz_slug} for unlisted/public).
+        - Share link copy (uses the answer URL /quiz/a/{quiz_slug} for unlisted/public).
         - Correct answers/rationales view (read‑only preview).
-        - Buttons: Primary “Take” (starts /quiz/t/{quiz_slug} as real attempt), Secondary “Share”.
+        - Buttons: Primary “Take” (starts /quiz/a/{quiz_slug} as real attempt), Secondary “Share”.
 - Dashboard sections and card CTAs
     - “Created”: quizzes where ownerId = current user.
         - Card click → /quiz/m/{quiz_slug}.
         - Primary CTA: “Take” (real attempt), Secondary CTA: “Share”.
     - “Taken”: quizzes the user has attempted (including their own).
-        - Card click → /quiz/h/{quiz_slug}/{last_attempt_slug}.
-        - Primary CTA: “Retake” → /quiz/t/{quiz_slug} (immediately starts a new attempt), Secondary CTA: “View all attempts”.
+        - Card click → /quiz/h/{quiz_slug}.
+        - Primary CTA: “Try Again” → /quiz/a/{quiz_slug} (immediately starts a new attempt).
     - Ensure card CTAs do not trigger the card’s primary navigation (separate clickable regions).
 - Validation and constraints
     - Uniqueness: quiz.slug UNIQUE, attempt.slug UNIQUE. Add indexes on quiz.slug and attempt.quizId,userId,submittedAt DESC for history.
@@ -62,8 +62,8 @@ You are implementing quiz visibility, identifiers, routes, and UX for an AI‑ge
     - Log all access‑denied events with anonymized context (no PII in logs).
     - Return consistent HTTP semantics: 403 when the quiz exists but user lacks permission (for authenticated users); 404 for anonymous on private.
 - Acceptance criteria
-    - Given a quiz with visibility=unlisted, a signed‑out user can open /quiz/t/{quiz_slug} and complete an attempt; history becomes available after sign‑in.
-    - Given ≥1 prior attempts, /quiz/t/{quiz_slug} shows last attempt summary with the three CTAs and “Try again” creates a new submitted attempt on completion.
+    - Given a quiz with visibility=unlisted, a signed‑out user can open /quiz/a/{quiz_slug} and complete an attempt; history becomes available after sign‑in.
+    - Given greater than or equal to 1 prior attempts, /quiz/a/{quiz_slug} shows last attempt summary with the three CTAs and “Try again” creates a new submitted attempt on completion.
     - Given a creator, clicking a “Created” card opens /quiz/m/{quiz_slug} and allows visibility change and link copy; “Take” starts a real attempt.
     - Slugs are deterministic base64url encodings of UUIDs; unique constraints prevent duplicates; attempts use UUID v7 and have independent slugs.
 
@@ -71,7 +71,7 @@ You are implementing quiz visibility, identifiers, routes, and UX for an AI‑ge
 ## Rationale highlights
 
 - Using visibility enums clarifies rules and avoids boolean drift; base64url slugs provide compact, non‑guessable, URL‑safe identifiers derived from UUIDs.
-- Clear route affordances keep answering (/t), history (/h), and creator management (/m) distinct, simplifying authorization and navigation.
+- Clear route affordances keep answering (/a), history (/h), and creator management (/m) distinct, simplifying authorization and navigation.
 - The “already completed” interstitial avoids accidental duplicate attempts while keeping a one‑click “Try again” for speed.
 
 

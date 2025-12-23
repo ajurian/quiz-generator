@@ -32,10 +32,10 @@ export interface QuestionOption {
 
 export interface Question {
   id: string;
-  questionText: string;
-  questionType: string;
-  options: QuestionOption[];
   orderIndex: number;
+  type: string;
+  stem: string;
+  options: QuestionOption[];
 }
 
 /**
@@ -71,7 +71,7 @@ interface QuestionCardCheckedProps extends QuestionCardBaseProps {
 
 interface QuestionCardReviewProps extends QuestionCardBaseProps {
   state: "review";
-  selectedAnswer: string | undefined;
+  selectedAnswer: string;
 }
 
 export type QuestionCardProps =
@@ -84,8 +84,8 @@ export type QuestionCardProps =
 // ============================================================================
 
 const QUESTION_TYPE_LABELS: Record<string, string> = {
-  single_best_answer: "Single Best Answer",
-  two_statements: "Two Statements",
+  direct_question: "Direct Question",
+  two_statement_compound: "Two-Statement Compound",
   contextual: "Contextual",
 };
 
@@ -96,15 +96,17 @@ const RATIONALE_TRUNCATE_LENGTH = 200;
 // ============================================================================
 
 export function QuestionCard(props: QuestionCardProps) {
-  const { question, questionNumber, state } = props;
+  const { question, questionNumber, state, selectedAnswer } = props;
 
+  const selectedOption = question.options.find(
+    (o) => o.index === selectedAnswer
+  );
   const correctOption = question.options.find((o) => o.isCorrect);
   const showFeedback = state === "checked" || state === "review";
 
   // Determine correctness for feedback
-  const selectedAnswer =
-    state === "selecting" ? props.selectedAnswer : props.selectedAnswer;
-  const isCorrect = showFeedback && selectedAnswer === correctOption?.index;
+  const isCorrect =
+    showFeedback && selectedOption?.index === correctOption?.index;
 
   return (
     <Card className="mb-6">
@@ -112,15 +114,15 @@ export function QuestionCard(props: QuestionCardProps) {
         <div className="flex items-center gap-2 mb-2">
           <Badge variant="secondary">Question {questionNumber}</Badge>
           <Badge variant="outline" className="capitalize">
-            {QUESTION_TYPE_LABELS[question.questionType] ||
-              question.questionType.replace(/_/g, " ")}
+            {QUESTION_TYPE_LABELS[question.type] ||
+              question.type.replace(/_/g, " ")}
           </Badge>
           {showFeedback && selectedAnswer && (
             <CorrectnessBadge isCorrect={isCorrect} />
           )}
         </div>
         <CardTitle className="text-lg leading-relaxed">
-          {question.questionText}
+          {question.stem}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -143,8 +145,11 @@ export function QuestionCard(props: QuestionCardProps) {
         </div>
 
         {/* Rationale (shown after checking or in review) */}
-        {showFeedback && correctOption?.explanation && (
-          <RationaleSection explanation={correctOption.explanation} />
+        {showFeedback && selectedOption?.explanation && (
+          <RationaleSection
+            explanation={selectedOption.explanation}
+            isCorrect={isCorrect}
+          />
         )}
 
         {/* Primary CTA */}
@@ -211,7 +216,7 @@ function CorrectnessBadge({ isCorrect }: CorrectnessBadgeProps) {
       variant={isCorrect ? "default" : "destructive"}
       className={cn(
         isCorrect
-          ? "bg-green-500/10 text-green-600 dark:text-green-400"
+          ? "bg-green-500/10 text-success-foreground dark:text-green-400"
           : "bg-red-500/10 text-red-600 dark:text-red-400"
       )}
     >
@@ -342,9 +347,10 @@ function OptionItem({
 
 interface RationaleSectionProps {
   explanation: string;
+  isCorrect: boolean;
 }
 
-function RationaleSection({ explanation }: RationaleSectionProps) {
+function RationaleSection({ explanation, isCorrect }: RationaleSectionProps) {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const isLong = explanation.length > RATIONALE_TRUNCATE_LENGTH;
 
@@ -359,7 +365,7 @@ function RationaleSection({ explanation }: RationaleSectionProps) {
         <Lightbulb className="h-4 w-4 mt-0.5 text-blue-500 flex-shrink-0" />
         <div className="flex-1">
           <div className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-1">
-            Explanation
+            Why is your answer {isCorrect ? "correct" : "incorrect"}?
           </div>
           <div className="text-sm text-muted-foreground">{displayText}</div>
           {isLong && (

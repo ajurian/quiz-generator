@@ -21,7 +21,11 @@ describe("GetUserQuizzesUseCase", () => {
       id,
       userId,
       title,
-      distribution: { singleBestAnswer: 5, twoStatements: 3, contextual: 2 },
+      distribution: {
+        directQuestion: 5,
+        twoStatementCompound: 3,
+        contextual: 2,
+      },
       visibility: QuizVisibility.PRIVATE,
     });
   };
@@ -55,6 +59,7 @@ describe("GetUserQuizzesUseCase", () => {
         totalPages: 0,
       })),
       slugExists: mock(async () => false),
+      findByIds: mock(async () => []),
     };
 
     useCase = new GetUserQuizzesUseCase({
@@ -128,8 +133,8 @@ describe("GetUserQuizzesUseCase", () => {
             userId,
             title: "Public Quiz",
             distribution: {
-              singleBestAnswer: 5,
-              twoStatements: 3,
+              directQuestion: 5,
+              twoStatementCompound: 3,
               contextual: 2,
             },
             visibility: QuizVisibility.PUBLIC,

@@ -17,10 +17,10 @@ export const questionOptionSchema = z.object({
 export const questionResponseSchema = z.object({
   id: z.uuidv7(),
   quizId: z.uuidv7(),
-  questionText: z.string(),
-  questionType: z.enum(QuestionType),
-  options: z.array(questionOptionSchema).length(4),
   orderIndex: z.number().int().min(0),
+  type: z.enum(QuestionType),
+  stem: z.string(),
+  options: z.array(questionOptionSchema).length(4),
 });
 
 /**
@@ -34,27 +34,27 @@ export type QuestionResponseDTO = z.infer<typeof questionResponseSchema>;
 export function toQuestionResponseDTO(question: {
   id: string;
   quizId: string;
-  questionText: string;
-  questionType: QuestionType;
+  orderIndex: number;
+  type: QuestionType;
+  stem: string;
   options: readonly {
     index: string;
     text: string;
     explanation: string;
     isCorrect: boolean;
   }[];
-  orderIndex: number;
 }): QuestionResponseDTO {
   return {
     id: question.id,
     quizId: question.quizId,
-    questionText: question.questionText,
-    questionType: question.questionType,
+    orderIndex: question.orderIndex,
+    type: question.type,
+    stem: question.stem,
     options: question.options.map((opt) => ({
       index: opt.index as "A" | "B" | "C" | "D",
       text: opt.text,
       explanation: opt.explanation,
       isCorrect: opt.isCorrect,
     })),
-    orderIndex: question.orderIndex,
   };
 }

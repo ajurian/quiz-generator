@@ -11,7 +11,7 @@ import {
 export const Route = createFileRoute("/quiz/h/$slug/")({
   beforeLoad: ({ context }) => {
     if (!context.session?.user) {
-      throw redirect({ to: "/auth/signin" as "/" });
+      throw redirect({ to: "/auth/signin" });
     }
   },
   loader: async ({ params, context }) => {

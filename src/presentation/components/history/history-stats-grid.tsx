@@ -22,9 +22,7 @@ export function HistoryStatsGrid({
         icon={<Trophy className="h-4 w-4 text-yellow-500" />}
         label="Best Score"
         value={
-          summary.bestScore !== null
-            ? `${summary.bestScore.toFixed(0)}%`
-            : "N/A"
+          summary.bestScore !== null ? `${summary.bestScore.toFixed(0)}%` : "--"
         }
       />
       <StatCard
@@ -33,7 +31,7 @@ export function HistoryStatsGrid({
         value={
           summary.averageScore !== null
             ? `${summary.averageScore.toFixed(0)}%`
-            : "N/A"
+            : "--"
         }
       />
       <StatCard
@@ -68,7 +66,7 @@ function StatCard({ icon, label, value }: StatCardProps) {
             {label}
           </span>
         </div>
-        <div className="text-2xl font-bold">{value}</div>
+        <div className="text-2xl font-display font-bold">{value}</div>
       </CardContent>
     </Card>
   );

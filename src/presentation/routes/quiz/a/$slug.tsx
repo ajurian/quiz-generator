@@ -1,5 +1,9 @@
 import React from "react";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  useLocation,
+  useRouter,
+} from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   startAttempt,
@@ -9,7 +13,7 @@ import {
 import { quizBySlugQueryOptions, attemptKeys } from "@/presentation/queries";
 import { toast } from "sonner";
 import {
-  TakeQuizSkeleton,
+  AttemptQuizSkeleton,
   ExistingAttemptCard,
   QuizAttemptView,
   ResumeAttemptDialog,
@@ -31,11 +35,11 @@ export const Route = createFileRoute("/quiz/a/$slug")({
 
     return { attemptResult: result, quizDetails, userId };
   },
-  pendingComponent: TakeQuizSkeleton,
-  component: TakeQuizPage,
+  pendingComponent: AttemptQuizSkeleton,
+  component: AttemptQuizPage,
 });
 
-function TakeQuizPage() {
+function AttemptQuizPage() {
   const { slug } = Route.useParams();
   const { session } = Route.useRouteContext();
   const { attemptResult, quizDetails, userId } = Route.useLoaderData();
@@ -47,9 +51,15 @@ function TakeQuizPage() {
     !attemptResult.isNewAttempt && !attemptResult.existingAttemptSummary;
   const hasAnswers = Object.keys(attemptResult.attempt.answers).length > 0;
 
+  const { resume } = useLocation({
+    select: (s) => ({
+      resume: s.state.resume,
+    }),
+  });
+
   // Show dialog only if in-progress with existing answers
   const [showResumeDialog, setShowResumeDialog] = React.useState(
-    isInProgressAttempt && hasAnswers && !router.state.location.state?.resume
+    isInProgressAttempt && hasAnswers && !resume
   );
   const [currentAnswers, setCurrentAnswers] = React.useState(
     attemptResult.attempt.answers
@@ -94,10 +104,10 @@ function TakeQuizPage() {
         },
       });
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Starting fresh!");
-      setCurrentAnswers({});
       setShowResumeDialog(false);
+      setCurrentAnswers({});
     },
     onError: (error) => {
       toast.error("Failed to reset attempt", {
@@ -113,13 +123,6 @@ function TakeQuizPage() {
   const handleStartOver = () => {
     resetAttemptMutation.mutate();
   };
-
-  React.useEffect(() => {
-    setShowResumeDialog(
-      isInProgressAttempt && hasAnswers && !router.state.location.state?.resume
-    );
-    setCurrentAnswers(attemptResult.attempt.answers);
-  }, [isInProgressAttempt, hasAnswers, attemptResult.attempt.answers]);
 
   // New attempt - show the quiz immediately
   if (attemptResult.isNewAttempt) {
@@ -153,7 +156,7 @@ function TakeQuizPage() {
         onContinue={handleContinue}
         onStartOver={handleStartOver}
         isResetting={resetAttemptMutation.isPending}
-        answeredCount={Object.keys(attemptResult.attempt.answers).length}
+        answeredCount={Object.keys(currentAnswers).length}
         totalQuestions={quizDetails.questions.length}
       />
       <QuizAttemptView

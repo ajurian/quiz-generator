@@ -54,7 +54,7 @@ export function ExistingAttemptCard({
             <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
               <CheckCircle2 className="h-6 w-6 text-primary" />
             </div>
-            <CardTitle className="text-2xl">
+            <CardTitle className="text-2xl font-display">
               You've completed this quiz
             </CardTitle>
             <CardDescription>
@@ -127,13 +127,13 @@ function LastAttemptSummary({ attempt }: LastAttemptSummaryProps) {
         <div className="flex items-center gap-2">
           <Trophy className="h-4 w-4 text-yellow-500" />
           <span className="text-sm">
-            Score: <strong>{attempt.score?.toFixed(0) ?? "N/A"}%</strong>
+            Score: <strong>{attempt.score?.toFixed(0) ?? "--"}%</strong>
           </span>
         </div>
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm">
-            Time: {attempt.formattedDuration ?? "N/A"}
+            Time: {attempt.formattedDuration ?? "--"}
           </span>
         </div>
       </div>
@@ -156,14 +156,14 @@ function ScoresSummary({ bestScore, averageScore }: ScoresSummaryProps) {
   return (
     <div className="grid grid-cols-2 gap-4 text-center">
       <div className="rounded-lg border bg-card p-3">
-        <div className="text-2xl font-bold text-primary">
+        <div className="text-2xl font-display font-bold text-primary">
           {bestScore.toFixed(0)}%
         </div>
         <div className="text-xs text-muted-foreground">Best Score</div>
       </div>
       <div className="rounded-lg border bg-card p-3">
-        <div className="text-2xl font-bold">
-          {averageScore?.toFixed(0) ?? "N/A"}%
+        <div className="text-2xl font-display font-bold">
+          {averageScore?.toFixed(0) ?? "--"}%
         </div>
         <div className="text-xs text-muted-foreground">Average</div>
       </div>

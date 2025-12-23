@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getContainer } from "@/infrastructure/di";
 import { QuizVisibility } from "@/domain";
+import { quizDistributionSchema } from "@/application";
 
 // Validation schemas
 const paginationSchema = z.object({
@@ -77,13 +78,9 @@ export const createQuiz = createServerFn({ method: "POST" })
     z.object({
       userId: z.uuidv7(),
       title: z.string().min(1).max(255),
-      distribution: z.object({
-        singleBestAnswer: z.number().int().min(0).max(255),
-        twoStatements: z.number().int().min(0).max(255),
-        contextual: z.number().int().min(0).max(255),
-      }),
+      distribution: quizDistributionSchema,
       visibility: z
-        .nativeEnum(QuizVisibility)
+        .enum(QuizVisibility)
         .optional()
         .default(QuizVisibility.PRIVATE),
       files: z.array(serializableFileSchema),

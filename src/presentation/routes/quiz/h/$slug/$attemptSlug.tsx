@@ -86,7 +86,9 @@ function AttemptDetailPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-xl">{quiz.title}</CardTitle>
+                <CardTitle className="text-xl font-display">
+                  {quiz.title}
+                </CardTitle>
                 <CardDescription>
                   Attempt on {new Date(attempt.startedAt).toLocaleDateString()}{" "}
                   at {new Date(attempt.startedAt).toLocaleTimeString()}
@@ -104,23 +106,25 @@ function AttemptDetailPage() {
             <div className="grid grid-cols-3 gap-4 text-center">
               <div className="p-4 rounded-lg bg-muted/50">
                 <Trophy className="h-5 w-5 mx-auto mb-2 text-yellow-500" />
-                <div className="text-2xl font-bold">
+                <div className="text-2xl font-display font-bold">
                   {attempt.score !== null
                     ? `${attempt.score.toFixed(0)}%`
-                    : "N/A"}
+                    : "--"}
                 </div>
                 <div className="text-xs text-muted-foreground">Score</div>
               </div>
               <div className="p-4 rounded-lg bg-muted/50">
                 <Clock className="h-5 w-5 mx-auto mb-2 text-blue-500" />
-                <div className="text-2xl font-bold">
-                  {attempt.formattedDuration ?? "N/A"}
+                <div className="text-2xl font-display font-bold">
+                  {attempt.formattedDuration ?? "--"}
                 </div>
                 <div className="text-xs text-muted-foreground">Duration</div>
               </div>
               <div className="p-4 rounded-lg bg-muted/50">
                 <CheckCircle2 className="h-5 w-5 mx-auto mb-2 text-green-500" />
-                <div className="text-2xl font-bold">{questions.length}</div>
+                <div className="text-2xl font-display font-bold">
+                  {questions.length}
+                </div>
                 <div className="text-xs text-muted-foreground">Questions</div>
               </div>
             </div>
@@ -145,7 +149,7 @@ function AttemptDetailPage() {
               question={question}
               questionNumber={index + 1}
               state="review"
-              selectedAnswer={attempt.answers[question.id]}
+              selectedAnswer={attempt.answers[question.id] ?? ""}
             />
           ))}
         </div>

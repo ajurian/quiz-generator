@@ -7,15 +7,15 @@ import {
 
 describe("QuestionType Enum", () => {
   describe("enum values", () => {
-    it("should have SINGLE_BEST_ANSWER with correct value", () => {
-      expect(QuestionType.SINGLE_BEST_ANSWER).toBe(
-        "single_best_answer" as QuestionType
+    it("should have DIRECT_QUESTION with correct value", () => {
+      expect(QuestionType.DIRECT_QUESTION).toBe(
+        "direct_question" as QuestionType
       );
     });
 
-    it("should have TWO_STATEMENTS with correct value", () => {
-      expect(QuestionType.TWO_STATEMENTS).toBe(
-        "two_statements" as QuestionType
+    it("should have TWO_STATEMENT_COMPOUND with correct value", () => {
+      expect(QuestionType.TWO_STATEMENT_COMPOUND).toBe(
+        "two_statement_compound" as QuestionType
       );
     });
 
@@ -31,14 +31,14 @@ describe("QuestionType Enum", () => {
 
   describe("isQuestionType", () => {
     it("should return true for valid QuestionType values", () => {
-      expect(isQuestionType("single_best_answer")).toBe(true);
-      expect(isQuestionType("two_statements")).toBe(true);
+      expect(isQuestionType("direct_question")).toBe(true);
+      expect(isQuestionType("two_statement_compound")).toBe(true);
       expect(isQuestionType("contextual")).toBe(true);
     });
 
     it("should return false for invalid string values", () => {
       expect(isQuestionType("invalid")).toBe(false);
-      expect(isQuestionType("SINGLE_BEST_ANSWER")).toBe(false);
+      expect(isQuestionType("DIRECT_QUESTION")).toBe(false);
       expect(isQuestionType("")).toBe(false);
     });
 
@@ -52,16 +52,16 @@ describe("QuestionType Enum", () => {
   });
 
   describe("getQuestionTypeDisplayName", () => {
-    it("should return correct display name for SINGLE_BEST_ANSWER", () => {
-      expect(getQuestionTypeDisplayName(QuestionType.SINGLE_BEST_ANSWER)).toBe(
-        "Single Best Answer"
+    it("should return correct display name for DIRECT_QUESTION", () => {
+      expect(getQuestionTypeDisplayName(QuestionType.DIRECT_QUESTION)).toBe(
+        "Direct Question"
       );
     });
 
-    it("should return correct display name for TWO_STATEMENTS", () => {
-      expect(getQuestionTypeDisplayName(QuestionType.TWO_STATEMENTS)).toBe(
-        "Two Statements"
-      );
+    it("should return correct display name for TWO_STATEMENT_COMPOUND", () => {
+      expect(
+        getQuestionTypeDisplayName(QuestionType.TWO_STATEMENT_COMPOUND)
+      ).toBe("Two-Statement Compound");
     });
 
     it("should return correct display name for CONTEXTUAL", () => {

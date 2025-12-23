@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React from "react";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
@@ -15,16 +15,13 @@ import {
   type UploadedFile,
 } from "@/presentation/components/shared/file-uploader";
 import { Sparkles, Loader2 } from "lucide-react";
+import { QuizDistribution } from "@/domain";
 
 export interface QuizFormData {
   title: string;
   files: File[];
   totalQuestions: number;
-  distribution: {
-    singleBestAnswer: number;
-    twoStatements: number;
-    contextual: number;
-  };
+  distribution: QuizDistribution;
 }
 
 interface QuizFormProps {
@@ -45,15 +42,15 @@ export function QuizForm({
   isSubmitting = false,
   initialData,
 }: QuizFormProps) {
-  const [title, setTitle] = useState(initialData?.title || "");
-  const [files, setFiles] = useState<UploadedFile[]>([]);
-  const [totalQuestions, setTotalQuestions] = useState(
+  const [title, setTitle] = React.useState(initialData?.title || "");
+  const [files, setFiles] = React.useState<UploadedFile[]>([]);
+  const [totalQuestions, setTotalQuestions] = React.useState(
     initialData?.totalQuestions || 20
   );
-  const [distribution, setDistribution] = useState(
+  const [distribution, setDistribution] = React.useState<QuizDistribution>(
     initialData?.distribution || {
-      singleBestAnswer: 10,
-      twoStatements: 5,
+      directQuestion: 10,
+      twoStatementCompound: 5,
       contextual: 5,
     }
   );
@@ -64,8 +61,8 @@ export function QuizForm({
     const third = Math.floor(total / 3);
     const remainder = total - third * 3;
     setDistribution({
-      singleBestAnswer: third + remainder,
-      twoStatements: third,
+      directQuestion: third + remainder,
+      twoStatementCompound: third,
       contextual: third,
     });
   };
@@ -77,8 +74,8 @@ export function QuizForm({
   ) => {
     const newDistribution = { ...distribution, [type]: value };
     const newTotal =
-      newDistribution.singleBestAnswer +
-      newDistribution.twoStatements +
+      newDistribution.directQuestion +
+      newDistribution.twoStatementCompound +
       newDistribution.contextual;
 
     if (newTotal === totalQuestions) {
@@ -119,8 +116,8 @@ export function QuizForm({
   };
 
   const distributionSum =
-    distribution.singleBestAnswer +
-    distribution.twoStatements +
+    distribution.directQuestion +
+    distribution.twoStatementCompound +
     distribution.contextual;
 
   const isValid =
@@ -201,10 +198,10 @@ export function QuizForm({
               type="number"
               min={0}
               max={totalQuestions}
-              value={distribution.singleBestAnswer}
+              value={distribution.directQuestion}
               onChange={(e) =>
                 handleDistributionChange(
-                  "singleBestAnswer",
+                  "directQuestion",
                   parseInt(e.target.value, 10) || 0
                 )
               }
@@ -213,17 +210,17 @@ export function QuizForm({
           </div>
           <div className="space-y-2">
             <Label htmlFor="ts" className="text-sm">
-              Two Statements
+              Two-Statement Compound
             </Label>
             <Input
               id="ts"
               type="number"
               min={0}
               max={totalQuestions}
-              value={distribution.twoStatements}
+              value={distribution.twoStatementCompound}
               onChange={(e) =>
                 handleDistributionChange(
-                  "twoStatements",
+                  "twoStatementCompound",
                   parseInt(e.target.value, 10) || 0
                 )
               }

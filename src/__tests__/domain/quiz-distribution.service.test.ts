@@ -8,8 +8,8 @@ describe("QuizDistributionService", () => {
   describe("encode", () => {
     it("should encode a valid distribution", () => {
       const distribution: QuizDistribution = {
-        singleBestAnswer: 5,
-        twoStatements: 3,
+        directQuestion: 5,
+        twoStatementCompound: 3,
         contextual: 2,
       };
 
@@ -21,8 +21,8 @@ describe("QuizDistributionService", () => {
 
     it("should encode zeros correctly", () => {
       const distribution: QuizDistribution = {
-        singleBestAnswer: 1, // At least 1 for validity
-        twoStatements: 0,
+        directQuestion: 1, // At least 1 for validity
+        twoStatementCompound: 0,
         contextual: 0,
       };
 
@@ -32,8 +32,8 @@ describe("QuizDistributionService", () => {
 
     it("should encode maximum values correctly", () => {
       const distribution: QuizDistribution = {
-        singleBestAnswer: 255,
-        twoStatements: 255,
+        directQuestion: 255,
+        twoStatementCompound: 255,
         contextual: 255,
       };
 
@@ -43,20 +43,20 @@ describe("QuizDistributionService", () => {
     });
 
     it("should encode edge cases", () => {
-      // Only singleBestAnswer
+      // Only directQuestion
       expect(
         QuizDistributionService.encode({
-          singleBestAnswer: 10,
-          twoStatements: 0,
+          directQuestion: 10,
+          twoStatementCompound: 0,
           contextual: 0,
         })
       ).toBe(10);
 
-      // Only twoStatements
+      // Only twoStatementCompound
       expect(
         QuizDistributionService.encode({
-          singleBestAnswer: 0,
-          twoStatements: 10,
+          directQuestion: 0,
+          twoStatementCompound: 10,
           contextual: 0,
         })
       ).toBe(10 << 8);
@@ -64,8 +64,8 @@ describe("QuizDistributionService", () => {
       // Only contextual
       expect(
         QuizDistributionService.encode({
-          singleBestAnswer: 0,
-          twoStatements: 0,
+          directQuestion: 0,
+          twoStatementCompound: 0,
           contextual: 10,
         })
       ).toBe(10 << 16);
@@ -74,8 +74,8 @@ describe("QuizDistributionService", () => {
     it("should throw for negative values", () => {
       expect(() =>
         QuizDistributionService.encode({
-          singleBestAnswer: -1,
-          twoStatements: 0,
+          directQuestion: -1,
+          twoStatementCompound: 0,
           contextual: 0,
         })
       ).toThrow("Invalid distribution");
@@ -84,8 +84,8 @@ describe("QuizDistributionService", () => {
     it("should throw for values exceeding 255", () => {
       expect(() =>
         QuizDistributionService.encode({
-          singleBestAnswer: 256,
-          twoStatements: 0,
+          directQuestion: 256,
+          twoStatementCompound: 0,
           contextual: 0,
         })
       ).toThrow("Invalid distribution");
@@ -94,8 +94,8 @@ describe("QuizDistributionService", () => {
     it("should throw for non-integer values", () => {
       expect(() =>
         QuizDistributionService.encode({
-          singleBestAnswer: 5.5,
-          twoStatements: 0,
+          directQuestion: 5.5,
+          twoStatementCompound: 0,
           contextual: 0,
         })
       ).toThrow("Invalid distribution");
@@ -104,8 +104,8 @@ describe("QuizDistributionService", () => {
     it("should throw for zero total questions", () => {
       expect(() =>
         QuizDistributionService.encode({
-          singleBestAnswer: 0,
-          twoStatements: 0,
+          directQuestion: 0,
+          twoStatementCompound: 0,
           contextual: 0,
         })
       ).toThrow("Invalid distribution");
@@ -115,8 +115,8 @@ describe("QuizDistributionService", () => {
   describe("decode", () => {
     it("should decode an encoded distribution", () => {
       const original: QuizDistribution = {
-        singleBestAnswer: 5,
-        twoStatements: 3,
+        directQuestion: 5,
+        twoStatementCompound: 3,
         contextual: 2,
       };
 
@@ -130,8 +130,8 @@ describe("QuizDistributionService", () => {
       const decoded = QuizDistributionService.decode(0);
 
       expect(decoded).toEqual({
-        singleBestAnswer: 0,
-        twoStatements: 0,
+        directQuestion: 0,
+        twoStatementCompound: 0,
         contextual: 0,
       });
     });
@@ -140,8 +140,8 @@ describe("QuizDistributionService", () => {
       const decoded = QuizDistributionService.decode(16777215);
 
       expect(decoded).toEqual({
-        singleBestAnswer: 255,
-        twoStatements: 255,
+        directQuestion: 255,
+        twoStatementCompound: 255,
         contextual: 255,
       });
     });
@@ -149,22 +149,22 @@ describe("QuizDistributionService", () => {
     it("should decode individual bits correctly", () => {
       // Only bits 0-7
       expect(QuizDistributionService.decode(100)).toEqual({
-        singleBestAnswer: 100,
-        twoStatements: 0,
+        directQuestion: 100,
+        twoStatementCompound: 0,
         contextual: 0,
       });
 
       // Only bits 8-15
       expect(QuizDistributionService.decode(100 << 8)).toEqual({
-        singleBestAnswer: 0,
-        twoStatements: 100,
+        directQuestion: 0,
+        twoStatementCompound: 100,
         contextual: 0,
       });
 
       // Only bits 16-23
       expect(QuizDistributionService.decode(100 << 16)).toEqual({
-        singleBestAnswer: 0,
-        twoStatements: 0,
+        directQuestion: 0,
+        twoStatementCompound: 0,
         contextual: 100,
       });
     });
@@ -173,13 +173,13 @@ describe("QuizDistributionService", () => {
   describe("encode/decode roundtrip", () => {
     it("should maintain data integrity through encode/decode cycle", () => {
       const testCases: QuizDistribution[] = [
-        { singleBestAnswer: 1, twoStatements: 0, contextual: 0 },
-        { singleBestAnswer: 0, twoStatements: 1, contextual: 0 },
-        { singleBestAnswer: 0, twoStatements: 0, contextual: 1 },
-        { singleBestAnswer: 10, twoStatements: 20, contextual: 30 },
-        { singleBestAnswer: 100, twoStatements: 100, contextual: 100 },
-        { singleBestAnswer: 255, twoStatements: 255, contextual: 255 },
-        { singleBestAnswer: 1, twoStatements: 128, contextual: 255 },
+        { directQuestion: 1, twoStatementCompound: 0, contextual: 0 },
+        { directQuestion: 0, twoStatementCompound: 1, contextual: 0 },
+        { directQuestion: 0, twoStatementCompound: 0, contextual: 1 },
+        { directQuestion: 10, twoStatementCompound: 20, contextual: 30 },
+        { directQuestion: 100, twoStatementCompound: 100, contextual: 100 },
+        { directQuestion: 255, twoStatementCompound: 255, contextual: 255 },
+        { directQuestion: 1, twoStatementCompound: 128, contextual: 255 },
       ];
 
       for (const original of testCases) {
@@ -194,24 +194,24 @@ describe("QuizDistributionService", () => {
     it("should return true for valid distributions", () => {
       expect(
         QuizDistributionService.validate({
-          singleBestAnswer: 5,
-          twoStatements: 3,
+          directQuestion: 5,
+          twoStatementCompound: 3,
           contextual: 2,
         })
       ).toBe(true);
 
       expect(
         QuizDistributionService.validate({
-          singleBestAnswer: 255,
-          twoStatements: 255,
+          directQuestion: 255,
+          twoStatementCompound: 255,
           contextual: 255,
         })
       ).toBe(true);
 
       expect(
         QuizDistributionService.validate({
-          singleBestAnswer: 1,
-          twoStatements: 0,
+          directQuestion: 1,
+          twoStatementCompound: 0,
           contextual: 0,
         })
       ).toBe(true);
@@ -220,8 +220,8 @@ describe("QuizDistributionService", () => {
     it("should return false for negative values", () => {
       expect(
         QuizDistributionService.validate({
-          singleBestAnswer: -1,
-          twoStatements: 0,
+          directQuestion: -1,
+          twoStatementCompound: 0,
           contextual: 0,
         })
       ).toBe(false);
@@ -230,8 +230,8 @@ describe("QuizDistributionService", () => {
     it("should return false for values exceeding 255", () => {
       expect(
         QuizDistributionService.validate({
-          singleBestAnswer: 256,
-          twoStatements: 0,
+          directQuestion: 256,
+          twoStatementCompound: 0,
           contextual: 0,
         })
       ).toBe(false);
@@ -240,8 +240,8 @@ describe("QuizDistributionService", () => {
     it("should return false for non-integer values", () => {
       expect(
         QuizDistributionService.validate({
-          singleBestAnswer: 5.5,
-          twoStatements: 0,
+          directQuestion: 5.5,
+          twoStatementCompound: 0,
           contextual: 0,
         })
       ).toBe(false);
@@ -250,8 +250,8 @@ describe("QuizDistributionService", () => {
     it("should return false for zero total questions", () => {
       expect(
         QuizDistributionService.validate({
-          singleBestAnswer: 0,
-          twoStatements: 0,
+          directQuestion: 0,
+          twoStatementCompound: 0,
           contextual: 0,
         })
       ).toBe(false);
@@ -262,24 +262,24 @@ describe("QuizDistributionService", () => {
     it("should calculate total correctly", () => {
       expect(
         QuizDistributionService.getTotalFromDistribution({
-          singleBestAnswer: 5,
-          twoStatements: 3,
+          directQuestion: 5,
+          twoStatementCompound: 3,
           contextual: 2,
         })
       ).toBe(10);
 
       expect(
         QuizDistributionService.getTotalFromDistribution({
-          singleBestAnswer: 0,
-          twoStatements: 0,
+          directQuestion: 0,
+          twoStatementCompound: 0,
           contextual: 0,
         })
       ).toBe(0);
 
       expect(
         QuizDistributionService.getTotalFromDistribution({
-          singleBestAnswer: 255,
-          twoStatements: 255,
+          directQuestion: 255,
+          twoStatementCompound: 255,
           contextual: 255,
         })
       ).toBe(765);
@@ -289,8 +289,8 @@ describe("QuizDistributionService", () => {
   describe("getTotalQuestions", () => {
     it("should calculate total from encoded value", () => {
       const distribution: QuizDistribution = {
-        singleBestAnswer: 5,
-        twoStatements: 3,
+        directQuestion: 5,
+        twoStatementCompound: 3,
         contextual: 2,
       };
       const encoded = QuizDistributionService.encode(distribution);
@@ -308,8 +308,8 @@ describe("QuizDistributionService", () => {
       const empty = QuizDistributionService.createEmpty();
 
       expect(empty).toEqual({
-        singleBestAnswer: 0,
-        twoStatements: 0,
+        directQuestion: 0,
+        twoStatementCompound: 0,
         contextual: 0,
       });
     });
@@ -320,19 +320,19 @@ describe("QuizDistributionService", () => {
       const balanced = QuizDistributionService.createBalanced(30);
 
       expect(balanced).toEqual({
-        singleBestAnswer: 10,
-        twoStatements: 10,
+        directQuestion: 10,
+        twoStatementCompound: 10,
         contextual: 10,
       });
     });
 
-    it("should give remainder to singleBestAnswer", () => {
+    it("should give remainder to directQuestion", () => {
       const balanced = QuizDistributionService.createBalanced(10);
 
       // 10 / 3 = 3 with remainder 1
       expect(balanced).toEqual({
-        singleBestAnswer: 4, // 3 + 1
-        twoStatements: 3,
+        directQuestion: 4, // 3 + 1
+        twoStatementCompound: 3,
         contextual: 3,
       });
     });
@@ -342,8 +342,8 @@ describe("QuizDistributionService", () => {
 
       // 11 / 3 = 3 with remainder 2
       expect(balanced).toEqual({
-        singleBestAnswer: 5, // 3 + 2
-        twoStatements: 3,
+        directQuestion: 5, // 3 + 2
+        twoStatementCompound: 3,
         contextual: 3,
       });
     });
@@ -352,8 +352,8 @@ describe("QuizDistributionService", () => {
       const balanced = QuizDistributionService.createBalanced(1);
 
       expect(balanced).toEqual({
-        singleBestAnswer: 1,
-        twoStatements: 0,
+        directQuestion: 1,
+        twoStatementCompound: 0,
         contextual: 0,
       });
     });
@@ -380,8 +380,8 @@ describe("QuizDistributionService", () => {
       const balanced = QuizDistributionService.createBalanced(765);
 
       expect(balanced).toEqual({
-        singleBestAnswer: 255,
-        twoStatements: 255,
+        directQuestion: 255,
+        twoStatementCompound: 255,
         contextual: 255,
       });
     });

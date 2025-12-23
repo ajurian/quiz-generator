@@ -41,7 +41,7 @@ async function fileToSerializable(file: File): Promise<SerializableFile> {
 export const Route = createFileRoute("/quiz/new")({
   beforeLoad: ({ context }) => {
     if (!context.session?.user) {
-      throw redirect({ to: "/auth/signin" as "/" });
+      throw redirect({ to: "/auth/signin" });
     }
   },
   component: NewQuizPage,
@@ -88,7 +88,9 @@ function NewQuizPage() {
   return (
     <div className="container max-w-3xl mx-auto py-8 px-4">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">Create New Quiz</h1>
+        <h1 className="text-3xl font-display font-bold tracking-tight">
+          Create New Quiz
+        </h1>
         <p className="text-muted-foreground">
           Upload your study materials and let AI generate questions
         </p>

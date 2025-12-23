@@ -2,8 +2,8 @@
  * Represents the distribution of questions by type
  */
 export interface QuizDistribution {
-  singleBestAnswer: number;
-  twoStatements: number;
+  directQuestion: number;
+  twoStatementCompound: number;
   contextual: number;
 }
 
@@ -16,8 +16,8 @@ const MAX_COUNT = 255;
  * Bit positions for each question type in the packed integer
  */
 const BIT_POSITIONS = {
-  SINGLE_BEST_ANSWER: 0, // Bits 0-7
-  TWO_STATEMENTS: 8, // Bits 8-15
+  DIRECT_QUESTION: 0, // Bits 0-7
+  TWO_STATEMENT_COMPOUND: 8, // Bits 8-15
   CONTEXTUAL: 16, // Bits 16-23
 } as const;
 
@@ -46,8 +46,9 @@ export class QuizDistributionService {
     }
 
     return (
-      (distribution.singleBestAnswer << BIT_POSITIONS.SINGLE_BEST_ANSWER) |
-      (distribution.twoStatements << BIT_POSITIONS.TWO_STATEMENTS) |
+      (distribution.directQuestion << BIT_POSITIONS.DIRECT_QUESTION) |
+      (distribution.twoStatementCompound <<
+        BIT_POSITIONS.TWO_STATEMENT_COMPOUND) |
       (distribution.contextual << BIT_POSITIONS.CONTEXTUAL)
     );
   }
@@ -58,8 +59,9 @@ export class QuizDistributionService {
   public static decode(encoded: number): QuizDistribution {
     // Use unsigned right shift (>>>) to handle potential signed bit issues
     return {
-      singleBestAnswer: (encoded >>> BIT_POSITIONS.SINGLE_BEST_ANSWER) & 0xff,
-      twoStatements: (encoded >>> BIT_POSITIONS.TWO_STATEMENTS) & 0xff,
+      directQuestion: (encoded >>> BIT_POSITIONS.DIRECT_QUESTION) & 0xff,
+      twoStatementCompound:
+        (encoded >>> BIT_POSITIONS.TWO_STATEMENT_COMPOUND) & 0xff,
       contextual: (encoded >>> BIT_POSITIONS.CONTEXTUAL) & 0xff,
     };
   }
@@ -69,8 +71,8 @@ export class QuizDistributionService {
    */
   public static validate(distribution: QuizDistribution): boolean {
     return (
-      this.isValidCount(distribution.singleBestAnswer) &&
-      this.isValidCount(distribution.twoStatements) &&
+      this.isValidCount(distribution.directQuestion) &&
+      this.isValidCount(distribution.twoStatementCompound) &&
       this.isValidCount(distribution.contextual) &&
       this.getTotalFromDistribution(distribution) > 0
     );
@@ -95,8 +97,8 @@ export class QuizDistributionService {
     distribution: QuizDistribution
   ): number {
     return (
-      distribution.singleBestAnswer +
-      distribution.twoStatements +
+      distribution.directQuestion +
+      distribution.twoStatementCompound +
       distribution.contextual
     );
   }
@@ -114,15 +116,15 @@ export class QuizDistributionService {
    */
   public static createEmpty(): QuizDistribution {
     return {
-      singleBestAnswer: 0,
-      twoStatements: 0,
+      directQuestion: 0,
+      twoStatementCompound: 0,
       contextual: 0,
     };
   }
 
   /**
    * Creates a distribution with equal counts for each type
-   * @param total Total number of questions (will be divided evenly, remainder goes to singleBestAnswer)
+   * @param total Total number of questions (will be divided evenly, remainder goes to directQuestion)
    */
   public static createBalanced(total: number): QuizDistribution {
     if (total <= 0 || total > MAX_COUNT * 3) {
@@ -133,8 +135,8 @@ export class QuizDistributionService {
     const remainder = total % 3;
 
     return {
-      singleBestAnswer: baseCount + remainder, // Give extra questions to single best answer
-      twoStatements: baseCount,
+      directQuestion: baseCount + remainder, // Give extra questions to single best answer
+      twoStatementCompound: baseCount,
       contextual: baseCount,
     };
   }

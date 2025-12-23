@@ -19,7 +19,7 @@ describe("GeminiModel Enum", () => {
 
     it("should have exactly 2 model types", () => {
       const values = Object.values(GeminiModel);
-      expect(values).toHaveLength(2);
+      expect(values).toHaveLength(3);
     });
   });
 

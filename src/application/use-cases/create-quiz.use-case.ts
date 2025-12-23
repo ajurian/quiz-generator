@@ -118,15 +118,15 @@ export class CreateQuizUseCase {
       Question.create({
         id: this.deps.idGenerator.generate(),
         quizId,
-        questionText: q.questionText,
-        questionType: q.questionType,
+        orderIndex: index,
+        type: q.type,
+        stem: q.stem,
         options: q.options.map((opt) => ({
           index: opt.index as "A" | "B" | "C" | "D",
           text: opt.text,
           explanation: opt.explanation,
           isCorrect: opt.isCorrect,
         })),
-        orderIndex: index,
       })
     );
 

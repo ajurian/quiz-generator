@@ -20,8 +20,8 @@ describe("Quiz Entity", () => {
     userId: USER_ID,
     title: "Test Quiz",
     distribution: {
-      singleBestAnswer: 5,
-      twoStatements: 3,
+      directQuestion: 5,
+      twoStatementCompound: 3,
       contextual: 2,
     },
     visibility: QuizVisibility.PRIVATE,
@@ -58,8 +58,8 @@ describe("Quiz Entity", () => {
 
     it("should encode distribution correctly", () => {
       const distribution: QuizDistribution = {
-        singleBestAnswer: 10,
-        twoStatements: 5,
+        directQuestion: 10,
+        twoStatementCompound: 5,
         contextual: 3,
       };
       const quiz = Quiz.create(createValidProps({ distribution }));
@@ -104,8 +104,8 @@ describe("Quiz Entity", () => {
           Quiz.create(
             createValidProps({
               distribution: {
-                singleBestAnswer: -1,
-                twoStatements: 0,
+                directQuestion: -1,
+                twoStatementCompound: 0,
                 contextual: 0,
               },
             })
@@ -118,8 +118,8 @@ describe("Quiz Entity", () => {
           Quiz.create(
             createValidProps({
               distribution: {
-                singleBestAnswer: 0,
-                twoStatements: 0,
+                directQuestion: 0,
+                twoStatementCompound: 0,
                 contextual: 0,
               },
             })
@@ -134,8 +134,8 @@ describe("Quiz Entity", () => {
       const createdAt = new Date("2024-01-01");
       const updatedAt = new Date("2024-01-02");
       const encodedDistribution = QuizDistributionService.encode({
-        singleBestAnswer: 5,
-        twoStatements: 3,
+        directQuestion: 5,
+        twoStatementCompound: 3,
         contextual: 2,
       });
 
@@ -181,8 +181,8 @@ describe("Quiz Entity", () => {
       const quiz = Quiz.create(
         createValidProps({
           distribution: {
-            singleBestAnswer: 10,
-            twoStatements: 5,
+            directQuestion: 10,
+            twoStatementCompound: 5,
             contextual: 3,
           },
         })
@@ -210,8 +210,8 @@ describe("Quiz Entity", () => {
   describe("distribution", () => {
     it("should decode distribution correctly", () => {
       const distribution: QuizDistribution = {
-        singleBestAnswer: 15,
-        twoStatements: 10,
+        directQuestion: 15,
+        twoStatementCompound: 10,
         contextual: 5,
       };
       const quiz = Quiz.create(createValidProps({ distribution }));
@@ -306,8 +306,8 @@ describe("Quiz Entity", () => {
     it("should update the distribution", () => {
       const quiz = Quiz.create(createValidProps());
       const newDistribution: QuizDistribution = {
-        singleBestAnswer: 20,
-        twoStatements: 15,
+        directQuestion: 20,
+        twoStatementCompound: 15,
         contextual: 10,
       };
 
@@ -322,8 +322,8 @@ describe("Quiz Entity", () => {
 
       expect(() =>
         quiz.updateDistribution({
-          singleBestAnswer: -1,
-          twoStatements: 0,
+          directQuestion: -1,
+          twoStatementCompound: 0,
           contextual: 0,
         })
       ).toThrow("Invalid question distribution");

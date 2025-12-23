@@ -16,8 +16,8 @@ interface QuestionOption {
 
 interface Question {
   id: string;
-  questionText: string;
-  questionType: string;
+  type: string;
+  stem: string;
   options: QuestionOption[];
 }
 
@@ -56,11 +56,11 @@ function QuestionPreviewCard({ question, index }: QuestionPreviewCardProps) {
         <div className="flex items-center gap-2 mb-2">
           <Badge variant="secondary">Q{index + 1}</Badge>
           <Badge variant="outline" className="capitalize">
-            {question.questionType.replace(/_/g, " ")}
+            {question.type.replace(/_/g, " ")}
           </Badge>
         </div>
-        <CardTitle className="text-base leading-relaxed">
-          {question.questionText}
+        <CardTitle className="text-base whitespace-pre-wrap leading-relaxed">
+          {question.stem}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -79,6 +79,13 @@ interface OptionPreviewProps {
 }
 
 function OptionPreview({ option }: OptionPreviewProps) {
+  // Regex identifies:
+  // 1. **bold** -> (\*\*.*?\*\*)
+  // 2. *italic* -> (\*.*?\*)
+  // 3. `code`   -> (`.*?`)
+  const regex = /(\*\*.*?\*\*|\*.*?\*|`.*?`)/g;
+  const explanationParts = option.explanation.split(regex);
+
   return (
     <div
       className={`p-2.5 rounded-md border text-sm ${
@@ -107,7 +114,27 @@ function OptionPreview({ option }: OptionPreviewProps) {
           {option.explanation && (
             <div className="mt-2 flex items-start gap-1.5 text-xs text-muted-foreground">
               <Lightbulb className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-blue-500" />
-              <span>{option.explanation}</span>
+              <span>
+                {explanationParts.map((part, index) => {
+                  if (part.startsWith("**") && part.endsWith("**")) {
+                    return <strong key={index}>{part.slice(2, -2)}</strong>;
+                  }
+                  if (part.startsWith("*") && part.endsWith("*")) {
+                    return <em key={index}>{part.slice(1, -1)}</em>;
+                  }
+                  if (part.startsWith("`") && part.endsWith("`")) {
+                    return (
+                      <code
+                        key={index}
+                        className="bg-muted relative inline whitespace-pre-wrap wrap-anywhere rounded px-[0.3em] py-[0.1em] font-mono font-semibold"
+                      >
+                        {part.slice(1, -1)}
+                      </code>
+                    );
+                  }
+                  return part;
+                })}
+              </span>
             </div>
           )}
         </div>

@@ -4,8 +4,7 @@ import type { IIdGenerator } from "../../application";
 /**
  * UUID v7 ID Generator Service
  *
- * Implements the IIdGenerator port using Bun's randomUUIDv7 function,
- * which is available in modern JavaScript environments including Bun.
+ * Implements the IIdGenerator port using Bun's randomUUIDv7 function.
  */
 export class UuidIdGenerator implements IIdGenerator {
   /**

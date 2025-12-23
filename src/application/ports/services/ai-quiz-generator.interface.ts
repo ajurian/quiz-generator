@@ -29,15 +29,15 @@ export interface GenerateQuizParams {
  * Generated question data from AI (plain object, not entity)
  */
 export interface GeneratedQuestionData {
-  questionText: string;
-  questionType: QuestionType;
+  orderIndex: number;
+  type: QuestionType;
+  stem: string;
   options: {
     index: OptionIndex;
     text: string;
     explanation: string;
     isCorrect: boolean;
   }[];
-  orderIndex: number;
 }
 
 /**

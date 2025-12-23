@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React from "react";
 import { Button } from "@/presentation/components/ui/button";
 import {
   Dialog,
@@ -26,12 +26,13 @@ export function ShareLinkGenerator({
   onToggleShare,
   isLoading = false,
 }: ShareLinkGeneratorProps) {
-  const [copied, setCopied] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = React.useState(false);
+  const [open, setOpen] = React.useState(false);
 
-  const shareUrl = typeof window !== "undefined" 
-    ? `${window.location.origin}/quiz/${quizId}/public`
-    : `/quiz/${quizId}/public`;
+  const shareUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/quiz/${quizId}/public`
+      : `/quiz/${quizId}/public`;
 
   const copyToClipboard = async () => {
     try {
@@ -71,9 +72,7 @@ export function ShareLinkGenerator({
                 <Lock className="h-5 w-5 text-muted-foreground" />
               )}
               <div>
-                <p className="font-medium">
-                  {isPublic ? "Public" : "Private"}
-                </p>
+                <p className="font-medium">{isPublic ? "Public" : "Private"}</p>
                 <p className="text-sm text-muted-foreground">
                   {isPublic
                     ? "Anyone can view this quiz"
@@ -90,8 +89,8 @@ export function ShareLinkGenerator({
               {isLoading
                 ? "Updating..."
                 : isPublic
-                ? "Make Private"
-                : "Make Public"}
+                  ? "Make Private"
+                  : "Make Public"}
             </Button>
           </div>
 

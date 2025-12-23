@@ -44,10 +44,10 @@ describe("Question Entity", () => {
   ): CreateQuestionProps => ({
     id: "question-123",
     quizId: "quiz-456",
-    questionText: "What is the correct answer?",
-    questionType: QuestionType.SINGLE_BEST_ANSWER,
-    options: createValidOptions(),
     orderIndex: 0,
+    type: QuestionType.DIRECT_QUESTION,
+    stem: "What is the correct answer?",
+    options: createValidOptions(),
     ...overrides,
   });
 
@@ -58,22 +58,22 @@ describe("Question Entity", () => {
 
       expect(question.id).toBe("question-123");
       expect(question.quizId).toBe("quiz-456");
-      expect(question.questionText).toBe("What is the correct answer?");
-      expect(question.questionType).toBe(QuestionType.SINGLE_BEST_ANSWER);
+      expect(question.stem).toBe("What is the correct answer?");
+      expect(question.type).toBe(QuestionType.DIRECT_QUESTION);
       expect(question.orderIndex).toBe(0);
       expect(question.options).toHaveLength(4);
     });
 
     it("should create Question with different question types", () => {
       const types = [
-        QuestionType.SINGLE_BEST_ANSWER,
-        QuestionType.TWO_STATEMENTS,
+        QuestionType.DIRECT_QUESTION,
+        QuestionType.TWO_STATEMENT_COMPOUND,
         QuestionType.CONTEXTUAL,
       ];
 
-      for (const questionType of types) {
-        const question = Question.create(createValidProps({ questionType }));
-        expect(question.questionType).toBe(questionType);
+      for (const type of types) {
+        const question = Question.create(createValidProps({ type }));
+        expect(question.type).toBe(type);
       }
     });
 
@@ -98,23 +98,21 @@ describe("Question Entity", () => {
         );
       });
 
-      it("should throw for empty questionText", () => {
-        expect(() =>
-          Question.create(createValidProps({ questionText: "" }))
-        ).toThrow("Question text is required and cannot be empty");
+      it("should throw for empty stem", () => {
+        expect(() => Question.create(createValidProps({ stem: "" }))).toThrow(
+          "Stem is required and cannot be empty"
+        );
       });
 
-      it("should throw for whitespace-only questionText", () => {
+      it("should throw for whitespace-only stem", () => {
         expect(() =>
-          Question.create(createValidProps({ questionText: "   " }))
-        ).toThrow("Question text is required and cannot be empty");
+          Question.create(createValidProps({ stem: "   " }))
+        ).toThrow("Stem is required and cannot be empty");
       });
 
-      it("should throw for invalid questionType", () => {
+      it("should throw for invalid type", () => {
         expect(() =>
-          Question.create(
-            createValidProps({ questionType: "invalid" as QuestionType })
-          )
+          Question.create(createValidProps({ type: "invalid" as QuestionType }))
         ).toThrow("Invalid question type");
       });
 
@@ -201,14 +199,14 @@ describe("Question Entity", () => {
       const question = Question.reconstitute({
         id: "question-123",
         quizId: "quiz-456",
-        questionText: "Reconstituted question",
-        questionType: QuestionType.TWO_STATEMENTS,
-        options,
         orderIndex: 5,
+        type: QuestionType.TWO_STATEMENT_COMPOUND,
+        stem: "Reconstituted question",
+        options,
       });
 
       expect(question.id).toBe("question-123");
-      expect(question.questionType).toBe(QuestionType.TWO_STATEMENTS);
+      expect(question.type).toBe(QuestionType.TWO_STATEMENT_COMPOUND);
       expect(question.orderIndex).toBe(5);
     });
   });
@@ -218,27 +216,27 @@ describe("Question Entity", () => {
       const plainData = {
         id: "question-123",
         quizId: "quiz-456",
-        questionText: "Plain question",
-        questionType: "single_best_answer",
-        options: createValidOptions(),
         orderIndex: 2,
+        type: "direct_question",
+        stem: "Plain question",
+        options: createValidOptions(),
       };
 
       const question = Question.fromPlain(plainData);
 
       expect(question.id).toBe("question-123");
-      expect(question.questionType).toBe(QuestionType.SINGLE_BEST_ANSWER);
+      expect(question.type).toBe(QuestionType.DIRECT_QUESTION);
       expect(question.orderIndex).toBe(2);
     });
 
-    it("should throw for invalid questionType string", () => {
+    it("should throw for invalid type string", () => {
       const plainData = {
         id: "question-123",
         quizId: "quiz-456",
-        questionText: "Plain question",
-        questionType: "invalid_type",
-        options: createValidOptions(),
         orderIndex: 0,
+        type: "invalid_type",
+        stem: "Plain question",
+        options: createValidOptions(),
       };
 
       expect(() => Question.fromPlain(plainData)).toThrow(
@@ -335,26 +333,26 @@ describe("Question Entity", () => {
     });
   });
 
-  describe("updateQuestionText", () => {
-    it("should update the question text", () => {
+  describe("updatestem", () => {
+    it("should update the stem", () => {
       const question = Question.create(createValidProps());
-      question.updateQuestionText("Updated question text");
+      question.updatestem("Updated stem");
 
-      expect(question.questionText).toBe("Updated question text");
+      expect(question.stem).toBe("Updated stem");
     });
 
     it("should trim the text", () => {
       const question = Question.create(createValidProps());
-      question.updateQuestionText("  Trimmed text  ");
+      question.updatestem("  Trimmed text  ");
 
-      expect(question.questionText).toBe("Trimmed text");
+      expect(question.stem).toBe("Trimmed text");
     });
 
     it("should throw for empty text", () => {
       const question = Question.create(createValidProps());
 
-      expect(() => question.updateQuestionText("")).toThrow(
-        "Question text is required and cannot be empty"
+      expect(() => question.updatestem("")).toThrow(
+        "Stem is required and cannot be empty"
       );
     });
   });
@@ -383,8 +381,8 @@ describe("Question Entity", () => {
 
       expect(plain.id).toBe("question-123");
       expect(plain.quizId).toBe("quiz-456");
-      expect(plain.questionText).toBe("What is the correct answer?");
-      expect(plain.questionType).toBe(QuestionType.SINGLE_BEST_ANSWER);
+      expect(plain.stem).toBe("What is the correct answer?");
+      expect(plain.type).toBe(QuestionType.DIRECT_QUESTION);
       expect(plain.orderIndex).toBe(0);
       expect(plain.options).toHaveLength(4);
 

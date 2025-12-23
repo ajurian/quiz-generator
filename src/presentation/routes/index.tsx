@@ -33,7 +33,7 @@ function HomePage() {
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                 <Brain className="h-5 w-5" />
               </div>
-              <span className="text-lg font-semibold tracking-tight">
+              <span className="text-lg font-display font-semibold tracking-tight">
                 Quiz Generator
               </span>
             </div>
@@ -72,7 +72,7 @@ function HomePage() {
                 Powered by Google Gemini AI
               </Badge>
 
-              <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
+              <h1 className="mb-6 text-4xl font-display font-bold tracking-tight sm:text-5xl md:text-6xl">
                 Create AI-Powered Quizzes{" "}
                 <span className="text-primary">in Seconds</span>
               </h1>
@@ -103,7 +103,7 @@ function HomePage() {
         <section className="border-t bg-muted/30 py-20 md:py-28">
           <div className="container mx-auto px-4">
             <div className="mx-auto mb-14 max-w-2xl text-center">
-              <h2 className="mb-4 text-3xl font-bold tracking-tight md:text-4xl">
+              <h2 className="mb-4 text-3xl font-display font-bold tracking-tight md:text-4xl">
                 How It Works
               </h2>
               <p className="text-lg text-muted-foreground">
@@ -121,7 +121,9 @@ function HomePage() {
                   <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                     <FileText className="h-6 w-6" />
                   </div>
-                  <CardTitle className="text-xl">Upload Materials</CardTitle>
+                  <CardTitle className="text-xl font-display">
+                    Upload Materials
+                  </CardTitle>
                   <CardDescription className="text-base">
                     Drag and drop your PDFs, documents, or text files. Our AI
                     analyzes content thoroughly.
@@ -137,7 +139,9 @@ function HomePage() {
                   <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                     <Sparkles className="h-6 w-6" />
                   </div>
-                  <CardTitle className="text-xl">AI Generation</CardTitle>
+                  <CardTitle className="text-xl font-display">
+                    AI Generation
+                  </CardTitle>
                   <CardDescription className="text-base">
                     Gemini AI creates high-quality questions with multiple
                     formats and detailed explanations.
@@ -153,7 +157,9 @@ function HomePage() {
                   <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                     <Share2 className="h-6 w-6" />
                   </div>
-                  <CardTitle className="text-xl">Share & Use</CardTitle>
+                  <CardTitle className="text-xl font-display">
+                    Share & Use
+                  </CardTitle>
                   <CardDescription className="text-base">
                     Share quizzes with a public link. Perfect for classrooms,
                     teams, and study groups.
@@ -172,7 +178,7 @@ function HomePage() {
                 <Shield className="mr-1.5 h-3.5 w-3.5" />
                 Multiple Formats
               </Badge>
-              <h2 className="mb-4 text-3xl font-bold tracking-tight md:text-4xl">
+              <h2 className="mb-4 text-3xl font-display font-bold tracking-tight md:text-4xl">
                 Supported Question Types
               </h2>
               <p className="text-lg text-muted-foreground">
@@ -184,7 +190,9 @@ function HomePage() {
               <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
                 <CardContent className="pt-6">
                   <div className="mb-3 text-2xl">📝</div>
-                  <h3 className="mb-2 font-semibold">Single Best Answer</h3>
+                  <h3 className="mb-2 font-display font-semibold">
+                    Single Best Answer
+                  </h3>
                   <p className="text-sm text-muted-foreground">
                     Classic multiple choice with one correct answer and detailed
                     explanations
@@ -195,7 +203,9 @@ function HomePage() {
               <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
                 <CardContent className="pt-6">
                   <div className="mb-3 text-2xl">⚖️</div>
-                  <h3 className="mb-2 font-semibold">Two Statements</h3>
+                  <h3 className="mb-2 font-display font-semibold">
+                    Two-Statement Compound
+                  </h3>
                   <p className="text-sm text-muted-foreground">
                     Evaluate correctness of two related statements for deeper
                     understanding
@@ -206,7 +216,9 @@ function HomePage() {
               <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
                 <CardContent className="pt-6">
                   <div className="mb-3 text-2xl">🎯</div>
-                  <h3 className="mb-2 font-semibold">Contextual</h3>
+                  <h3 className="mb-2 font-display font-semibold">
+                    Contextual
+                  </h3>
                   <p className="text-sm text-muted-foreground">
                     Scenario-based questions testing practical application of
                     knowledge
@@ -221,7 +233,7 @@ function HomePage() {
         <section className="border-t bg-muted/30 py-20">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="mb-4 text-3xl font-bold tracking-tight">
+              <h2 className="mb-4 text-3xl font-display font-bold tracking-tight">
                 Ready to Create Your First Quiz?
               </h2>
               <p className="mb-8 text-lg text-muted-foreground">
@@ -247,7 +259,9 @@ function HomePage() {
               <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
                 <Brain className="h-4 w-4" />
               </div>
-              <span className="text-sm font-medium">Quiz Generator</span>
+              <span className="text-sm font-display font-medium">
+                Quiz Generator
+              </span>
             </div>
             <p className="text-sm text-muted-foreground">
               © 2025 Quiz Generator. Powered by Google Gemini AI.

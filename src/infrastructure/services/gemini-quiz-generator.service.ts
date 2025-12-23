@@ -16,32 +16,37 @@ const questionSchema = {
   items: {
     type: Type.OBJECT,
     properties: {
-      questionText: {
-        type: Type.STRING,
-        description: "The question text",
+      orderIndex: {
+        type: Type.NUMBER,
+        description: "The question's position in the quiz (0-based)",
       },
-      questionType: {
+      type: {
         type: Type.STRING,
         enum: [
-          QuestionType.SINGLE_BEST_ANSWER,
-          QuestionType.TWO_STATEMENTS,
+          QuestionType.DIRECT_QUESTION,
+          QuestionType.TWO_STATEMENT_COMPOUND,
           QuestionType.CONTEXTUAL,
         ],
-        description: "The type of question",
+        description: "The MCQ variant type.",
+      },
+      stem: {
+        type: Type.STRING,
+        description: "The stem (prompt/lead-in) the learner answers.",
       },
       options: {
         type: Type.ARRAY,
+        description: "Answer choices for this question.",
         items: {
           type: Type.OBJECT,
           properties: {
             index: {
               type: Type.STRING,
               enum: ["A", "B", "C", "D"],
-              description: "Option letter",
+              description: "Option letter (letter).",
             },
             text: {
               type: Type.STRING,
-              description: "Option text",
+              description: "Option text shown to the learner.",
             },
             explanation: {
               type: Type.STRING,
@@ -56,12 +61,8 @@ const questionSchema = {
           required: ["index", "text", "explanation", "isCorrect"],
         },
       },
-      orderIndex: {
-        type: Type.NUMBER,
-        description: "The order of the question (0-based)",
-      },
     },
-    required: ["questionText", "questionType", "options", "orderIndex"],
+    required: ["stem", "type", "options", "orderIndex"],
   },
 };
 
@@ -83,12 +84,12 @@ export class QuotaExceededError extends Error {
  */
 export class GeminiQuizGeneratorService implements IAIQuizGenerator {
   private readonly client: GoogleGenAI;
-  private readonly primaryModel = GeminiModel.FLASH_2_5;
-  private readonly fallbackModel = GeminiModel.FLASH_2_5_LITE;
+  private readonly primaryModel = GeminiModel.FLASH_3_0;
+  private readonly fallbackModel = GeminiModel.FLASH_2_5;
 
   constructor(apiKey: string) {
     if (!apiKey) {
-      throw new Error("GOOGLE_AI_API_KEY environment variable is required");
+      throw new Error("fGOOGLE_AI_API_KEY environment variable is required");
     }
     this.client = new GoogleGenAI({ apiKey });
   }
@@ -174,116 +175,251 @@ export class GeminiQuizGeneratorService implements IAIQuizGenerator {
    * Builds the prompt for question generation
    */
   private buildPrompt(distribution: {
-    singleBestAnswer: number;
-    twoStatements: number;
+    directQuestion: number;
+    twoStatementCompound: number;
     contextual: number;
   }): string {
     const totalQuestions =
-      distribution.singleBestAnswer +
-      distribution.twoStatements +
+      distribution.directQuestion +
+      distribution.twoStatementCompound +
       distribution.contextual;
 
     const lazyNumbering = (start: number, count: number) => {
-      return count > 1 ? `${start}-${start + count - 1}` : `${start}`;
+      return count > 1 ? `Q${start}-Q${start + count - 1}` : `Q${start}`;
     };
 
-    const prompt = [
-      "**Role**: You are a **source-grounded MCQ item writer** and **post-answer feedback author**.",
-      `> Generate **${totalQuestions}** multiple-choice questions **strictly** from the provided **handouts**`,
-      "## Non-negotiable rules (**MUST** / **MUST NOT**)",
-      "- **MUST** use **only** information in the **handouts**.",
-      "- **MUST NOT** invent **facts, examples, definitions, or terminology** not present in the handouts.",
-      "- **MUST NOT** **mention, cite, or refer** to the **handouts** in the stems/options.",
-      "- **MUST** write each item in MCQ format with **4 options (A, B, C, D)** and **exactly one** correct answer.",
-      "- **MUST** avoid cues: keep options parallel in grammar/length/style; **avoid giveaway words and inconsistent specificity**.",
-      "- **MUST** balance answer keys approximately across A-D and **avoid obvious patterns** (no long runs).",
-      "- **MUST NOT** copy text verbatim or closely paraphrase the handouts.",
-      "- **MUST** explain in **original wording** while staying faithful to the handouts.",
-      "- **MUST** provide rationales for **A, B, C, D**.",
-      "- Rationales **MUST** be concise and grounded in the handouts.",
-      "- Rationales **MUST** be **option-centric**: the subject is the option (A/B/C/D), not the answer key.",
-      "- Rationales **MUST NOT** state correctness; **just explain why**.",
-      "- Rationales **MUST** NOT compare options or reference other letters (no 'Unlike B', 'Option C is wrong because B...', etc.).",
-      "- Rationales **MUST** be independent of each other (no cross-references).",
-    ];
+    const hasDirectQuestion = distribution.directQuestion > 0;
+    const hasTwoStatementCompound = distribution.twoStatementCompound > 0;
+    const hasContextual = distribution.contextual > 0;
 
-    // Generic rationale structure (for Single-Best Answer and Contextual)
-    prompt.push(
-      "- Each rationale **MUST** follow this structure:",
-      "  1) '**What this option claims/means**' (define the idea in the option using handout concepts).",
-      "  2) '**When it would apply**' (conditions under which this option would be valid).",
-      "  3) '**Why it does/doesn't apply here**' (tie back to the stem only, without labeling correctness)."
+    const directQuestionLazyNumber = lazyNumbering(
+      1,
+      distribution.directQuestion
+    );
+    const twoStatementCompoundLazyNumber = lazyNumbering(
+      1 + distribution.directQuestion,
+      distribution.twoStatementCompound
+    );
+    const contextualLazyNumber = lazyNumbering(
+      1 + distribution.directQuestion + distribution.twoStatementCompound,
+      distribution.contextual
     );
 
-    if (distribution.twoStatements > 0) {
-      prompt.push(
-        "- **OVERRIDE for Two-Statement items**: Rationales for Two-Statement items **MUST** use a **single paragraph format** instead of the 3-step structure above.",
-        "- Each Two-Statement rationale **MUST** be one paragraph containing, in exact order:",
-        "  (a) the truth-pattern required by the option,",
-        "  (b) Statement 1 text quoted,",
-        "  (c) Statement 2 text quoted,",
-        "  (d) evaluation of Statement 1 against handouts,",
-        "  (e) evaluation of Statement 2 against handouts,",
-        "  (f) a match check comparing required vs observed.",
-        "- Use this exact paragraph template (replace placeholders):",
-        "  \"This option requires (S1=<T/F>, S2=<T/F>). Statement 1: '{{statement_1}}' → S1=<T/F> because <handout-based reason>. Statement 2: '{{statement_2}}' → S2=<T/F> because <handout-based reason>. Observed: (S1=<T/F>, S2=<T/F>). Match: <Yes/No>.\"",
-        "- **Map options to truth-patterns**: A=(T,F), B=(F,T), C=(T,T), D=(F,F).",
-        "- In Two-Statement rationales, **MUST NOT** write generic claims like 'This option claims only Statement 1 is true' unless it ALSO includes the T/F pattern AND both statement texts.",
-        "- In rationales, when referencing the paired statements, refer to them only as **Statement 1** and/or **Statement 2** (never 'first/second').",
-        "- **MUST** use the exact labels **'Statement 1'** and **'Statement 2'** everywhere (stems, options, rationales).",
-        "- **MUST NOT** use ordinal phrasing like 'first statement', 'second statement', 'former/latter', or 'Statement One/Two'.",
-        "- **MUST** keep capitalization exactly as: 'Statement 1', 'Statement 2'."
-      );
+    const prompt = `
+# YOUR ROLE
+You are a **source-grounded MCQ item writer** and **post-answer feedback author**.
+
+---
+
+# YOUR TASK
+Generate **${totalQuestions} multiple-choice questions** strictly from the provided HANDOUTS.
+
+Each question must have:
+- 4 options (A, B, C, D)
+- Exactly 1 correct answer
+- Explanations for all 4 options
+
+---
+
+# CRITICAL RULES (MUST FOLLOW)
+
+## Source Grounding
+- **MUST** use ONLY information in HANDOUTS
+- **MUST** use original wording faithful to HANDOUTS
+- **MUST NOT** invent facts, examples, definitions
+- **MUST NOT** copy verbatim or closely paraphrase
+- **MUST NOT** mention/cite/refer to HANDOUTS in stems/options/explanations
+
+## Item Quality Standards
+**Answer Key Balance:**
+- Distribute correct answers roughly evenly across A, B, C, D
+- Avoid obvious patterns (no long runs of same letter)
+
+**Option Quality:**
+- Keep options parallel in grammar, length, style
+- Avoid giveaway words, mixed specificity, "odd one out"
+
+---
+
+# OUTPUT FORMAT: ${totalQuestions} Items
+\`\`\`
+${hasDirectQuestion ? `**${directQuestionLazyNumber}**: Direct Question (${distribution.directQuestion} items)${!hasTwoStatementCompound && !hasContextual ? "" : "\n"}` : ""}${
+      hasTwoStatementCompound
+        ? `**${twoStatementCompoundLazyNumber}**: Two-Statement Compound True/False (${distribution.twoStatementCompound} items)${!hasContextual ? "" : "\n"}`
+        : ""
+    }${
+      hasContextual
+        ? `**${contextualLazyNumber}**: Contextual (${distribution.contextual} items)`
+        : ""
     }
+\`\`\`
 
-    if (distribution.contextual > 0) {
-      prompt.push(
-        "- For **Contextual** items, any scenario detail (roles, numbers, conditions) **MUST** be directly supported by the handouts; do not add realism details unless the handouts contain them."
-      );
+---
+
+# EXPLANATION WRITING RULES
+
+## Consistent Phrasing (CRITICAL)
+**Use identical transition phrases across ALL explanations**
+**Choose ONE phrase pattern and use it everywhere**
+
+**Do NOT mix phrases like:**
+- Q5 uses "You might consider..."
+- Q12 uses "You might believe..."
+- Q18 uses "If you think..."
+- Q23 uses "This suggests you assume..."
+
+**Apply to Two-Statement explanations:**
+- Pick ONE phrase for "statement is true" scenarios
+- Pick ONE phrase for "statement is false" scenarios
+- Never vary these phrases across the 10 Two-Statement items
+
+Example of GOOD consistency:
+\`\`\`
+Q21 Option A: "This option requires Statement 1 to be true..."
+Q22 Option B: "This option requires Statement 1 to be false..."
+Q23 Option C: "This option requires Statement 1 to be true..."
+\`\`\`
+
+Example of BAD inconsistency:
+\`\`\`
+Q21 Option A: "You might consider Statement 1..."
+Q22 Option B: "You might believe Statement 1..."
+Q23 Option C: "If you think Statement 1..."
+\`\`\`
+
+## Structure (Required for ALL explanations)
+Every explanation paragraph MUST contain these 3 parts **IN ORDER**:
+
+### If incorrect
+1. **What the learner assumes**: "You are assuming {specific assumption behind the learner's selected option}.:
+2. **When it would apply**: "Your assumption would only apply if {condition where assumption holds}."
+3. **Why it doesn't apply here**: "But {explain the mismatch}, {conclusion}"
+4. **Fix the idea**: "Use this rule instead {targetConcept rule in 1 concise sentence}."
+
+### If correct
+1. **Acknowledge correctness/Why it applies**: "You are correct because {stem clue details} implies {rule}..."
+2. **Quick reinforcement**: "A quick check is {1-step verification cue}."
+
+> Do NOT state "correct/incorrect/right/wrong" — the UI shows this
+
+## Voice & Constraints
+- Write in **second person** (you/your/you're)
+- One paragraph per option (except Two-Statement: see below)
+- Option-centric (address learner who chose that option)
+- No cross-references between options ("Unlike B…", "Option C…")
+- Each explanation must be independent
+
+## Emphasis (Optional, Use Sparingly)
+You MAY add emphasis for key terms:
+- **Bold**: HANDOUT concepts/keywords (max 1-3 per paragraph)
+- *Italics*: Short qualifiers (*only when*, *if and only if*)
+- \`Code\`: Code-related text (variable names, operators, etc.)
+
+**Do NOT:**
+- Bold/italicize entire sentences
+- Use emphasis to reveal correctness
+
+---
+
+# ITEM TYPE SPECIFICATIONS
+${
+  hasDirectQuestion
+    ? `
+## Direct Question (${directQuestionLazyNumber})
+Standard MCQ with stem + 4 options.
+
+---\n`
+    : ""
+}${
+      hasTwoStatementCompound
+        ? `
+## Two-Statement Compound True/False (${twoStatementCompoundLazyNumber})
+
+### Stem Format (EXACT)
+Format each Two-Statement stem as:
+\`\`\`
+Statement 1: [declarative sentence]\\nStatement 2: [declarative sentence]
+\`\`\`
+
+- Use literal \`\\n\` character (newline) between statements
+- Do NOT put them on separate lines in your JSON output
+- The entire stem is ONE string value
+
+**Correct JSON structure:**
+\`\`\`
+{
+  "stem": "Statement 1: The Earth revolves around the Sun.\\nStatement 2: The Moon is a planet.",
+  ...
+}
+\`\`\`
+
+
+**Key rules:**
+- Use literal \`\\n\` character (newline) between statements
+- Do NOT put them on separate lines in your JSON output
+- The entire stem is ONE string value
+
+
+### Statement Requirements
+- One declarative sentence, one main idea each
+- Must be unequivocally T/F based on HANDOUTS
+- Avoid vague wording, double negatives
+
+### Options (FIXED TEXT — do not paraphrase)
+\`\`\`
+A) Only Statement 1 is true.
+B) Only Statement 2 is true.
+C) Both statements are true.
+D) Neither statement is true.
+\`\`\`
+
+### Labels (STRICT)
+Use: **Statement 1**, **Statement 2**  
+Never use: "first/second statement", "former/latter", "Statement One/Two"
+
+### Special Explanation Format (OVERRIDES generic)
+For Two-Statement items ONLY, each option explanation must have **2 paragraphs**:
+- **Paragraph 1:** About Statement 1 (follows 3-part structure)
+- **Paragraph 2:** About Statement 2 (follows 3-part structure)
+
+Additional constraints:
+- Still second person
+- Still no correctness labels
+- No concluding "match" sentence (UI handles this)
+
+---\n`
+        : ""
+    }${
+      hasContextual
+        ? `
+## Contextual (${contextualLazyNumber})
+
+### Requirements
+- Scenario details (roles, numbers, constraints) MUST be from HANDOUTS
+- Include ONLY details needed to answer
+- Remove decorative backstory/names
+- Provide all facts in stem
+- Keep options short and homogeneous
+
+---\n`
+        : ""
     }
+# FINAL VALIDATION CHECKLIST
 
-    if (distribution.singleBestAnswer > 0) {
-      prompt.push(
-        `> ${lazyNumbering(
-          1,
-          distribution.singleBestAnswer
-        )}) **Single-Best Answer**`
-      );
-    }
+Before submitting, verify:
+- [ ] Exactly **${totalQuestions} items** (${distribution.directQuestion} Direct Question + ${distribution.twoStatementCompound} Two-Statement Compound + ${distribution.contextual} Contextual)
+- [ ] Each item has exactly 4 options
+- [ ] Each item has exactly 1 correct answer
+- [ ] Answer keys balanced across A-D (no patterns)
+- [ ] All explanations use second person
+- [ ] All explanations follow 3-part structure
+- [ ] Check that all explanations use the same transition language.
+- [ ] Two-Statement explanations use 2-paragraph format
+- [ ] No correctness labels in explanations
+- [ ] No cross-references between options
+- [ ] No references to HANDOUTS in stems, options, or explanations`;
 
-    prompt.push("## Item type distribution");
-
-    if (distribution.twoStatements > 0) {
-      prompt.push(
-        `> ${lazyNumbering(
-          distribution.singleBestAnswer + 1,
-          distribution.twoStatements
-        )}) **Two-Statement Compound True/False**`,
-        "> - **Format (exact):** `Statement 1: {{statement_1}}; Statement 2: {{statement_2}}`",
-        "> **Rules for Statement 1 and Statement 2:**",
-        "> - Each is one declarative sentence with **one main idea** and is **unequivocally true or false**. ",
-        "> - Avoid imprecise/vague wording and avoid double negatives.",
-        "> **Options (fixed text; do not paraphrase):**",
-        "> A) Only **Statement 1** is true.",
-        "> B) Only **Statement 2** is true.",
-        "> C) Both statements are true.",
-        "> D) Neither statement is true."
-      );
-    }
-
-    if (distribution.contextual > 0) {
-      prompt.push(
-        `> ${lazyNumbering(
-          distribution.singleBestAnswer + distribution.twoStatements + 1,
-          distribution.contextual
-        )}) **Contextual**`,
-        "> - **MUST** include only details required to answer; remove anything that adds irrelevant difficulty.",
-        "> - **MUST** provide all necessary facts in the stem; keep options short and homogeneous.",
-        "> - **MUST NOT** add decorative backstory, names, or data that are not used to decide among options."
-      );
-    }
-
-    return prompt.join("\n");
+    return prompt.trim();
   }
 
   /**
@@ -293,8 +429,9 @@ export class GeminiQuizGeneratorService implements IAIQuizGenerator {
     data: GeneratedQuestionData[]
   ): GeneratedQuestionData[] {
     return data.map((q: GeneratedQuestionData, index: number) => ({
-      questionText: q.questionText,
-      questionType: q.questionType as QuestionType,
+      orderIndex: q.orderIndex ?? index,
+      type: q.type as QuestionType,
+      stem: q.stem,
       options: q.options.map(
         (opt: GeneratedQuestionData["options"][number]) => ({
           index: opt.index as OptionIndex,
@@ -303,7 +440,6 @@ export class GeminiQuizGeneratorService implements IAIQuizGenerator {
           isCorrect: opt.isCorrect,
         })
       ),
-      orderIndex: q.orderIndex ?? index,
     }));
   }
 

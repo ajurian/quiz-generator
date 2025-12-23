@@ -27,7 +27,9 @@ describe("ResetAttemptUseCase", () => {
     userId: USER_ID,
   });
 
-  const createInProgressAttemptWithAnswers = (): QuizAttempt => {
+  const createInProgressAttemptWithAnswers = (
+    startedAt: Date = new Date()
+  ): QuizAttempt => {
     return QuizAttempt.reconstitute({
       id: ATTEMPT_ID,
       slug: "test-slug",
@@ -36,7 +38,7 @@ describe("ResetAttemptUseCase", () => {
       status: AttemptStatus.IN_PROGRESS,
       score: null,
       durationMs: null,
-      startedAt: new Date(),
+      startedAt,
       submittedAt: null,
       answers: {
         [QUESTION_ID_1]: "A",
@@ -45,7 +47,9 @@ describe("ResetAttemptUseCase", () => {
     });
   };
 
-  const createInProgressAttemptWithoutAnswers = (): QuizAttempt => {
+  const createInProgressAttemptWithoutAnswers = (
+    startedAt: Date = new Date()
+  ): QuizAttempt => {
     return QuizAttempt.reconstitute({
       id: ATTEMPT_ID,
       slug: "test-slug",
@@ -54,7 +58,7 @@ describe("ResetAttemptUseCase", () => {
       status: AttemptStatus.IN_PROGRESS,
       score: null,
       durationMs: null,
-      startedAt: new Date(),
+      startedAt,
       submittedAt: null,
       answers: {},
     });
@@ -140,6 +144,48 @@ describe("ResetAttemptUseCase", () => {
       expect(Object.keys(updatedAttempt.answers).length).toBe(0);
     });
 
+    it("should reset the timer (startedAt) to current time", async () => {
+      const input = createValidInput();
+      const oldStartTime = new Date(Date.now() - 60000); // 1 minute ago
+      const attempt = createInProgressAttemptWithAnswers(oldStartTime);
+      mockAttemptRepository.findById = mock(() => Promise.resolve(attempt));
+
+      const beforeReset = Date.now();
+      await useCase.execute(input);
+      const afterReset = Date.now();
+
+      const updateMock = mockAttemptRepository.update as ReturnType<
+        typeof mock
+      >;
+      const updatedAttempt = updateMock.mock.calls[0]![0] as QuizAttempt;
+
+      // Timer should be reset to approximately now
+      expect(updatedAttempt.startedAt.getTime()).toBeGreaterThanOrEqual(
+        beforeReset
+      );
+      expect(updatedAttempt.startedAt.getTime()).toBeLessThanOrEqual(
+        afterReset
+      );
+    });
+
+    it("should reset score, durationMs, and submittedAt to initial values", async () => {
+      const input = createValidInput();
+      const attempt = createInProgressAttemptWithAnswers();
+      mockAttemptRepository.findById = mock(() => Promise.resolve(attempt));
+
+      await useCase.execute(input);
+
+      const updateMock = mockAttemptRepository.update as ReturnType<
+        typeof mock
+      >;
+      const updatedAttempt = updateMock.mock.calls[0]![0] as QuizAttempt;
+
+      expect(updatedAttempt.score).toBeNull();
+      expect(updatedAttempt.durationMs).toBeNull();
+      expect(updatedAttempt.submittedAt).toBeNull();
+      expect(updatedAttempt.status).toBe(AttemptStatus.IN_PROGRESS);
+    });
+
     it("should work even if attempt has no answers", async () => {
       const input = createValidInput();
       const attempt = createInProgressAttemptWithoutAnswers();
@@ -161,6 +207,17 @@ describe("ResetAttemptUseCase", () => {
       expect(result.attempt.quizId).toBe(QUIZ_ID);
       expect(result.attempt.userId).toBe(USER_ID);
       expect(result.attempt.status).toBe(AttemptStatus.IN_PROGRESS);
+    });
+
+    it("should keep the same attempt ID after reset", async () => {
+      const input = createValidInput();
+      const attempt = createInProgressAttemptWithAnswers();
+      mockAttemptRepository.findById = mock(() => Promise.resolve(attempt));
+
+      const result = await useCase.execute(input);
+
+      expect(result.attempt.id).toBe(ATTEMPT_ID);
+      expect(result.attempt.slug).toBe("test-slug");
     });
   });
 

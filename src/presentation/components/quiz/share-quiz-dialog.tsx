@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React from "react";
 import { Button } from "@/presentation/components/ui/button";
 import {
   Dialog,
@@ -27,8 +27,8 @@ export function ShareQuizDialog({
   isPending,
   baseUrl = typeof window !== "undefined" ? window.location.origin : "",
 }: ShareQuizDialogProps) {
-  const [open, setOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [open, setOpen] = React.useState(false);
+  const [copied, setCopied] = React.useState(false);
 
   const shareLink =
     currentVisibility !== QuizVisibility.PRIVATE
@@ -108,7 +108,7 @@ export function ShareQuizDialog({
 
         {/* Share Link Section */}
         {shareLink && (
-          <div className="border-t pt-4">
+          <div className="border-t pt-4 overflow-hidden">
             <p className="text-sm font-medium mb-2">Share Link</p>
             <div className="flex items-center gap-2">
               <code className="flex-1 rounded-md bg-muted px-3 py-2 text-sm truncate">

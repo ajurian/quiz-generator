@@ -4,14 +4,15 @@ import { QuizDistributionService, QuizVisibility } from "../../domain";
 /**
  * Validation schema for question distribution
  */
-export const distributionSchema = z
+export const quizDistributionSchema = z
   .object({
-    singleBestAnswer: z.number().int().min(0).max(255),
-    twoStatements: z.number().int().min(0).max(255),
+    directQuestion: z.number().int().min(0).max(255),
+    twoStatementCompound: z.number().int().min(0).max(255),
     contextual: z.number().int().min(0).max(255),
   })
   .refine(
-    (data) => data.singleBestAnswer + data.twoStatements + data.contextual > 0,
+    (data) =>
+      data.directQuestion + data.twoStatementCompound + data.contextual > 0,
     {
       message: "Total questions must be greater than 0",
     }
@@ -28,7 +29,7 @@ export const visibilitySchema = z.enum(QuizVisibility);
 export const createQuizInputSchema = z.object({
   userId: z.uuidv7(),
   title: z.string().min(1).max(255),
-  distribution: distributionSchema,
+  distribution: quizDistributionSchema,
   visibility: visibilitySchema.optional().default(QuizVisibility.PRIVATE),
 });
 
@@ -49,7 +50,7 @@ export const quizResponseSchema = z.object({
   totalQuestions: z.number().int().min(0),
   visibility: visibilitySchema,
   shareLink: z.string().optional(),
-  distribution: distributionSchema,
+  distribution: quizDistributionSchema,
 });
 
 /**

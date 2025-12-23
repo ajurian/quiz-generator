@@ -2,7 +2,6 @@ import { describe, expect, it, beforeEach, mock } from "bun:test";
 import {
   SubmitAttemptUseCase,
   type SubmitAttemptUseCaseDeps,
-  type SubmitAttemptInput,
 } from "../../application/use-cases/submit-attempt.use-case";
 import { QuizAttempt, AttemptStatus } from "../../domain";
 import type { IAttemptRepository } from "../../application/ports";
@@ -11,6 +10,7 @@ import {
   ForbiddenError,
   ValidationError,
 } from "../../application/errors";
+import { SubmitAttemptInput } from "@/application";
 
 describe("SubmitAttemptUseCase", () => {
   let useCase: SubmitAttemptUseCase;
@@ -78,6 +78,7 @@ describe("SubmitAttemptUseCase", () => {
       delete: mock(async () => {}),
       exists: mock(async () => false),
       findInProgressByQuizAndUser: mock(async () => null),
+      findLatestAttemptPerQuizByUser: mock(async () => []),
     };
 
     useCase = new SubmitAttemptUseCase({

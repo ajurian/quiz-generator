@@ -7,10 +7,17 @@ import {
   timestamp,
   index,
   jsonb,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { quizzes } from "./quiz.schema";
 import { users } from "../../auth/auth.schema";
+import { AttemptStatus } from "@/domain";
+
+export const quizAttemptStatusEnum = pgEnum("quiz_attempt_status", [
+  AttemptStatus.IN_PROGRESS,
+  AttemptStatus.SUBMITTED,
+]);
 
 /**
  * Quiz Attempts table schema
@@ -37,7 +44,9 @@ export const quizAttempts = pgTable(
     userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
 
     /** Attempt status: in_progress or submitted */
-    status: varchar("status", { length: 20 }).default("in_progress").notNull(),
+    status: quizAttemptStatusEnum("status")
+      .default(AttemptStatus.IN_PROGRESS)
+      .notNull(),
 
     /** Score achieved (0-100, null if not submitted) */
     score: real("score"),

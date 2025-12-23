@@ -1,5 +1,4 @@
-import "dotenv/config";
-import type { Config } from "drizzle-kit";
+import { defineConfig } from "drizzle-kit";
 
 /**
  * Drizzle Kit Configuration
@@ -9,7 +8,7 @@ import type { Config } from "drizzle-kit";
  * Run `bunx drizzle-kit migrate` to apply migrations.
  * Run `bunx drizzle-kit studio` to open Drizzle Studio.
  */
-export default {
+export default defineConfig({
   schema: [
     "./src/infrastructure/database/schema/index.ts",
     "./src/infrastructure/auth/auth.schema.ts",
@@ -19,4 +18,4 @@ export default {
   dbCredentials: {
     url: process.env.DATABASE_URL!,
   },
-} satisfies Config;
+});

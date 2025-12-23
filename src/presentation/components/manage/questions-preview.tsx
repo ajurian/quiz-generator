@@ -90,7 +90,7 @@ function OptionPreview({ option }: OptionPreviewProps) {
     <div
       className={`p-2.5 rounded-md border text-sm ${
         option.isCorrect
-          ? "border-green-500 bg-green-500/5"
+          ? "border-emerald-500 bg-emerald-500/5"
           : "border-border bg-muted/30"
       }`}
     >
@@ -98,7 +98,7 @@ function OptionPreview({ option }: OptionPreviewProps) {
         <span
           className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium ${
             option.isCorrect
-              ? "bg-green-500 text-white"
+              ? "bg-emerald-500 text-white"
               : "bg-muted text-muted-foreground"
           }`}
         >
@@ -109,7 +109,7 @@ function OptionPreview({ option }: OptionPreviewProps) {
             {option.text}
           </span>
           {option.isCorrect && (
-            <CheckCircle2 className="inline h-4 w-4 ml-2 text-green-500 flex-shrink-0" />
+            <CheckCircle2 className="inline h-4 w-4 ml-2 text-emerald-500 flex-shrink-0" />
           )}
           {option.explanation && (
             <div className="mt-2 flex items-start gap-1.5 text-xs text-muted-foreground">

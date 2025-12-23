@@ -41,8 +41,8 @@ export const quizzes = pgTable("quizzes", {
 
   /**
    * Bit-packed question distribution (int32)
-   * - Bits 0-7: Single Best Answer count (0-255)
-   * - Bits 8-15: Two Statements count (0-255)
+   * - Bits 0-7: Direct Question count (0-255)
+   * - Bits 8-15: Two-Statement Compound count (0-255)
    * - Bits 16-23: Contextual count (0-255)
    */
   questionDistribution: integer("question_distribution").notNull(),

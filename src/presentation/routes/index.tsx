@@ -191,7 +191,7 @@ function HomePage() {
                 <CardContent className="pt-6">
                   <div className="mb-3 text-2xl">📝</div>
                   <h3 className="mb-2 font-display font-semibold">
-                    Single Best Answer
+                    Direct Question
                   </h3>
                   <p className="text-sm text-muted-foreground">
                     Classic multiple choice with one correct answer and detailed

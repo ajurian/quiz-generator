@@ -11,7 +11,7 @@ import {
   RedisCacheService,
   UuidIdGenerator,
 } from "../services";
-import { createAuth, getAuth, type Auth } from "../auth";
+import { getAuth, type Auth } from "../auth";
 import {
   CreateQuizUseCase,
   GetUserQuizzesUseCase,

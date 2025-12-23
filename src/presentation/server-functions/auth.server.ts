@@ -1,6 +1,6 @@
+import { getAuth } from "@/infrastructure";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
-import { getAuth } from "@/infrastructure/auth";
 
 /**
  * Server function to get current session

@@ -28,8 +28,8 @@ const BIT_POSITIONS = {
  * Uses bit-packing to store three 8-bit values in a single 32-bit integer.
  *
  * Bit layout (32-bit integer):
- * - Bits 0-7:   Single Best Answer count (0-255)
- * - Bits 8-15:  Two Statements count (0-255)
+ * - Bits 0-7:   Direct Question count (0-255)
+ * - Bits 8-15:  Two-Statement Compound count (0-255)
  * - Bits 16-23: Contextual count (0-255)
  * - Bits 24-31: Reserved (unused)
  */
@@ -135,7 +135,7 @@ export class QuizDistributionService {
     const remainder = total % 3;
 
     return {
-      directQuestion: baseCount + remainder, // Give extra questions to single best answer
+      directQuestion: baseCount + remainder, // Give extra questions to direct question
       twoStatementCompound: baseCount,
       contextual: baseCount,
     };

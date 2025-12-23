@@ -173,23 +173,7 @@ describe("GetQuizByIdUseCase", () => {
       expect(result.questions[0]).toHaveProperty("orderIndex");
     });
 
-    it("should include share link for public quiz with baseUrl", async () => {
-      mockQuizRepository.findById = mock(async () =>
-        createMockQuiz(QuizVisibility.PUBLIC)
-      );
-
-      const input: GetQuizByIdInput = {
-        quizId: QUIZ_ID,
-        userId: OWNER_ID,
-      };
-
-      const result = await useCase.execute(input, "https://example.com");
-
-      // Share link uses slug format: /quiz/a/{slug}
-      expect(result.quiz.shareLink).toMatch(
-        /^https:\/\/example\.com\/quiz\/a\/[A-Za-z0-9_-]{22}$/
-      );
-    });
+    // Note: share links are now derived client-side; API returns only slug.
   });
 
   describe("access control", () => {

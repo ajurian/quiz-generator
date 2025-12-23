@@ -79,14 +79,14 @@ function AttemptCard({ attempt, quizSlug, attemptNumber }: AttemptCardProps) {
                 {isInProgress ? (
                   <Badge
                     variant="outline"
-                    className="border-amber-500 text-amber-500"
+                    className="border-yellow-500 text-yellow-500"
                   >
                     In Progress
                   </Badge>
                 ) : (
                   <Badge
                     variant="default"
-                    className="bg-green-500/10 text-green-500 hover:bg-green-500/20"
+                    className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20"
                   >
                     Completed
                   </Badge>

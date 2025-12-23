@@ -54,8 +54,7 @@ export class GetUserAttemptHistoryUseCase {
   constructor(private readonly deps: GetUserAttemptHistoryUseCaseDeps) {}
 
   async execute(
-    input: GetUserAttemptHistoryInput,
-    baseUrl?: string
+    input: GetUserAttemptHistoryInput
   ): Promise<GetUserAttemptHistoryOutput> {
     // 1. Validate input
     if (!input.userId || typeof input.userId !== "string") {
@@ -91,7 +90,7 @@ export class GetUserAttemptHistoryUseCase {
       const quiz = quizMap.get(quizId);
       if (quiz) {
         items.push({
-          quiz: toQuizResponseDTO(quiz.toPlain(), baseUrl),
+          quiz: toQuizResponseDTO(quiz.toPlain()),
           latestAttempt: toAttemptResponseDTO(attempt.toPlain()),
         });
       }

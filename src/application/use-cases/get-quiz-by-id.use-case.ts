@@ -52,10 +52,7 @@ export interface GetQuizByIdUseCaseDeps {
 export class GetQuizByIdUseCase {
   constructor(private readonly deps: GetQuizByIdUseCaseDeps) {}
 
-  async execute(
-    input: GetQuizByIdInput,
-    baseUrl?: string
-  ): Promise<GetQuizByIdOutput> {
+  async execute(input: GetQuizByIdInput): Promise<GetQuizByIdOutput> {
     // 1. Validate input - need either quizId or quizSlug
     if (!input.quizId && !input.quizSlug) {
       throw new ValidationError("Quiz ID or slug is required", {
@@ -107,7 +104,7 @@ export class GetQuizByIdUseCase {
 
     // 5. Transform to response DTOs
     return {
-      quiz: toQuizResponseDTO(quiz.toPlain(), baseUrl),
+      quiz: toQuizResponseDTO(quiz.toPlain()),
       questions: questions.map((q) => toQuestionResponseDTO(q.toPlain())),
       isOwner,
     };

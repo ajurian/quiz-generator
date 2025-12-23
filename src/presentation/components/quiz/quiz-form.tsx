@@ -190,11 +190,11 @@ export function QuizForm({
         {/* Distribution Grid */}
         <div className="grid grid-cols-3 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="sba" className="text-sm">
-              Single Best Answer
+            <Label htmlFor="directQuestion" className="text-sm">
+              Direct Question
             </Label>
             <Input
-              id="sba"
+              id="directQuestion"
               type="number"
               min={0}
               max={totalQuestions}

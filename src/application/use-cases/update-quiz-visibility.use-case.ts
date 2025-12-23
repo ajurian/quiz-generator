@@ -42,8 +42,7 @@ export class UpdateQuizVisibilityUseCase {
   constructor(private readonly deps: UpdateQuizVisibilityUseCaseDeps) {}
 
   async execute(
-    input: UpdateQuizVisibilityInput,
-    baseUrl?: string
+    input: UpdateQuizVisibilityInput
   ): Promise<UpdateQuizVisibilityOutput> {
     // 1. Validate input
     if (!input.quizId || typeof input.quizId !== "string") {
@@ -91,7 +90,7 @@ export class UpdateQuizVisibilityUseCase {
     );
 
     return {
-      quiz: toQuizResponseDTO(updatedQuiz.toPlain(), baseUrl),
+      quiz: toQuizResponseDTO(updatedQuiz.toPlain()),
       message,
     };
   }

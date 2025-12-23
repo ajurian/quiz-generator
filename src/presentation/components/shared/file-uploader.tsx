@@ -90,7 +90,7 @@ export function FileUploader({
 
   const getFileIcon = (type: string) => {
     if (type.includes("pdf"))
-      return <FileText className="h-5 w-5 text-red-500" />;
+      return <FileText className="h-5 w-5 text-rose-500" />;
     return <File className="h-5 w-5 text-blue-500" />;
   };
 
@@ -163,7 +163,7 @@ export function FileUploader({
                   </div>
                   <div className="flex items-center gap-2">
                     {uploadedFile.status === "complete" && (
-                      <Badge variant="secondary" className="text-green-600">
+                      <Badge variant="secondary" className="text-emerald-600">
                         Ready
                       </Badge>
                     )}

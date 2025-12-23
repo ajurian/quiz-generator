@@ -151,28 +151,6 @@ describe("Quiz DTOs", () => {
       expect(typeof dto.updatedAt).toBe("string");
     });
 
-    it("should include share link when baseUrl provided and quiz is public", () => {
-      const quiz = createMockQuiz(QuizVisibility.PUBLIC);
-      const dto = toQuizResponseDTO(quiz, "https://example.com");
-
-      // Share link uses slug format: /quiz/a/{slug}
-      expect(dto.shareLink).toMatch(
-        /^https:\/\/example\.com\/quiz\/a\/[A-Za-z0-9_-]{22}$/
-      );
-    });
-
-    it("should not include share link for private quiz", () => {
-      const quiz = createMockQuiz(QuizVisibility.PRIVATE);
-      const dto = toQuizResponseDTO(quiz, "https://example.com");
-
-      expect(dto.shareLink).toBeUndefined();
-    });
-
-    it("should not include share link when baseUrl not provided", () => {
-      const quiz = createMockQuiz(QuizVisibility.PUBLIC);
-      const dto = toQuizResponseDTO(quiz);
-
-      expect(dto.shareLink).toBeUndefined();
-    });
+    // Note: share links are now derived client-side; DTO never includes shareLink.
   });
 });

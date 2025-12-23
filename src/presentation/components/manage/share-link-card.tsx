@@ -45,7 +45,7 @@ export function ShareLinkCard({ slug, visibility }: ShareLinkCardProps) {
           </Button>
         </div>
         {visibility === QuizVisibility.PRIVATE && (
-          <p className="text-sm text-amber-500 mt-2 flex items-center gap-1">
+          <p className="text-sm text-yellow-500 mt-2 flex items-center gap-1">
             <Lock className="h-3 w-3" />
             Link won't work while quiz is private
           </p>

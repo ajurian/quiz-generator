@@ -124,42 +124,7 @@ describe("GetUserQuizzesUseCase", () => {
       expect(result.data[0]).toHaveProperty("distribution");
     });
 
-    it("should include share links when baseUrl is provided and quiz is public", async () => {
-      // Modify mock to return a public quiz
-      mockQuizRepository.findByUserId = mock(
-        async (userId: string, pagination) => {
-          const quiz = Quiz.create({
-            id: QUIZ_1_ID,
-            userId,
-            title: "Public Quiz",
-            distribution: {
-              directQuestion: 5,
-              twoStatementCompound: 3,
-              contextual: 2,
-            },
-            visibility: QuizVisibility.PUBLIC,
-          });
-          return {
-            data: [quiz],
-            total: 1,
-            page: pagination.page,
-            limit: pagination.limit,
-            totalPages: 1,
-          } as PaginatedResult<Quiz>;
-        }
-      );
-
-      const input: GetUserQuizzesInput = {
-        userId: USER_ID,
-      };
-
-      const result = await useCase.execute(input, "https://example.com");
-
-      // Share link uses slug format: /quiz/a/{slug}
-      expect(result.data[0]!.shareLink).toMatch(
-        /^https:\/\/example\.com\/quiz\/a\/[A-Za-z0-9_-]{22}$/
-      );
-    });
+    // Note: share links are now derived client-side; API returns only slug.
   });
 
   describe("validation errors", () => {

@@ -1,8 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { getContainer } from "@/infrastructure/di";
 import { QuizVisibility } from "@/domain";
 import { quizDistributionSchema } from "@/application";
+import { getContainer } from "@/infrastructure";
 
 // Validation schemas
 const paginationSchema = z.object({
@@ -20,13 +20,10 @@ export const getUserQuizzes = createServerFn({ method: "GET" })
   )
   .handler(async ({ data }) => {
     const container = getContainer();
-    const result = await container.useCases.getUserQuizzes.execute(
-      {
-        userId: data.userId,
-        pagination: data.pagination,
-      },
-      container.baseUrl
-    );
+    const result = await container.useCases.getUserQuizzes.execute({
+      userId: data.userId,
+      pagination: data.pagination,
+    });
     return result;
   });
 
@@ -40,13 +37,10 @@ export const getQuizById = createServerFn({ method: "GET" })
   )
   .handler(async ({ data }) => {
     const container = getContainer();
-    const result = await container.useCases.getQuizById.execute(
-      {
-        quizId: data.quizId,
-        userId: data.userId,
-      },
-      container.baseUrl
-    );
+    const result = await container.useCases.getQuizById.execute({
+      quizId: data.quizId,
+      userId: data.userId,
+    });
     return result;
   });
 
@@ -92,16 +86,13 @@ export const createQuiz = createServerFn({ method: "POST" })
     // Reconstruct File objects from serializable data
     const files = data.files.map(reconstructFile);
 
-    const result = await container.useCases.createQuiz.execute(
-      {
-        userId: data.userId,
-        title: data.title,
-        distribution: data.distribution,
-        visibility: data.visibility,
-        files,
-      },
-      container.baseUrl
-    );
+    const result = await container.useCases.createQuiz.execute({
+      userId: data.userId,
+      title: data.title,
+      distribution: data.distribution,
+      visibility: data.visibility,
+      files,
+    });
     return result;
   });
 
@@ -115,13 +106,10 @@ export const shareQuiz = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const container = getContainer();
-    const result = await container.useCases.shareQuiz.execute(
-      {
-        quizId: data.quizId,
-        userId: data.userId,
-      },
-      container.baseUrl
-    );
+    const result = await container.useCases.shareQuiz.execute({
+      quizId: data.quizId,
+      userId: data.userId,
+    });
     return result;
   });
 

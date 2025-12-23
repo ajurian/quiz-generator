@@ -1,4 +1,4 @@
-import { Quiz, Question, GeminiModel } from "../../domain";
+import { Quiz, Question, GeminiModel, QuizDistribution } from "../../domain";
 import type {
   IQuizRepository,
   IQuestionRepository,
@@ -53,10 +53,7 @@ export interface CreateQuizUseCaseDeps {
 export class CreateQuizUseCase {
   constructor(private readonly deps: CreateQuizUseCaseDeps) {}
 
-  async execute(
-    input: CreateQuizUseCaseInput,
-    baseUrl?: string
-  ): Promise<QuizResponseDTO> {
+  async execute(input: CreateQuizUseCaseInput): Promise<QuizResponseDTO> {
     // 1. Validate input
     const validationResult = createQuizInputSchema.safeParse(input);
     if (!validationResult.success) {
@@ -135,7 +132,7 @@ export class CreateQuizUseCase {
     await this.deps.questionRepository.createBulk(questions);
 
     // 7. Return response DTO
-    return toQuizResponseDTO(savedQuiz.toPlain(), baseUrl);
+    return toQuizResponseDTO(savedQuiz.toPlain());
   }
 
   /**
@@ -143,7 +140,7 @@ export class CreateQuizUseCase {
    */
   private async generateQuestionsWithFallback(
     files: FileMetadata[],
-    distribution: CreateQuizInput["distribution"]
+    distribution: QuizDistribution
   ): Promise<GeneratedQuestionData[]> {
     const primaryModel = GeminiModel.FLASH_2_5;
     const fallbackModel = GeminiModel.FLASH_2_5_LITE;

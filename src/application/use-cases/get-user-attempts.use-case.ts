@@ -50,10 +50,7 @@ export interface GetUserAttemptsUseCaseDeps {
 export class GetUserAttemptsUseCase {
   constructor(private readonly deps: GetUserAttemptsUseCaseDeps) {}
 
-  async execute(
-    input: GetUserAttemptsInput,
-    baseUrl?: string
-  ): Promise<GetUserAttemptsOutput> {
+  async execute(input: GetUserAttemptsInput): Promise<GetUserAttemptsOutput> {
     // 1. Validate input
     if (!input.quizSlug || !isValidSlug(input.quizSlug)) {
       throw new ValidationError("Invalid quiz slug", {
@@ -90,7 +87,7 @@ export class GetUserAttemptsUseCase {
     const summary = createAttemptSummary(attemptDTOs);
 
     return {
-      quiz: toQuizResponseDTO(quiz.toPlain(), baseUrl),
+      quiz: toQuizResponseDTO(quiz.toPlain()),
       attempts: attemptDTOs,
       summary,
     };

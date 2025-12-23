@@ -17,7 +17,7 @@ export interface ShareQuizInput {
  */
 export interface ShareQuizOutput {
   quiz: QuizResponseDTO;
-  shareLink: string;
+  slug: string;
 }
 
 /**
@@ -41,10 +41,7 @@ export interface ShareQuizUseCaseDeps {
 export class ShareQuizUseCase {
   constructor(private readonly deps: ShareQuizUseCaseDeps) {}
 
-  async execute(
-    input: ShareQuizInput,
-    baseUrl: string
-  ): Promise<ShareQuizOutput> {
+  async execute(input: ShareQuizInput): Promise<ShareQuizOutput> {
     // 1. Validate input
     if (!input.quizId || typeof input.quizId !== "string") {
       throw new ValidationError("Quiz ID is required", {
@@ -56,15 +53,6 @@ export class ShareQuizUseCase {
       throw new ValidationError("User ID is required", {
         userId: ["User ID is required"],
       });
-    }
-
-    if (!baseUrl || typeof baseUrl !== "string") {
-      throw new ValidationError(
-        "Base URL is required for generating share links",
-        {
-          baseUrl: ["Base URL is required"],
-        }
-      );
     }
 
     // 2. Find quiz by ID
@@ -87,12 +75,9 @@ export class ShareQuizUseCase {
     // 5. Persist changes
     const updatedQuiz = await this.deps.quizRepository.update(quiz);
 
-    // 6. Generate share link using the quiz slug
-    const shareLink = `${baseUrl}/quiz/a/${quiz.slug}`;
-
     return {
-      quiz: toQuizResponseDTO(updatedQuiz.toPlain(), baseUrl),
-      shareLink,
+      quiz: toQuizResponseDTO(updatedQuiz.toPlain()),
+      slug: updatedQuiz.slug,
     };
   }
 }

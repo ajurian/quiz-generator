@@ -96,7 +96,7 @@ function AttemptDetailPage() {
               </div>
               <Badge
                 variant="default"
-                className="bg-green-500/10 text-green-500"
+                className="bg-emerald-500/10 text-emerald-500"
               >
                 Completed
               </Badge>
@@ -121,7 +121,7 @@ function AttemptDetailPage() {
                 <div className="text-xs text-muted-foreground">Duration</div>
               </div>
               <div className="p-4 rounded-lg bg-muted/50">
-                <CheckCircle2 className="h-5 w-5 mx-auto mb-2 text-green-500" />
+                <CheckCircle2 className="h-5 w-5 mx-auto mb-2 text-emerald-500" />
                 <div className="text-2xl font-display font-bold">
                   {questions.length}
                 </div>

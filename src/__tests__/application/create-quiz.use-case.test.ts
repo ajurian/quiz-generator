@@ -196,13 +196,7 @@ describe("CreateQuizUseCase", () => {
       expect(mockQuestionRepository.createBulk).toHaveBeenCalledTimes(1);
     });
 
-    it("should include share link when baseUrl is provided and quiz is public", async () => {
-      const input = createValidInput();
-      const result = await useCase.execute(input, "https://example.com");
-
-      // Quiz is not public by default, so no share link
-      expect(result.shareLink).toBeUndefined();
-    });
+    // Note: share links are now derived client-side; API returns only slug.
   });
 
   describe("validation errors", () => {

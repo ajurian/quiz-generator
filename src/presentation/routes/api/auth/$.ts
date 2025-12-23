@@ -1,4 +1,4 @@
-import { getAuth } from "@/infrastructure/auth";
+import { getAuth } from "@/infrastructure";
 import { createFileRoute } from "@tanstack/react-router";
 
 /**

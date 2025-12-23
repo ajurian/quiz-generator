@@ -58,10 +58,7 @@ export interface GetAttemptDetailUseCaseDeps {
 export class GetAttemptDetailUseCase {
   constructor(private readonly deps: GetAttemptDetailUseCaseDeps) {}
 
-  async execute(
-    input: GetAttemptDetailInput,
-    baseUrl?: string
-  ): Promise<GetAttemptDetailOutput> {
+  async execute(input: GetAttemptDetailInput): Promise<GetAttemptDetailOutput> {
     // 1. Validate input
     if (!input.quizSlug || !isValidSlug(input.quizSlug)) {
       throw new ValidationError("Invalid quiz slug", {
@@ -109,7 +106,7 @@ export class GetAttemptDetailUseCase {
     const questions = await this.deps.questionRepository.findByQuizId(quiz.id);
 
     return {
-      quiz: toQuizResponseDTO(quiz.toPlain(), baseUrl),
+      quiz: toQuizResponseDTO(quiz.toPlain()),
       attempt: toAttemptResponseDTO(attempt.toPlain()),
       questions: questions.map((q) => toQuestionResponseDTO(q.toPlain())),
       isOwner,

@@ -216,8 +216,8 @@ function CorrectnessBadge({ isCorrect }: CorrectnessBadgeProps) {
       variant={isCorrect ? "default" : "destructive"}
       className={cn(
         isCorrect
-          ? "bg-green-500/10 text-success-foreground dark:text-green-400"
-          : "bg-red-500/10 text-red-600 dark:text-red-400"
+          ? "bg-emerald-500/10 text-success-foreground dark:text-emerald-400"
+          : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
       )}
     >
       {isCorrect ? (
@@ -258,10 +258,10 @@ function OptionItem({
   const getOptionClasses = () => {
     if (showFeedback) {
       if (isCorrect) {
-        return "border-green-500 bg-green-500/5";
+        return "border-emerald-500 bg-emerald-500/5";
       }
       if (isWrongSelection) {
-        return "border-red-500 bg-red-500/5";
+        return "border-rose-500 bg-rose-500/5";
       }
       return "border-border opacity-60";
     }
@@ -281,10 +281,10 @@ function OptionItem({
   const getIndicatorClasses = () => {
     if (showFeedback) {
       if (isCorrect) {
-        return "bg-green-500 text-white";
+        return "bg-emerald-500 text-white";
       }
       if (isWrongSelection) {
-        return "bg-red-500 text-white";
+        return "bg-rose-500 text-white";
       }
       return "bg-muted text-muted-foreground";
     }

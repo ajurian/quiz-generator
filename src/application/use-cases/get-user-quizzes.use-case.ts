@@ -35,8 +35,7 @@ export class GetUserQuizzesUseCase {
   constructor(private readonly deps: GetUserQuizzesUseCaseDeps) {}
 
   async execute(
-    input: GetUserQuizzesInput,
-    baseUrl?: string
+    input: GetUserQuizzesInput
   ): Promise<PaginatedResponseDTO<QuizResponseDTO>> {
     // 1. Validate input
     if (!input.userId || typeof input.userId !== "string") {
@@ -71,9 +70,7 @@ export class GetUserQuizzesUseCase {
 
     // 3. Transform to response DTOs
     return {
-      data: result.data.map((quiz) =>
-        toQuizResponseDTO(quiz.toPlain(), baseUrl)
-      ),
+      data: result.data.map((quiz) => toQuizResponseDTO(quiz.toPlain())),
       total: result.total,
       page: result.page,
       limit: result.limit,

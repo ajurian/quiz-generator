@@ -75,18 +75,18 @@ describe("ShareQuizUseCase", () => {
   });
 
   describe("successful execution", () => {
-    it("should make quiz unlisted and return share link", async () => {
+    it("should make quiz unlisted and return slug", async () => {
       const input: ShareQuizInput = {
         quizId: QUIZ_ID,
         userId: OWNER_ID,
       };
 
-      const result = await useCase.execute(input, "https://example.com");
+      const result = await useCase.execute(input);
 
       // ShareQuiz defaults to UNLISTED visibility
       expect(result.quiz.visibility).toBe(QuizVisibility.UNLISTED);
-      // Share link uses slug format: /quiz/a/{slug}
-      expect(result.shareLink).toContain("https://example.com/quiz/a/");
+      // API returns only slug
+      expect(result.slug).toMatch(/^[A-Za-z0-9_-]{22}$/);
     });
 
     it("should call update on repository", async () => {
@@ -95,7 +95,7 @@ describe("ShareQuizUseCase", () => {
         userId: OWNER_ID,
       };
 
-      await useCase.execute(input, "https://example.com");
+      await useCase.execute(input);
 
       expect(mockQuizRepository.update).toHaveBeenCalledTimes(1);
     });
@@ -111,24 +111,21 @@ describe("ShareQuizUseCase", () => {
         userId: OWNER_ID,
       };
 
-      const result = await useCase.execute(input, "https://example.com");
+      const result = await useCase.execute(input);
 
       // Already unlisted quiz stays unlisted
       expect(result.quiz.visibility).toBe(QuizVisibility.UNLISTED);
     });
 
-    it("should return correct share link format with slug", async () => {
+    it("should return correct slug format", async () => {
       const input: ShareQuizInput = {
         quizId: QUIZ_ID,
         userId: OWNER_ID,
       };
 
-      const result = await useCase.execute(input, "https://my-app.example.com");
+      const result = await useCase.execute(input);
 
-      // Share link uses slug format: /quiz/a/{slug}
-      expect(result.shareLink).toMatch(
-        /^https:\/\/my-app\.example\.com\/quiz\/a\/[A-Za-z0-9_-]{22}$/
-      );
+      expect(result.slug).toMatch(/^[A-Za-z0-9_-]{22}$/);
     });
   });
 
@@ -139,9 +136,7 @@ describe("ShareQuizUseCase", () => {
         userId: OTHER_USER_ID,
       };
 
-      await expect(
-        useCase.execute(input, "https://example.com")
-      ).rejects.toThrow(ForbiddenError);
+      await expect(useCase.execute(input)).rejects.toThrow(ForbiddenError);
     });
   });
 
@@ -152,9 +147,7 @@ describe("ShareQuizUseCase", () => {
         userId: OWNER_ID,
       };
 
-      await expect(
-        useCase.execute(input, "https://example.com")
-      ).rejects.toThrow(NotFoundError);
+      await expect(useCase.execute(input)).rejects.toThrow(NotFoundError);
     });
 
     it("should throw ValidationError for empty quizId", async () => {
@@ -163,9 +156,7 @@ describe("ShareQuizUseCase", () => {
         userId: OWNER_ID,
       };
 
-      await expect(
-        useCase.execute(input, "https://example.com")
-      ).rejects.toThrow(ValidationError);
+      await expect(useCase.execute(input)).rejects.toThrow(ValidationError);
     });
 
     it("should throw ValidationError for empty userId", async () => {
@@ -174,18 +165,7 @@ describe("ShareQuizUseCase", () => {
         userId: "",
       };
 
-      await expect(
-        useCase.execute(input, "https://example.com")
-      ).rejects.toThrow(ValidationError);
-    });
-
-    it("should throw ValidationError for empty baseUrl", async () => {
-      const input: ShareQuizInput = {
-        quizId: QUIZ_ID,
-        userId: OWNER_ID,
-      };
-
-      await expect(useCase.execute(input, "")).rejects.toThrow(ValidationError);
+      await expect(useCase.execute(input)).rejects.toThrow(ValidationError);
     });
   });
 });

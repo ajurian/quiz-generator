@@ -49,7 +49,6 @@ export const quizResponseSchema = z.object({
   updatedAt: z.string().datetime(),
   totalQuestions: z.number().int().min(0),
   visibility: visibilitySchema,
-  shareLink: z.string().optional(),
   distribution: quizDistributionSchema,
 });
 
@@ -61,29 +60,21 @@ export type QuizResponseDTO = z.infer<typeof quizResponseSchema>;
 /**
  * Helper function to transform Quiz entity to QuizResponseDTO
  */
-export function toQuizResponseDTO(
-  quiz: {
-    id: string;
-    slug: string;
-    title: string;
-    createdAt: Date;
-    updatedAt: Date;
-    visibility: QuizVisibility;
-    questionDistribution: number;
-  },
-  baseUrl?: string
-): QuizResponseDTO {
+export function toQuizResponseDTO(quiz: {
+  id: string;
+  slug: string;
+  title: string;
+  createdAt: Date;
+  updatedAt: Date;
+  visibility: QuizVisibility;
+  questionDistribution: number;
+}): QuizResponseDTO {
   const distribution = QuizDistributionService.decode(
     quiz.questionDistribution
   );
   const totalQuestions = QuizDistributionService.getTotalQuestions(
     quiz.questionDistribution
   );
-
-  // Share link is generated for unlisted and public quizzes
-  const canShare =
-    quiz.visibility === QuizVisibility.UNLISTED ||
-    quiz.visibility === QuizVisibility.PUBLIC;
 
   return {
     id: quiz.id,
@@ -93,8 +84,6 @@ export function toQuizResponseDTO(
     updatedAt: quiz.updatedAt.toISOString(),
     totalQuestions,
     visibility: quiz.visibility,
-    shareLink:
-      canShare && baseUrl ? `${baseUrl}/quiz/a/${quiz.slug}` : undefined,
     distribution,
   };
 }

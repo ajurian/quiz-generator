@@ -72,10 +72,10 @@ export function AttemptHistoryCard({ item }: AttemptHistoryCardProps) {
               variant="secondary"
               className={`flex-shrink-0 gap-1 ${
                 latestAttempt.score >= 70
-                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
                   : latestAttempt.score >= 50
-                    ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                    : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                    ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                    : "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400"
               }`}
             >
               <Trophy className="h-3 w-3" />
@@ -85,7 +85,7 @@ export function AttemptHistoryCard({ item }: AttemptHistoryCardProps) {
           {!isSubmitted && (
             <Badge
               variant="secondary"
-              className="flex-shrink-0 gap-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+              className="flex-shrink-0 gap-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
             >
               <Clock className="h-3 w-3" />
               In Progress

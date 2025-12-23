@@ -90,6 +90,7 @@ describe("ResetAttemptUseCase", () => {
       ),
       findBySlug: mock(() => Promise.resolve(null)),
       findByQuizAndUser: mock(() => Promise.resolve([])),
+      findLatestAttemptPerQuizByUser: mock(() => Promise.resolve([])),
       findByQuizId: mock((_quizId, pagination) =>
         Promise.resolve({
           data: [],

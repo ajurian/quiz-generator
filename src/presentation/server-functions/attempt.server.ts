@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { getContainer } from "@/infrastructure/di";
 import { QuizVisibility } from "@/domain";
+import { getContainer } from "@/infrastructure";
 
 // GET Quiz by Slug (for taking/viewing)
 export const getQuizBySlug = createServerFn({ method: "GET" })
@@ -13,13 +13,10 @@ export const getQuizBySlug = createServerFn({ method: "GET" })
   )
   .handler(async ({ data }) => {
     const container = getContainer();
-    const result = await container.useCases.getQuizById.execute(
-      {
-        quizSlug: data.quizSlug,
-        userId: data.userId ?? null,
-      },
-      container.baseUrl
-    );
+    const result = await container.useCases.getQuizById.execute({
+      quizSlug: data.quizSlug,
+      userId: data.userId ?? null,
+    });
     return result;
   });
 
@@ -107,13 +104,10 @@ export const getUserAttempts = createServerFn({ method: "GET" })
   )
   .handler(async ({ data }) => {
     const container = getContainer();
-    const result = await container.useCases.getUserAttempts.execute(
-      {
-        quizSlug: data.quizSlug,
-        userId: data.userId,
-      },
-      container.baseUrl
-    );
+    const result = await container.useCases.getUserAttempts.execute({
+      quizSlug: data.quizSlug,
+      userId: data.userId,
+    });
     return result;
   });
 
@@ -128,14 +122,11 @@ export const getAttemptDetail = createServerFn({ method: "GET" })
   )
   .handler(async ({ data }) => {
     const container = getContainer();
-    const result = await container.useCases.getAttemptDetail.execute(
-      {
-        quizSlug: data.quizSlug,
-        attemptSlug: data.attemptSlug,
-        userId: data.userId,
-      },
-      container.baseUrl
-    );
+    const result = await container.useCases.getAttemptDetail.execute({
+      quizSlug: data.quizSlug,
+      attemptSlug: data.attemptSlug,
+      userId: data.userId,
+    });
     return result;
   });
 
@@ -186,9 +177,8 @@ export const getUserAttemptHistory = createServerFn({ method: "GET" })
   )
   .handler(async ({ data }) => {
     const container = getContainer();
-    const result = await container.useCases.getUserAttemptHistory.execute(
-      { userId: data.userId },
-      container.baseUrl
-    );
+    const result = await container.useCases.getUserAttemptHistory.execute({
+      userId: data.userId,
+    });
     return result;
   });

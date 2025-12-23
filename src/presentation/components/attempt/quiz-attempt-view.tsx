@@ -369,14 +369,14 @@ function SaveStatusIndicator({ status }: SaveStatusIndicatorProps) {
       )}
       {status === "saved" && (
         <>
-          <Cloud className="h-3.5 w-3.5 text-green-600" />
-          <span className="text-green-600">Saved</span>
+          <Cloud className="h-3.5 w-3.5 text-emerald-600" />
+          <span className="text-emerald-600">Saved</span>
         </>
       )}
       {status === "error" && (
         <>
-          <CloudOff className="h-3.5 w-3.5 text-destructive" />
-          <span className="text-destructive">Save failed</span>
+          <CloudOff className="h-3.5 w-3.5 text-rose-600" />
+          <span className="text-rose-600">Save failed</span>
         </>
       )}
     </div>

@@ -2,12 +2,12 @@ import { describe, expect, it } from "bun:test";
 import {
   Question,
   type CreateQuestionProps,
-} from "../../domain/entities/question.entity";
-import { QuestionType } from "../../domain/enums";
+} from "@/domain/entities/question.entity";
+import { QuestionType } from "@/domain/enums";
 import {
   QuestionOption,
   type QuestionOptionProps,
-} from "../../domain/value-objects";
+} from "@/domain/value-objects";
 
 describe("Question Entity", () => {
   // Helper to create valid option props
@@ -15,26 +15,26 @@ describe("Question Entity", () => {
     {
       index: "A",
       text: "Option A",
-      explanation: "Explanation A",
       isCorrect: true,
+      errorRationale: undefined,
     },
     {
       index: "B",
       text: "Option B",
-      explanation: "Explanation B",
       isCorrect: false,
+      errorRationale: "Rationale B",
     },
     {
       index: "C",
       text: "Option C",
-      explanation: "Explanation C",
       isCorrect: false,
+      errorRationale: "Rationale C",
     },
     {
       index: "D",
       text: "Option D",
-      explanation: "Explanation D",
       isCorrect: false,
+      errorRationale: "Rationale D",
     },
   ];
 
@@ -48,6 +48,9 @@ describe("Question Entity", () => {
     type: QuestionType.DIRECT_QUESTION,
     stem: "What is the correct answer?",
     options: createValidOptions(),
+    correctExplanation: "This is the correct explanation.",
+    sourceQuote: "Source quote from the material.",
+    reference: 0,
     ...overrides,
   });
 
@@ -129,8 +132,8 @@ describe("Question Entity", () => {
           {
             index: "A" as const,
             text: "Extra",
-            explanation: "",
             isCorrect: false,
+            errorRationale: "Extra rationale",
           },
         ];
         expect(() => Question.create(createValidProps({ options }))).toThrow(
@@ -140,10 +143,25 @@ describe("Question Entity", () => {
 
       it("should throw for duplicate option indices", () => {
         const options: QuestionOptionProps[] = [
-          { index: "A", text: "Option A", explanation: "", isCorrect: true },
-          { index: "A", text: "Option A2", explanation: "", isCorrect: false },
-          { index: "C", text: "Option C", explanation: "", isCorrect: false },
-          { index: "D", text: "Option D", explanation: "", isCorrect: false },
+          { index: "A", text: "Option A", isCorrect: true },
+          {
+            index: "A",
+            text: "Option A2",
+            isCorrect: false,
+            errorRationale: "Rationale",
+          },
+          {
+            index: "C",
+            text: "Option C",
+            isCorrect: false,
+            errorRationale: "Rationale",
+          },
+          {
+            index: "D",
+            text: "Option D",
+            isCorrect: false,
+            errorRationale: "Rationale",
+          },
         ];
         expect(() => Question.create(createValidProps({ options }))).toThrow(
           "Options must have indices A, B, C, and D"
@@ -152,10 +170,25 @@ describe("Question Entity", () => {
 
       it("should throw for missing option index", () => {
         const options: QuestionOptionProps[] = [
-          { index: "A", text: "Option A", explanation: "", isCorrect: true },
-          { index: "B", text: "Option B", explanation: "", isCorrect: false },
-          { index: "C", text: "Option C", explanation: "", isCorrect: false },
-          { index: "C", text: "Option C2", explanation: "", isCorrect: false },
+          { index: "A", text: "Option A", isCorrect: true },
+          {
+            index: "B",
+            text: "Option B",
+            isCorrect: false,
+            errorRationale: "Rationale",
+          },
+          {
+            index: "C",
+            text: "Option C",
+            isCorrect: false,
+            errorRationale: "Rationale",
+          },
+          {
+            index: "C",
+            text: "Option C2",
+            isCorrect: false,
+            errorRationale: "Rationale",
+          },
         ];
         expect(() => Question.create(createValidProps({ options }))).toThrow(
           "Options must have indices A, B, C, and D"
@@ -185,7 +218,7 @@ describe("Question Entity", () => {
       it("should throw for negative orderIndex", () => {
         expect(() =>
           Question.create(createValidProps({ orderIndex: -1 }))
-        ).toThrow("Order index must be a non-negative number");
+        ).toThrow("Order index must be a non-negative integer");
       });
     });
   });
@@ -203,11 +236,17 @@ describe("Question Entity", () => {
         type: QuestionType.TWO_STATEMENT_COMPOUND,
         stem: "Reconstituted question",
         options,
+        correctExplanation: "Correct explanation",
+        sourceQuote: "Source quote",
+        reference: 0,
       });
 
       expect(question.id).toBe("question-123");
       expect(question.type).toBe(QuestionType.TWO_STATEMENT_COMPOUND);
       expect(question.orderIndex).toBe(5);
+      expect(question.correctExplanation).toBe("Correct explanation");
+      expect(question.sourceQuote).toBe("Source quote");
+      expect(question.reference).toBe(0);
     });
   });
 
@@ -220,6 +259,9 @@ describe("Question Entity", () => {
         type: "direct_question",
         stem: "Plain question",
         options: createValidOptions(),
+        correctExplanation: "Correct explanation",
+        sourceQuote: "Source quote",
+        reference: 0,
       };
 
       const question = Question.fromPlain(plainData);
@@ -227,6 +269,9 @@ describe("Question Entity", () => {
       expect(question.id).toBe("question-123");
       expect(question.type).toBe(QuestionType.DIRECT_QUESTION);
       expect(question.orderIndex).toBe(2);
+      expect(question.correctExplanation).toBe("Correct explanation");
+      expect(question.sourceQuote).toBe("Source quote");
+      expect(question.reference).toBe(0);
     });
 
     it("should throw for invalid type string", () => {
@@ -237,6 +282,9 @@ describe("Question Entity", () => {
         type: "invalid_type",
         stem: "Plain question",
         options: createValidOptions(),
+        correctExplanation: "Correct explanation",
+        sourceQuote: "Source quote",
+        reference: 0,
       };
 
       expect(() => Question.fromPlain(plainData)).toThrow(
@@ -308,10 +356,25 @@ describe("Question Entity", () => {
     it("should return options in A, B, C, D order", () => {
       // Create options in random order
       const options: QuestionOptionProps[] = [
-        { index: "D", text: "Option D", explanation: "", isCorrect: false },
-        { index: "B", text: "Option B", explanation: "", isCorrect: false },
-        { index: "A", text: "Option A", explanation: "", isCorrect: true },
-        { index: "C", text: "Option C", explanation: "", isCorrect: false },
+        {
+          index: "D",
+          text: "Option D",
+          isCorrect: false,
+          errorRationale: "Rationale",
+        },
+        {
+          index: "B",
+          text: "Option B",
+          isCorrect: false,
+          errorRationale: "Rationale",
+        },
+        { index: "A", text: "Option A", isCorrect: true },
+        {
+          index: "C",
+          text: "Option C",
+          isCorrect: false,
+          errorRationale: "Rationale",
+        },
       ];
 
       const question = Question.create(createValidProps({ options }));
@@ -333,17 +396,17 @@ describe("Question Entity", () => {
     });
   });
 
-  describe("updatestem", () => {
+  describe("updateStem", () => {
     it("should update the stem", () => {
       const question = Question.create(createValidProps());
-      question.updatestem("Updated stem");
+      question.updateStem("Updated stem");
 
       expect(question.stem).toBe("Updated stem");
     });
 
     it("should trim the text", () => {
       const question = Question.create(createValidProps());
-      question.updatestem("  Trimmed text  ");
+      question.updateStem("  Trimmed text  ");
 
       expect(question.stem).toBe("Trimmed text");
     });
@@ -351,7 +414,7 @@ describe("Question Entity", () => {
     it("should throw for empty text", () => {
       const question = Question.create(createValidProps());
 
-      expect(() => question.updatestem("")).toThrow(
+      expect(() => question.updateStem("")).toThrow(
         "Stem is required and cannot be empty"
       );
     });
@@ -369,7 +432,7 @@ describe("Question Entity", () => {
       const question = Question.create(createValidProps());
 
       expect(() => question.updateOrderIndex(-1)).toThrow(
-        "Order index must be a non-negative number"
+        "Order index must be a non-negative integer"
       );
     });
   });
@@ -385,13 +448,16 @@ describe("Question Entity", () => {
       expect(plain.type).toBe(QuestionType.DIRECT_QUESTION);
       expect(plain.orderIndex).toBe(0);
       expect(plain.options).toHaveLength(4);
+      expect(plain.correctExplanation).toBe("This is the correct explanation.");
+      expect(plain.sourceQuote).toBe("Source quote from the material.");
+      expect(plain.reference).toBe(0);
 
       // Options should be plain objects
       expect(plain.options[0]).toEqual({
         index: "A",
         text: "Option A",
-        explanation: "Explanation A",
         isCorrect: true,
+        errorRationale: undefined,
       });
     });
   });

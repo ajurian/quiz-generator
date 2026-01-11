@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { paginationInputSchema } from "../../application/dtos/pagination.dto";
+import { paginationInputSchema } from "@/application/dtos/pagination.dto";
 
 describe("Pagination DTOs", () => {
   describe("paginationInputSchema", () => {

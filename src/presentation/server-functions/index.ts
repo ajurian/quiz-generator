@@ -7,7 +7,10 @@ export {
   createQuiz,
   shareQuiz,
   deleteQuiz,
+  getPresignedUploadUrls,
+  startQuizGeneration,
   type SerializableFile,
+  type FileInfo,
 } from "./quiz.server";
 
 export {

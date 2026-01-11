@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { QuizVisibility } from "@/domain";
-import { getContainer } from "@/infrastructure";
+import { getContainer } from "@/presentation/lib/composition";
 
 // GET Quiz by Slug (for taking/viewing)
 export const getQuizBySlug = createServerFn({ method: "GET" })

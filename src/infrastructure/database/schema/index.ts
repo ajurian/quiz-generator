@@ -3,6 +3,7 @@
 
 export {
   quizVisibilityEnum,
+  quizStatusEnum,
   quizzes,
   quizzesRelations,
   type InsertQuiz,
@@ -24,3 +25,10 @@ export {
   type InsertQuizAttempt,
   type SelectQuizAttempt,
 } from "./quiz-attempt.schema";
+
+export {
+  sourceMaterials,
+  sourceMaterialsRelations,
+  type InsertSourceMaterial,
+  type SelectSourceMaterial,
+} from "./source-material.schema";

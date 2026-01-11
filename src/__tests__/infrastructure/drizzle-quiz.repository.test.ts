@@ -1,6 +1,11 @@
 import { describe, expect, it, beforeEach, mock, spyOn } from "bun:test";
 import { DrizzleQuizRepository } from "../../infrastructure/database/repositories/drizzle-quiz.repository";
-import { Quiz, QuizDistributionService, QuizVisibility } from "../../domain";
+import {
+  Quiz,
+  QuizDistributionService,
+  QuizVisibility,
+  QuizStatus,
+} from "@/domain";
 import type { DrizzleDatabase } from "../../infrastructure/database/connection";
 
 describe("DrizzleQuizRepository", () => {
@@ -43,6 +48,8 @@ describe("DrizzleQuizRepository", () => {
     visibility: quiz.visibility,
     createdAt: quiz.createdAt,
     updatedAt: quiz.updatedAt,
+    status: quiz.status,
+    errorMessage: quiz.errorMessage,
   });
 
   beforeEach(() => {

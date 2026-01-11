@@ -10,12 +10,18 @@ import {
 import { relations } from "drizzle-orm";
 import { questions } from "./question.schema";
 import { users } from "../../auth/auth.schema";
-import { QuizVisibility } from "@/domain";
+import { QuizVisibility, QuizStatus } from "@/domain";
 
 export const quizVisibilityEnum = pgEnum("quiz_visibility", [
   QuizVisibility.PRIVATE,
   QuizVisibility.UNLISTED,
   QuizVisibility.PUBLIC,
+]);
+
+export const quizStatusEnum = pgEnum("quiz_status", [
+  QuizStatus.GENERATING,
+  QuizStatus.READY,
+  QuizStatus.FAILED,
 ]);
 
 /**
@@ -57,6 +63,12 @@ export const quizzes = pgTable("quizzes", {
 
   /** Timestamp when the quiz was last updated */
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+
+  /** Quiz generation status: generating, ready, or failed */
+  status: quizStatusEnum("status").default(QuizStatus.GENERATING).notNull(),
+
+  /** Error message if quiz generation failed */
+  errorMessage: text("error_message"),
 });
 
 /**

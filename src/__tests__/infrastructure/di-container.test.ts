@@ -3,7 +3,6 @@ import {
   createAppContainer,
   getContainer,
   resetContainer,
-  type AppContainer,
 } from "../../infrastructure/di/container";
 import {
   DrizzleQuizRepository,
@@ -21,11 +20,49 @@ import {
   GetQuizByIdUseCase,
   ShareQuizUseCase,
   DeleteQuizUseCase,
-} from "../../application";
+} from "@/application";
+import {
+  resetRuntimeConfig,
+  type RuntimeConfig,
+} from "../../infrastructure/config";
 
 describe("DI Container", () => {
   // Store original env vars
   const originalEnv = { ...process.env };
+
+  // Default test container config (using RuntimeConfig shape)
+  const testRuntimeConfig: RuntimeConfig = {
+    baseUrl: "http://localhost:3000",
+    database: {
+      url: "postgres://test:test@localhost:5432/test",
+    },
+    redis: {
+      url: "https://test.upstash.io",
+      token: "test-token",
+    },
+    googleAi: {
+      apiKey: "test-api-key",
+    },
+    s3: {
+      endpoint: "https://test.r2.cloudflarestorage.com",
+      accessKeyId: "test-access-key-id",
+      secretAccessKey: "test-secret-access-key",
+      bucketName: "test-bucket",
+    },
+    oauth: {
+      google: {
+        clientId: "test-google-client-id",
+        clientSecret: "test-google-client-secret",
+      },
+      microsoft: {
+        clientId: "test-microsoft-client-id",
+        clientSecret: "test-microsoft-client-secret",
+      },
+    },
+    auth: {
+      secret: "test-secret",
+    },
+  };
 
   beforeEach(() => {
     // Set required env vars for testing
@@ -34,7 +71,17 @@ describe("DI Container", () => {
     process.env.UPSTASH_REDIS_REST_URL = "https://test.upstash.io";
     process.env.UPSTASH_REDIS_REST_TOKEN = "test-token";
     process.env.BETTER_AUTH_SECRET = "test-secret";
+    process.env.S3_ENDPOINT = "https://test.r2.cloudflarestorage.com";
+    process.env.S3_ACCESS_KEY_ID = "test-access-key-id";
+    process.env.S3_SECRET_ACCESS_KEY = "test-secret-access-key";
+    process.env.S3_BUCKET_NAME = "test-bucket";
+    process.env.VITE_APP_URL = "http://localhost:3000";
+    process.env.GOOGLE_CLIENT_ID = "test-google-client-id";
+    process.env.GOOGLE_CLIENT_SECRET = "test-google-client-secret";
+    process.env.MICROSOFT_CLIENT_ID = "test-microsoft-client-id";
+    process.env.MICROSOFT_CLIENT_SECRET = "test-microsoft-client-secret";
 
+    resetRuntimeConfig();
     resetContainer();
   });
 
@@ -46,18 +93,13 @@ describe("DI Container", () => {
       }
     });
     Object.assign(process.env, originalEnv);
+    resetRuntimeConfig();
     resetContainer();
   });
 
   describe("createAppContainer", () => {
     it("should create a container with all dependencies", () => {
-      const container = createAppContainer({
-        baseUrl: "http://localhost:3000",
-        databaseUrl: "postgres://test:test@localhost:5432/test",
-        googleAiApiKey: "test-api-key",
-        redisUrl: "https://test.upstash.io",
-        redisToken: "test-token",
-      });
+      const container = createAppContainer(testRuntimeConfig);
 
       expect(container).toBeDefined();
       expect(container.baseUrl).toBeDefined();
@@ -69,13 +111,7 @@ describe("DI Container", () => {
     });
 
     it("should create repository instances", () => {
-      const container = createAppContainer({
-        baseUrl: "http://localhost:3000",
-        databaseUrl: "postgres://test:test@localhost:5432/test",
-        googleAiApiKey: "test-api-key",
-        redisUrl: "https://test.upstash.io",
-        redisToken: "test-token",
-      });
+      const container = createAppContainer(testRuntimeConfig);
 
       expect(container.repositories.quizRepository).toBeInstanceOf(
         DrizzleQuizRepository
@@ -86,13 +122,7 @@ describe("DI Container", () => {
     });
 
     it("should create service instances", () => {
-      const container = createAppContainer({
-        baseUrl: "http://localhost:3000",
-        databaseUrl: "postgres://test:test@localhost:5432/test",
-        googleAiApiKey: "test-api-key",
-        redisUrl: "https://test.upstash.io",
-        redisToken: "test-token",
-      });
+      const container = createAppContainer(testRuntimeConfig);
 
       expect(container.services.aiGenerator).toBeInstanceOf(
         GeminiQuizGeneratorService
@@ -103,13 +133,7 @@ describe("DI Container", () => {
     });
 
     it("should create use case instances", () => {
-      const container = createAppContainer({
-        baseUrl: "http://localhost:3000",
-        databaseUrl: "postgres://test:test@localhost:5432/test",
-        googleAiApiKey: "test-api-key",
-        redisUrl: "https://test.upstash.io",
-        redisToken: "test-token",
-      });
+      const container = createAppContainer(testRuntimeConfig);
 
       expect(container.useCases.createQuiz).toBeInstanceOf(CreateQuizUseCase);
       expect(container.useCases.getUserQuizzes).toBeInstanceOf(
@@ -121,12 +145,18 @@ describe("DI Container", () => {
     });
 
     it("should use custom config when provided", () => {
-      const customConfig = {
-        baseUrl: "http://localhost:3000",
-        databaseUrl: "postgres://custom:custom@localhost:5432/custom",
-        googleAiApiKey: "custom-api-key",
-        redisUrl: "https://custom.upstash.io",
-        redisToken: "custom-token",
+      const customConfig: RuntimeConfig = {
+        ...testRuntimeConfig,
+        database: {
+          url: "postgres://custom:custom@localhost:5432/custom",
+        },
+        googleAi: {
+          apiKey: "custom-api-key",
+        },
+        redis: {
+          url: "https://custom.upstash.io",
+          token: "custom-token",
+        },
       };
 
       const container = createAppContainer(customConfig);
@@ -137,11 +167,22 @@ describe("DI Container", () => {
   });
 
   describe("getContainer", () => {
-    it("should return a singleton container instance", () => {
+    it("should return a singleton container instance by default", () => {
+      resetContainer();
       const container1 = getContainer();
       const container2 = getContainer();
 
+      // Same instance (singleton for serverless warm reuse)
       expect(container1).toBe(container2);
+    });
+
+    it("should return a new instance when forceNew is true", () => {
+      resetContainer();
+      const container1 = getContainer();
+      const container2 = getContainer(true);
+
+      // Different instances
+      expect(container1).not.toBe(container2);
     });
 
     it("should create container lazily on first call", () => {
@@ -167,13 +208,7 @@ describe("DI Container", () => {
 
   describe("dependency injection", () => {
     it("should inject correct dependencies into use cases", () => {
-      const container = createAppContainer({
-        baseUrl: "http://localhost:3000",
-        databaseUrl: "postgres://test:test@localhost:5432/test",
-        googleAiApiKey: "test-api-key",
-        redisUrl: "https://test.upstash.io",
-        redisToken: "test-token",
-      });
+      const container = createAppContainer(testRuntimeConfig);
 
       // CreateQuizUseCase should have all required dependencies
       const createQuiz = container.useCases.createQuiz;
@@ -184,13 +219,7 @@ describe("DI Container", () => {
     });
 
     it("should share repository instances across use cases", () => {
-      const container = createAppContainer({
-        baseUrl: "http://localhost:3000",
-        databaseUrl: "postgres://test:test@localhost:5432/test",
-        googleAiApiKey: "test-api-key",
-        redisUrl: "https://test.upstash.io",
-        redisToken: "test-token",
-      });
+      const container = createAppContainer(testRuntimeConfig);
 
       // All use cases that use quizRepository should share the same instance
       // This is verified by the fact that they're all created from the same container
@@ -200,13 +229,7 @@ describe("DI Container", () => {
 
   describe("container structure", () => {
     it("should have correct shape", () => {
-      const container = createAppContainer({
-        baseUrl: "http://localhost:3000",
-        databaseUrl: "postgres://test:test@localhost:5432/test",
-        googleAiApiKey: "test-api-key",
-        redisUrl: "https://test.upstash.io",
-        redisToken: "test-token",
-      });
+      const container = createAppContainer(testRuntimeConfig);
 
       // Verify container shape
       expect(container).toHaveProperty("db");

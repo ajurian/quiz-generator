@@ -5,16 +5,19 @@ import { Badge } from "@/presentation/components/ui/badge";
 import { QuizCard } from "@/presentation/components/dashboard/quiz-card";
 import { FileText, Sparkles } from "lucide-react";
 import type { QuizResponseDTO } from "@/application";
-import type { QuizVisibility } from "@/domain";
+import type { QuizGenerationEvent, QuizVisibility } from "@/domain";
 
 interface QuizListProps {
   quizzes: QuizResponseDTO[];
+  /** Map of quiz IDs to their real-time generation progress */
+  generatingQuizzes?: Map<string, QuizGenerationEvent>;
   onVisibilityChange: (quizId: string, visibility: QuizVisibility) => void;
   isPendingVisibility: boolean;
 }
 
 export function QuizList({
   quizzes,
+  generatingQuizzes,
   onVisibilityChange,
   isPendingVisibility,
 }: QuizListProps) {
@@ -40,14 +43,28 @@ export function QuizList({
         <EmptyQuizList />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {quizzes.map((quiz) => (
-            <QuizCard
-              key={quiz.id}
-              quiz={quiz}
-              onVisibilityChange={onVisibilityChange}
-              isPendingVisibility={isPendingVisibility}
-            />
-          ))}
+          {quizzes.map((quiz) => {
+            const progress = generatingQuizzes?.get(quiz.id);
+            // Only show progress for processing events
+            const isProcessing =
+              progress?.type === "quiz.generation.processing";
+            return (
+              <QuizCard
+                key={quiz.id}
+                quiz={quiz}
+                generatingProgress={
+                  isProcessing
+                    ? {
+                        questionsGenerated: progress.questionsGenerated ?? 0,
+                        totalQuestions: progress.totalQuestions ?? 0,
+                      }
+                    : undefined
+                }
+                onVisibilityChange={onVisibilityChange}
+                isPendingVisibility={isPendingVisibility}
+              />
+            );
+          })}
         </div>
       )}
     </div>

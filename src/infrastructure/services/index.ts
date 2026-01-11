@@ -6,5 +6,11 @@ export {
   QuotaExceededError,
 } from "./gemini-quiz-generator.service";
 export { FileStorageService } from "./file-storage.service";
+export {
+  S3StorageService,
+  type S3StorageServiceConfig,
+} from "./s3-storage.service";
 export { RedisCacheService } from "./redis-cache.service";
 export { UuidIdGenerator } from "./uuid-id-generator.service";
+export { RedisQuizGenerationEventPublisher } from "./redis-event-publisher.service";
+export { RedisQuizGenerationEventSubscriber } from "./redis-event-subscriber.service";

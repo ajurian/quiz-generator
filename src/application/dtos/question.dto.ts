@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { QuestionType } from "../../domain";
+import { QuestionType } from "@/domain";
 
 /**
  * Schema for question option
@@ -7,8 +7,8 @@ import { QuestionType } from "../../domain";
 export const questionOptionSchema = z.object({
   index: z.enum(["A", "B", "C", "D"]),
   text: z.string().min(1),
-  explanation: z.string(),
   isCorrect: z.boolean(),
+  errorRationale: z.string().optional(),
 });
 
 /**
@@ -21,6 +21,11 @@ export const questionResponseSchema = z.object({
   type: z.enum(QuestionType),
   stem: z.string(),
   options: z.array(questionOptionSchema).length(4),
+  correctExplanation: z.string(),
+  sourceQuote: z.string(),
+  reference: z.number().int().min(0),
+  /** Title of the source material this question references */
+  sourceTitle: z.string().optional(),
 });
 
 /**
@@ -30,20 +35,28 @@ export type QuestionResponseDTO = z.infer<typeof questionResponseSchema>;
 
 /**
  * Helper function to transform Question entity to QuestionResponseDTO
+ * @param question - The question entity or plain object
+ * @param sourceTitle - Optional title of the source material (resolved from reference index)
  */
-export function toQuestionResponseDTO(question: {
-  id: string;
-  quizId: string;
-  orderIndex: number;
-  type: QuestionType;
-  stem: string;
-  options: readonly {
-    index: string;
-    text: string;
-    explanation: string;
-    isCorrect: boolean;
-  }[];
-}): QuestionResponseDTO {
+export function toQuestionResponseDTO(
+  question: {
+    id: string;
+    quizId: string;
+    orderIndex: number;
+    type: QuestionType;
+    stem: string;
+    options: readonly {
+      index: string;
+      text: string;
+      isCorrect: boolean;
+      errorRationale?: string;
+    }[];
+    correctExplanation: string;
+    sourceQuote: string;
+    reference: number;
+  },
+  sourceTitle?: string
+): QuestionResponseDTO {
   return {
     id: question.id,
     quizId: question.quizId,
@@ -53,8 +66,12 @@ export function toQuestionResponseDTO(question: {
     options: question.options.map((opt) => ({
       index: opt.index as "A" | "B" | "C" | "D",
       text: opt.text,
-      explanation: opt.explanation,
       isCorrect: opt.isCorrect,
+      errorRationale: opt.errorRationale,
     })),
+    correctExplanation: question.correctExplanation,
+    sourceQuote: question.sourceQuote,
+    reference: question.reference,
+    sourceTitle,
   };
 }

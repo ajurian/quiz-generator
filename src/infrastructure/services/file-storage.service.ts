@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import type { IFileStorageService, FileMetadata } from "../../application";
+import type { IFileStorageService, FileMetadata } from "@/application";
 
 /**
  * File Storage Service using Google Gemini Files API

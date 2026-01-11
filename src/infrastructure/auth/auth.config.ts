@@ -4,8 +4,6 @@ import { DrizzleDatabase } from "../database";
 import { authSchema } from "./auth.schema";
 import { Redis } from "@upstash/redis";
 import { IIdGenerator } from "@/application";
-import { UuidIdGenerator } from "../services";
-import { getDatabase } from "../database/connection";
 
 /**
  * Better Auth Configuration Options
@@ -106,49 +104,29 @@ export function createAuth(options: AuthConfigOptions) {
 export type Auth = ReturnType<typeof createAuth>;
 
 /**
- * Default auth instance (can be overridden in tests)
+ * Auth instance for testing purposes
+ * In production, auth is obtained from the container (getContainer().auth)
  */
-let authInstance: Auth | null = null;
-
-/**
- * Gets or creates the singleton auth instance
- */
-export function getAuth(options?: AuthConfigOptions): Auth {
-  if (!authInstance) {
-    authInstance = createAuth({
-      idGenerator: options?.idGenerator ?? new UuidIdGenerator(),
-      secret: options?.secret ?? process.env.BETTER_AUTH_SECRET!,
-      baseURL: options?.baseURL ?? process.env.VITE_APP_URL!,
-      db: options?.db ?? getDatabase(),
-      redis:
-        options?.redis ??
-        new Redis({
-          url: process.env.UPSTASH_REDIS_REST_URL!,
-          token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-        }),
-      googleClient: options?.googleClient ?? {
-        id: process.env.GOOGLE_CLIENT_ID!,
-        secret: process.env.GOOGLE_CLIENT_SECRET!,
-      },
-      microsoftClient: options?.microsoftClient ?? {
-        id: process.env.MICROSOFT_CLIENT_ID!,
-        secret: process.env.MICROSOFT_CLIENT_SECRET!,
-      },
-    });
-  }
-  return authInstance;
-}
+let testAuthInstance: Auth | null = null;
 
 /**
  * Sets a custom auth instance (useful for testing)
  */
 export function setAuth(auth: Auth): void {
-  authInstance = auth;
+  testAuthInstance = auth;
+}
+
+/**
+ * Gets the test auth instance if set
+ * @internal For testing only - use getContainer().auth in production
+ */
+export function getTestAuth(): Auth | null {
+  return testAuthInstance;
 }
 
 /**
  * Resets the auth instance (useful for testing)
  */
 export function resetAuth(): void {
-  authInstance = null;
+  testAuthInstance = null;
 }

@@ -1,4 +1,5 @@
 import { QuestionType } from "../enums";
+import { InvariantViolationError } from "../errors";
 import {
   QuestionOption,
   type QuestionOptionProps,
@@ -15,6 +16,9 @@ export interface QuestionProps {
   type: QuestionType;
   stem: string;
   options: QuestionOption[];
+  correctExplanation: string;
+  sourceQuote: string;
+  reference: number;
 }
 
 /**
@@ -27,6 +31,9 @@ export interface CreateQuestionProps {
   type: QuestionType;
   stem: string;
   options: QuestionOptionProps[];
+  correctExplanation: string;
+  sourceQuote: string;
+  reference: number;
 }
 
 /**
@@ -42,6 +49,9 @@ export class Question {
   private _type: QuestionType;
   private _stem: string;
   private _options: QuestionOption[];
+  private _correctExplanation: string;
+  private _sourceQuote: string;
+  private _reference: number;
 
   private constructor(props: QuestionProps) {
     this._id = props.id;
@@ -50,11 +60,14 @@ export class Question {
     this._type = props.type;
     this._stem = props.stem;
     this._options = props.options;
+    this._correctExplanation = props.correctExplanation;
+    this._sourceQuote = props.sourceQuote;
+    this._reference = props.reference;
   }
 
   /**
    * Creates a new Question entity
-   * @throws {Error} if validation fails
+   * @throws {InvariantViolationError} if validation fails
    */
   public static create(props: CreateQuestionProps): Question {
     Question.validateCreateProps(props);
@@ -68,12 +81,15 @@ export class Question {
       type: props.type,
       stem: props.stem,
       options,
+      correctExplanation: props.correctExplanation,
+      sourceQuote: props.sourceQuote,
+      reference: props.reference,
     });
   }
 
   /**
    * Reconstitutes a Question entity from persisted data
-   * @throws {Error} if validation fails
+   * @throws {InvariantViolationError} if validation fails
    */
   public static reconstitute(props: QuestionProps): Question {
     Question.validateProps(props);
@@ -82,6 +98,7 @@ export class Question {
 
   /**
    * Reconstitutes a Question from plain data (e.g., from database)
+   * @throws {InvariantViolationError} if validation fails
    */
   public static fromPlain(data: {
     id: string;
@@ -90,9 +107,15 @@ export class Question {
     type: string;
     stem: string;
     options: unknown[];
+    correctExplanation: string;
+    sourceQuote: string;
+    reference: number;
   }): Question {
     if (!Object.values(QuestionType).includes(data.type as QuestionType)) {
-      throw new Error(`Invalid question type: ${data.type}`);
+      throw new InvariantViolationError(
+        `Invalid question type: ${data.type}`,
+        "type"
+      );
     }
 
     const options = data.options.map((opt) => QuestionOption.fromPlain(opt));
@@ -104,6 +127,9 @@ export class Question {
       type: data.type as QuestionType,
       stem: data.stem,
       options,
+      correctExplanation: data.correctExplanation,
+      sourceQuote: data.sourceQuote,
+      reference: data.reference,
     });
   }
 
@@ -112,11 +138,11 @@ export class Question {
    */
   private static validateCreateProps(props: CreateQuestionProps): void {
     if (!props.id || typeof props.id !== "string") {
-      throw new Error("Question ID is required");
+      throw new InvariantViolationError("Question ID is required", "id");
     }
 
     if (!props.quizId || typeof props.quizId !== "string") {
-      throw new Error("Quiz ID is required");
+      throw new InvariantViolationError("Quiz ID is required", "quizId");
     }
 
     if (
@@ -124,63 +150,178 @@ export class Question {
       typeof props.stem !== "string" ||
       props.stem.trim().length === 0
     ) {
-      throw new Error("Stem is required and cannot be empty");
+      throw new InvariantViolationError(
+        "Stem is required and cannot be empty",
+        "stem"
+      );
     }
 
     if (!Object.values(QuestionType).includes(props.type)) {
-      throw new Error(`Invalid question type: ${props.type}`);
+      throw new InvariantViolationError(
+        `Invalid question type: ${props.type}`,
+        "type"
+      );
     }
 
     if (!Array.isArray(props.options) || props.options.length !== 4) {
-      throw new Error("Exactly 4 options are required");
+      throw new InvariantViolationError(
+        "Exactly 4 options are required",
+        "options"
+      );
     }
 
-    // Validate options have correct indices
+    // Validate options have correct indices (A, B, C, D each exactly once)
     const indices = props.options.map((opt) => opt.index);
     const hasAllIndices = VALID_OPTION_INDICES.every((idx) =>
       indices.includes(idx)
     );
     if (!hasAllIndices) {
-      throw new Error("Options must have indices A, B, C, and D");
+      throw new InvariantViolationError(
+        "Options must have indices A, B, C, and D",
+        "options"
+      );
     }
 
     // Validate exactly one correct answer
     const correctCount = props.options.filter((opt) => opt.isCorrect).length;
     if (correctCount !== 1) {
-      throw new Error("Exactly one option must be marked as correct");
+      throw new InvariantViolationError(
+        "Exactly one option must be marked as correct",
+        "options"
+      );
     }
 
-    if (typeof props.orderIndex !== "number" || props.orderIndex < 0) {
-      throw new Error("Order index must be a non-negative number");
+    if (
+      typeof props.orderIndex !== "number" ||
+      props.orderIndex < 0 ||
+      !Number.isInteger(props.orderIndex)
+    ) {
+      throw new InvariantViolationError(
+        "Order index must be a non-negative integer",
+        "orderIndex"
+      );
+    }
+
+    if (typeof props.correctExplanation !== "string") {
+      throw new InvariantViolationError(
+        "Correct explanation must be a string",
+        "correctExplanation"
+      );
+    }
+
+    if (typeof props.sourceQuote !== "string") {
+      throw new InvariantViolationError(
+        "Source quote must be a string",
+        "sourceQuote"
+      );
+    }
+
+    if (
+      typeof props.reference !== "number" ||
+      !Number.isInteger(props.reference) ||
+      props.reference < 0
+    ) {
+      throw new InvariantViolationError(
+        "Reference must be a non-negative integer",
+        "reference"
+      );
     }
   }
 
   /**
-   * Validates properties for reconstituting a Question
+   * Validates properties for reconstituting a Question.
+   * Enforces the same invariants as creation to prevent invalid persisted state.
    */
   private static validateProps(props: QuestionProps): void {
     if (!props.id || typeof props.id !== "string") {
-      throw new Error("Question ID is required");
+      throw new InvariantViolationError("Question ID is required", "id");
     }
 
     if (!props.quizId || typeof props.quizId !== "string") {
-      throw new Error("Quiz ID is required");
+      throw new InvariantViolationError("Quiz ID is required", "quizId");
     }
 
-    if (!props.stem || typeof props.stem !== "string") {
-      throw new Error("Stem is required");
+    if (
+      !props.stem ||
+      typeof props.stem !== "string" ||
+      props.stem.trim().length === 0
+    ) {
+      throw new InvariantViolationError(
+        "Stem is required and cannot be empty",
+        "stem"
+      );
     }
 
     if (!Object.values(QuestionType).includes(props.type)) {
-      throw new Error(`Invalid question type: ${props.type}`);
+      throw new InvariantViolationError(
+        `Invalid question type: ${props.type}`,
+        "type"
+      );
     }
 
     if (!Array.isArray(props.options) || props.options.length !== 4) {
-      throw new Error("Exactly 4 options are required");
+      throw new InvariantViolationError(
+        "Exactly 4 options are required",
+        "options"
+      );
     }
 
-    if (typeof props.orderIndex !== "number") {
-      throw new Error("Order index must be a number");
+    // Validate options have correct indices (A, B, C, D each exactly once)
+    const indices = props.options.map((opt) => opt.index);
+    const uniqueIndices = new Set(indices);
+    const hasAllIndices = VALID_OPTION_INDICES.every((idx) =>
+      uniqueIndices.has(idx)
+    );
+    if (uniqueIndices.size !== 4 || !hasAllIndices) {
+      throw new InvariantViolationError(
+        "Options must have indices A, B, C, and D exactly once",
+        "options"
+      );
+    }
+
+    // Validate exactly one correct answer
+    const correctCount = props.options.filter((opt) => opt.isCorrect).length;
+    if (correctCount !== 1) {
+      throw new InvariantViolationError(
+        "Exactly one option must be marked as correct",
+        "options"
+      );
+    }
+
+    if (
+      typeof props.orderIndex !== "number" ||
+      props.orderIndex < 0 ||
+      !Number.isInteger(props.orderIndex)
+    ) {
+      throw new InvariantViolationError(
+        "Order index must be a non-negative integer",
+        "orderIndex"
+      );
+    }
+
+    if (typeof props.correctExplanation !== "string") {
+      throw new InvariantViolationError(
+        "Correct explanation must be a string",
+        "correctExplanation"
+      );
+    }
+
+    if (typeof props.sourceQuote !== "string") {
+      throw new InvariantViolationError(
+        "Source quote must be a string",
+        "sourceQuote"
+      );
+    }
+
+    if (
+      typeof props.reference !== "number" ||
+      !Number.isInteger(props.reference) ||
+      props.reference < 0
+    ) {
+      throw new InvariantViolationError(
+        "Reference must be a non-negative integer",
+        "reference"
+      );
     }
   }
 
@@ -207,6 +348,18 @@ export class Question {
 
   get orderIndex(): number {
     return this._orderIndex;
+  }
+
+  get correctExplanation(): string {
+    return this._correctExplanation;
+  }
+
+  get sourceQuote(): string {
+    return this._sourceQuote;
+  }
+
+  get reference(): number {
+    return this._reference;
   }
 
   // Business Methods
@@ -247,9 +400,12 @@ export class Question {
   /**
    * Updates the stem
    */
-  public updatestem(text: string): void {
+  public updateStem(text: string): void {
     if (!text || typeof text !== "string" || text.trim().length === 0) {
-      throw new Error("Stem is required and cannot be empty");
+      throw new InvariantViolationError(
+        "Stem is required and cannot be empty",
+        "stem"
+      );
     }
     this._stem = text.trim();
   }
@@ -258,8 +414,11 @@ export class Question {
    * Updates the order index
    */
   public updateOrderIndex(index: number): void {
-    if (typeof index !== "number" || index < 0) {
-      throw new Error("Order index must be a non-negative number");
+    if (typeof index !== "number" || index < 0 || !Number.isInteger(index)) {
+      throw new InvariantViolationError(
+        "Order index must be a non-negative integer",
+        "orderIndex"
+      );
     }
     this._orderIndex = index;
   }
@@ -274,6 +433,9 @@ export class Question {
     type: QuestionType;
     stem: string;
     options: QuestionOptionProps[];
+    correctExplanation: string;
+    sourceQuote: string;
+    reference: number;
   } {
     return {
       id: this._id,
@@ -282,6 +444,9 @@ export class Question {
       type: this._type,
       stem: this._stem,
       options: this._options.map((opt) => opt.toPlain()),
+      correctExplanation: this._correctExplanation,
+      sourceQuote: this._sourceQuote,
+      reference: this._reference,
     };
   }
 }

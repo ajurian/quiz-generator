@@ -13,29 +13,28 @@ import {
   type QuizFormData,
 } from "@/presentation/components/quiz/quiz-form";
 import {
-  createQuiz,
-  type SerializableFile,
+  getPresignedUploadUrls,
+  startQuizGeneration,
 } from "@/presentation/server-functions";
 import { quizKeys } from "@/presentation/queries";
+import { slugify } from "@/lib/utils";
+import { getUserFriendlyMessage } from "@/presentation/lib";
 
 /**
- * Converts a File to a serializable format for RPC transport
+ * Uploads a file to S3 using a presigned URL
  */
-async function fileToSerializable(file: File): Promise<SerializableFile> {
-  const buffer = await file.arrayBuffer();
-  const bytes = new Uint8Array(buffer);
-  let binary = "";
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]!);
-  }
-  const base64 = btoa(binary);
+async function uploadToS3(file: File, presignedUrl: string): Promise<void> {
+  const response = await fetch(presignedUrl, {
+    method: "PUT",
+    body: file,
+    headers: {
+      "Content-Type": file.type,
+    },
+  });
 
-  return {
-    name: file.name,
-    type: file.type,
-    size: file.size,
-    base64,
-  };
+  if (!response.ok) {
+    throw new Error(`Failed to upload ${file.name}: ${response.statusText}`);
+  }
 }
 
 export const Route = createFileRoute("/quiz/new")({
@@ -55,29 +54,64 @@ function NewQuizPage() {
 
   const createMutation = useMutation({
     mutationFn: async (formData: QuizFormData) => {
-      // Convert files to serializable format
-      const serializableFiles = await Promise.all(
-        formData.files.map(fileToSerializable)
+      // Show immediate feedback to user
+      toast.success("Starting quiz generation...", {
+        description: "Uploading your files. Please wait.",
+      });
+
+      // Generate slug from title for R2 key path
+      const quizSlug = slugify(formData.title);
+
+      // 1. Get presigned upload URLs
+      const presignedUrls = await getPresignedUploadUrls({
+        data: {
+          userId: user.id,
+          quizSlug,
+          files: formData.files.map((file) => ({
+            filename: file.name,
+            mimeType: file.type,
+            sizeBytes: file.size,
+          })),
+        },
+      });
+
+      // 2. Upload files to R2 in parallel
+      await Promise.all(
+        formData.files.map((file, index) =>
+          uploadToS3(file, presignedUrls[index]!.presignedUrl)
+        )
       );
 
-      return createQuiz({
+      // 3. Start quiz generation
+      const result = await startQuizGeneration({
         data: {
           userId: user.id,
           title: formData.title,
           distribution: formData.distribution,
-          files: serializableFiles,
+          visibility: formData.visibility,
+          files: presignedUrls.map((url, index) => ({
+            filename: formData.files[index]!.name,
+            key: url.key,
+            mimeType: formData.files[index]!.type,
+            sizeBytes: formData.files[index]!.size,
+          })),
         },
       });
+
+      return result;
     },
-    onSuccess: (quiz) => {
-      toast.success("Quiz created successfully!");
+    onSuccess: () => {
+      toast.success("Quiz generation started!", {
+        description:
+          "AI is generating your questions. Check your dashboard for progress.",
+        duration: 5000,
+      });
       queryClient.invalidateQueries({ queryKey: quizKeys.list(user.id) });
-      navigate({ to: "/quiz/m/$slug", params: { slug: quiz.slug } });
+      // Redirect to dashboard after quiz is created
+      navigate({ to: "/dashboard" });
     },
     onError: (error) => {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to create quiz"
-      );
+      toast.error(getUserFriendlyMessage(error, "quiz"));
     },
   });
 

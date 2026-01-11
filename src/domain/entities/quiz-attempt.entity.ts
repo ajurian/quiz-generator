@@ -1,4 +1,5 @@
 import { AttemptStatus } from "../enums/attempt-status.enum";
+import { InvariantViolationError, InvalidOperationError } from "../errors";
 import { uuidToSlug } from "../value-objects/slug.vo";
 
 /**
@@ -102,61 +103,80 @@ export class QuizAttempt {
    */
   private static validateCreateProps(props: CreateQuizAttemptProps): void {
     if (!props.id || typeof props.id !== "string") {
-      throw new Error("Attempt ID is required");
+      throw new InvariantViolationError("Attempt ID is required", "id");
     }
 
     if (!props.quizId || typeof props.quizId !== "string") {
-      throw new Error("Quiz ID is required");
+      throw new InvariantViolationError("Quiz ID is required", "quizId");
     }
 
     if (props.userId !== null && typeof props.userId !== "string") {
-      throw new Error("User ID must be a string or null");
+      throw new InvariantViolationError(
+        "User ID must be a string or null",
+        "userId"
+      );
     }
   }
 
   /**
-   * Validates properties for reconstituting a QuizAttempt
+   * Validates properties for reconstituting a QuizAttempt.
+   * Enforces full invariants including answers structure validation.
    */
   private static validateProps(props: QuizAttemptProps): void {
     if (!props.id || typeof props.id !== "string") {
-      throw new Error("Attempt ID is required");
+      throw new InvariantViolationError("Attempt ID is required", "id");
     }
 
     if (!props.slug || typeof props.slug !== "string") {
-      throw new Error("Attempt slug is required");
+      throw new InvariantViolationError("Attempt slug is required", "slug");
     }
 
     if (!props.quizId || typeof props.quizId !== "string") {
-      throw new Error("Quiz ID is required");
+      throw new InvariantViolationError("Quiz ID is required", "quizId");
     }
 
     if (props.userId !== null && typeof props.userId !== "string") {
-      throw new Error("User ID must be a string or null");
+      throw new InvariantViolationError(
+        "User ID must be a string or null",
+        "userId"
+      );
     }
 
     if (!Object.values(AttemptStatus).includes(props.status)) {
-      throw new Error("status must be a valid AttemptStatus value");
+      throw new InvariantViolationError(
+        "status must be a valid AttemptStatus value",
+        "status"
+      );
     }
 
     if (
       props.score !== null &&
       (typeof props.score !== "number" || props.score < 0)
     ) {
-      throw new Error("Score must be a non-negative number or null");
+      throw new InvariantViolationError(
+        "Score must be a non-negative number or null",
+        "score"
+      );
     }
 
     if (
       props.durationMs !== null &&
       (typeof props.durationMs !== "number" || props.durationMs < 0)
     ) {
-      throw new Error("Duration must be a non-negative number or null");
+      throw new InvariantViolationError(
+        "Duration must be a non-negative number or null",
+        "durationMs"
+      );
     }
 
     if (
       !(props.startedAt instanceof Date) ||
       isNaN(props.startedAt.getTime())
     ) {
-      throw new Error("Valid startedAt date is required");
+      throw new InvariantViolationError(
+        "Valid startedAt date is required",
+        "startedAt"
+      );
     }
 
     if (
@@ -164,7 +184,10 @@ export class QuizAttempt {
       (!(props.submittedAt instanceof Date) ||
         isNaN(props.submittedAt.getTime()))
     ) {
-      throw new Error("submittedAt must be a valid date or null");
+      throw new InvariantViolationError(
+        "submittedAt must be a valid date or null",
+        "submittedAt"
+      );
     }
 
     if (
@@ -172,7 +195,17 @@ export class QuizAttempt {
       typeof props.answers !== "object" ||
       Array.isArray(props.answers)
     ) {
-      throw new Error("Answers must be an object");
+      throw new InvariantViolationError("Answers must be an object", "answers");
+    }
+
+    // Validate answers structure: all values must be strings (option indices)
+    for (const [questionId, optionIndex] of Object.entries(props.answers)) {
+      if (typeof questionId !== "string" || typeof optionIndex !== "string") {
+        throw new InvariantViolationError(
+          "Answers must be a Record<string, string> (questionId -> optionIndex)",
+          "answers"
+        );
+      }
     }
   }
 
@@ -253,15 +286,18 @@ export class QuizAttempt {
 
   /**
    * Submits the attempt with a score and answers
-   * @throws {Error} if already submitted
+   * @throws {InvalidOperationError} if already submitted
    */
   public submit(score: number, answers: Record<string, string>): void {
     if (this._status === AttemptStatus.SUBMITTED) {
-      throw new Error("Attempt has already been submitted");
+      throw new InvalidOperationError("Attempt has already been submitted");
     }
 
     if (typeof score !== "number" || score < 0) {
-      throw new Error("Score must be a non-negative number");
+      throw new InvariantViolationError(
+        "Score must be a non-negative number",
+        "score"
+      );
     }
 
     const now = new Date();
@@ -274,22 +310,26 @@ export class QuizAttempt {
 
   /**
    * Updates the answers for an in-progress attempt
-   * @throws {Error} if already submitted
+   * @throws {InvalidOperationError} if already submitted
    */
   public updateAnswers(answers: Record<string, string>): void {
     if (this._status === AttemptStatus.SUBMITTED) {
-      throw new Error("Cannot update answers on submitted attempt");
+      throw new InvalidOperationError(
+        "Cannot update answers on submitted attempt"
+      );
     }
     this._answers = { ...answers };
   }
 
   /**
    * Updates a single answer for autosave functionality
-   * @throws {Error} if already submitted
+   * @throws {InvalidOperationError} if already submitted
    */
   public updateAnswer(questionId: string, optionIndex: string): void {
     if (this._status === AttemptStatus.SUBMITTED) {
-      throw new Error("Cannot update answers on submitted attempt");
+      throw new InvalidOperationError(
+        "Cannot update answers on submitted attempt"
+      );
     }
     this._answers = { ...this._answers, [questionId]: optionIndex };
   }
@@ -297,12 +337,14 @@ export class QuizAttempt {
   /**
    * Resets all answers for 'Start Over' functionality
    * Keeps the same attempt but clears all answers
-   * @throws {Error} if already submitted
+   * @throws {InvalidOperationError} if already submitted
    * @deprecated Use reset() instead which also resets the timer
    */
   public resetAnswers(): void {
     if (this._status === AttemptStatus.SUBMITTED) {
-      throw new Error("Cannot reset answers on submitted attempt");
+      throw new InvalidOperationError(
+        "Cannot reset answers on submitted attempt"
+      );
     }
     this._answers = {};
   }
@@ -311,11 +353,11 @@ export class QuizAttempt {
    * Fully resets the attempt for 'Start Over' functionality
    * Keeps the same attempt ID but clears all answers and resets the timer.
    * This is equivalent to creating a new attempt but reusing the same ID.
-   * @throws {Error} if already submitted
+   * @throws {InvalidOperationError} if already submitted
    */
   public reset(): void {
     if (this._status === AttemptStatus.SUBMITTED) {
-      throw new Error("Cannot reset a submitted attempt");
+      throw new InvalidOperationError("Cannot reset a submitted attempt");
     }
     this._answers = {};
     this._startedAt = new Date();

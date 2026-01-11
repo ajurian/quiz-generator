@@ -7,16 +7,31 @@ export type {
   IQuizRepository,
   IQuestionRepository,
   IAttemptRepository,
+  ISourceMaterialRepository,
   PaginationParams,
   PaginatedResult,
   // Service Interfaces
   IAIQuizGenerator,
   GenerateQuizParams,
+  StreamGenerateQuizParams,
+  StreamingProgressCallback,
   GeneratedQuestionData,
   FileMetadata,
   IFileStorageService,
+  IS3StorageService,
+  FileUploadRequest,
+  PresignedUploadUrl,
   ICacheService,
   IIdGenerator,
+  IQuizGenerationEventPublisher,
+  IQuizGenerationEventSubscriber,
+  // Generic Pub/Sub Interfaces
+  IEventPublisher,
+  IEventSubscriber,
+  IPubSub,
+  EventHandler,
+  Unsubscribe,
+  ChannelEvent,
 } from "./ports";
 
 // DTOs
@@ -57,7 +72,7 @@ export {
   type AttemptSummaryDTO,
 } from "./dtos";
 
-// Use Cases
+// Use Cases (via feature modules)
 export {
   CreateQuizUseCase,
   type CreateQuizUseCaseInput,
@@ -110,6 +125,14 @@ export {
   type GetUserAttemptHistoryOutput,
   type AttemptHistoryItemDTO,
   type GetUserAttemptHistoryUseCaseDeps,
+  GetPresignedUploadUrlsUseCase,
+  getPresignedUploadUrlsInputSchema,
+  type GetPresignedUploadUrlsInput,
+  type GetPresignedUploadUrlsOutput,
+  type GetPresignedUploadUrlsUseCaseDeps,
+  // Policy (generation logic moved to Upstash Workflow)
+  QuizGenerationPolicy,
+  type ModelFallbackResult,
 } from "./use-cases";
 
 // Errors
@@ -122,3 +145,11 @@ export {
   QuotaExceededError,
   ExternalServiceError,
 } from "./errors";
+
+// Types
+export {
+  AIModel,
+  isAIModel,
+  getAIModelDisplayName,
+  DEFAULT_AI_MODEL,
+} from "./types";

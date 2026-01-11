@@ -3,7 +3,7 @@ import {
   GeminiModel,
   isGeminiModel,
   getGeminiModelDisplayName,
-} from "../../domain/enums/gemini-model.enum";
+} from "@/domain/enums/gemini-model.enum";
 
 describe("GeminiModel Enum", () => {
   describe("enum values", () => {

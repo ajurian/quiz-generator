@@ -1,4 +1,4 @@
-import type { QuizAttempt } from "../../../domain";
+import type { QuizAttempt } from "@/domain";
 import type {
   PaginationParams,
   PaginatedResult,

@@ -32,12 +32,12 @@ const DEFAULT_ACCEPTED_TYPES = [
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ];
 
-const DEFAULT_MAX_SIZE = 10 * 1024 * 1024; // 10MB
+const DEFAULT_MAX_SIZE = 4 * 1024 * 1024; // 4MB
 
 export function FileUploader({
   files,
   onFilesChange,
-  maxFiles = 12,
+  maxFiles = 20,
   maxSize = DEFAULT_MAX_SIZE,
   acceptedTypes = DEFAULT_ACCEPTED_TYPES,
   disabled = false,

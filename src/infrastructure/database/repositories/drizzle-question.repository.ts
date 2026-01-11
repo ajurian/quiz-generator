@@ -1,6 +1,6 @@
 import { eq, asc } from "drizzle-orm";
-import type { IQuestionRepository } from "../../../application";
-import { Question } from "../../../domain";
+import type { IQuestionRepository } from "@/application";
+import { Question } from "@/domain";
 import type { DrizzleDatabase } from "../connection";
 import { questions } from "../schema";
 
@@ -29,6 +29,9 @@ export class DrizzleQuestionRepository implements IQuestionRepository {
       type: q.type,
       stem: q.stem,
       options: q.options.map((opt) => opt.toPlain()),
+      correctExplanation: q.correctExplanation,
+      sourceQuote: q.sourceQuote,
+      reference: q.reference,
     }));
 
     const inserted = await this.db.insert(questions).values(values).returning();
@@ -69,6 +72,9 @@ export class DrizzleQuestionRepository implements IQuestionRepository {
       type: row.type,
       stem: row.stem,
       options: row.options,
+      correctExplanation: row.correctExplanation,
+      sourceQuote: row.sourceQuote,
+      reference: row.reference,
     });
   }
 }

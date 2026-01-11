@@ -3,22 +3,26 @@ import {
   DeleteQuizUseCase,
   type DeleteQuizUseCaseDeps,
   type DeleteQuizInput,
-} from "../../application/use-cases/delete-quiz.use-case";
-import { Quiz, Question, QuestionType, QuizVisibility } from "../../domain";
+} from "@/application/features/quiz/delete-quiz.use-case";
+import { Quiz, Question, QuestionType, QuizVisibility } from "@/domain";
 import type {
   IQuizRepository,
   IQuestionRepository,
-} from "../../application/ports";
+  ISourceMaterialRepository,
+  IS3StorageService,
+} from "@/application/ports";
 import {
   NotFoundError,
   ForbiddenError,
   ValidationError,
-} from "../../application/errors";
+} from "@/application/errors";
 
 describe("DeleteQuizUseCase", () => {
   let useCase: DeleteQuizUseCase;
   let mockQuizRepository: IQuizRepository;
   let mockQuestionRepository: IQuestionRepository;
+  let mockSourceMaterialRepository: ISourceMaterialRepository;
+  let mockS3Storage: IS3StorageService;
 
   const QUIZ_ID = "019b2194-72a0-7000-a712-5e5bc5c313c1";
   const OWNER_ID = "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10";
@@ -76,9 +80,27 @@ describe("DeleteQuizUseCase", () => {
       deleteByQuizId: mock(async () => {}),
     };
 
+    mockSourceMaterialRepository = {
+      createBulk: mock(async (materials) => materials),
+      findByQuizId: mock(async () => []),
+      deleteByQuizId: mock(async () => {}),
+    };
+
+    mockS3Storage = {
+      generatePresignedPutUrls: mock(async () => []),
+      generatePresignedGetUrl: mock(async () => ""),
+      getObject: mock(async () => ({
+        content: new Uint8Array(),
+        contentType: "application/octet-stream",
+      })),
+      deleteObjects: mock(async () => {}),
+    };
+
     useCase = new DeleteQuizUseCase({
       quizRepository: mockQuizRepository,
       questionRepository: mockQuestionRepository,
+      sourceMaterialRepository: mockSourceMaterialRepository,
+      s3Storage: mockS3Storage,
     });
   });
 

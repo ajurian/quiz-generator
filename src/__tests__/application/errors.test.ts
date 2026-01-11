@@ -7,7 +7,7 @@ import {
   ValidationError,
   QuotaExceededError,
   ExternalServiceError,
-} from "../../application/errors";
+} from "@/application/errors";
 
 describe("Application Errors", () => {
   describe("NotFoundError", () => {

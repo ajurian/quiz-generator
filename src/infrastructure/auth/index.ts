@@ -3,8 +3,8 @@
 
 export {
   createAuth,
-  getAuth,
   setAuth,
+  getTestAuth,
   resetAuth,
   type Auth,
   type AuthConfigOptions,

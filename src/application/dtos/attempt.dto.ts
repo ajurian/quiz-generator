@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { AttemptStatus } from "../../domain";
+import { AttemptStatus } from "@/domain";
 
 /**
  * Validation schema for attempt status

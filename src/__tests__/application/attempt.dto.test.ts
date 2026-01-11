@@ -9,8 +9,8 @@ import {
   getAttemptBySlugInputSchema,
   createAttemptSummary,
   type AttemptResponseDTO,
-} from "../../application/dtos/attempt.dto";
-import { AttemptStatus } from "../../domain";
+} from "@/application/dtos/attempt.dto";
+import { AttemptStatus } from "@/domain";
 
 describe("Attempt DTOs", () => {
   const VALID_UUID = "019b2194-72a0-7000-a712-5e5bc5c313c1";

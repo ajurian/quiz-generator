@@ -1,3 +1,5 @@
+import { InvalidValueError } from "../errors";
+
 /**
  * Valid option indices for quiz questions
  */
@@ -29,8 +31,8 @@ export function isValidOptionIndex(value: unknown): value is OptionIndex {
 export interface QuestionOptionProps {
   index: OptionIndex;
   text: string;
-  explanation: string;
   isCorrect: boolean;
+  errorRationale?: string;
 }
 
 /**
@@ -42,14 +44,14 @@ export interface QuestionOptionProps {
 export class QuestionOption {
   private readonly _index: OptionIndex;
   private readonly _text: string;
-  private readonly _explanation: string;
   private readonly _isCorrect: boolean;
+  private readonly _errorRationale?: string;
 
   private constructor(props: QuestionOptionProps) {
     this._index = props.index;
     this._text = props.text;
-    this._explanation = props.explanation;
     this._isCorrect = props.isCorrect;
+    this._errorRationale = props.errorRationale;
   }
 
   /**
@@ -63,11 +65,11 @@ export class QuestionOption {
 
   /**
    * Creates a QuestionOption from a plain object (e.g., from JSON)
-   * @throws {Error} if validation fails
+   * @throws {InvalidValueError} if validation fails
    */
   public static fromPlain(obj: unknown): QuestionOption {
     if (!QuestionOption.isPlainQuestionOption(obj)) {
-      throw new Error("Invalid QuestionOption structure");
+      throw new InvalidValueError("QuestionOption", "Invalid structure");
     }
     return QuestionOption.create(obj);
   }
@@ -85,34 +87,46 @@ export class QuestionOption {
     return (
       isValidOptionIndex(option.index) &&
       typeof option.text === "string" &&
-      typeof option.explanation === "string" &&
-      typeof option.isCorrect === "boolean"
+      typeof option.isCorrect === "boolean" &&
+      (typeof option.errorRationale === "string" ||
+        option.errorRationale === undefined)
     );
   }
 
   /**
    * Validates QuestionOption properties
-   * @throws {Error} if validation fails
+   * @throws {InvalidValueError} if validation fails
    */
   private static validate(props: QuestionOptionProps): void {
     if (!isValidOptionIndex(props.index)) {
-      throw new Error(
-        `Invalid option index: ${
-          props.index
-        }. Must be one of: ${VALID_OPTION_INDICES.join(", ")}`
+      throw new InvalidValueError(
+        "QuestionOption",
+        `Invalid option index: ${props.index}. Must be one of: ${VALID_OPTION_INDICES.join(", ")}`
       );
     }
 
     if (typeof props.text !== "string" || props.text.trim().length === 0) {
-      throw new Error("Option text is required and cannot be empty");
-    }
-
-    if (typeof props.explanation !== "string") {
-      throw new Error("Option explanation must be a string");
+      throw new InvalidValueError(
+        "QuestionOption",
+        "Option text is required and cannot be empty"
+      );
     }
 
     if (typeof props.isCorrect !== "boolean") {
-      throw new Error("Option isCorrect must be a boolean");
+      throw new InvalidValueError(
+        "QuestionOption",
+        "Option isCorrect must be a boolean"
+      );
+    }
+
+    if (
+      props.errorRationale !== undefined &&
+      typeof props.errorRationale !== "string"
+    ) {
+      throw new InvalidValueError(
+        "QuestionOption",
+        "Option errorRationale must be a string if provided"
+      );
     }
   }
 
@@ -125,12 +139,12 @@ export class QuestionOption {
     return this._text;
   }
 
-  get explanation(): string {
-    return this._explanation;
-  }
-
   get isCorrect(): boolean {
     return this._isCorrect;
+  }
+
+  get errorRationale(): string | undefined {
+    return this._errorRationale;
   }
 
   /**
@@ -140,8 +154,8 @@ export class QuestionOption {
     return (
       this._index === other._index &&
       this._text === other._text &&
-      this._explanation === other._explanation &&
-      this._isCorrect === other._isCorrect
+      this._isCorrect === other._isCorrect &&
+      this._errorRationale === other._errorRationale
     );
   }
 
@@ -152,8 +166,8 @@ export class QuestionOption {
     return QuestionOption.create({
       index: props.index ?? this._index,
       text: props.text ?? this._text,
-      explanation: props.explanation ?? this._explanation,
       isCorrect: props.isCorrect ?? this._isCorrect,
+      errorRationale: props.errorRationale ?? this._errorRationale,
     });
   }
 
@@ -164,8 +178,8 @@ export class QuestionOption {
     return {
       index: this._index,
       text: this._text,
-      explanation: this._explanation,
       isCorrect: this._isCorrect,
+      errorRationale: this._errorRationale,
     };
   }
 }

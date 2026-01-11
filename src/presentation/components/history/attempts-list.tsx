@@ -30,7 +30,7 @@ export function AttemptsList({ quizSlug, attempts }: AttemptsListProps) {
             state={{ restart: true }}
           >
             <Play className="h-4 w-4 mr-2" />
-            Try Again
+            {attempts.length === 0 ? "Take" : "Try Again"}
           </Link>
         </Button>
       </div>

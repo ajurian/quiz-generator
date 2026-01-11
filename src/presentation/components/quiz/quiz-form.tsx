@@ -15,13 +15,14 @@ import {
   type UploadedFile,
 } from "@/presentation/components/shared/file-uploader";
 import { Sparkles, Loader2 } from "lucide-react";
-import { QuizDistribution } from "@/domain";
+import { QuizDistribution, QuizVisibility } from "@/domain";
 
 export interface QuizFormData {
   title: string;
   files: File[];
   totalQuestions: number;
   distribution: QuizDistribution;
+  visibility: QuizVisibility;
 }
 
 interface QuizFormProps {
@@ -53,6 +54,9 @@ export function QuizForm({
       twoStatementCompound: 5,
       contextual: 5,
     }
+  );
+  const [visibility, setVisibility] = React.useState<QuizVisibility>(
+    initialData?.visibility || QuizVisibility.PRIVATE
   );
 
   // Auto-balance distribution when total changes
@@ -112,6 +116,7 @@ export function QuizForm({
       files: files.map((f) => f.file),
       totalQuestions,
       distribution,
+      visibility,
     });
   };
 
@@ -151,7 +156,7 @@ export function QuizForm({
           files={files}
           onFilesChange={setFiles}
           disabled={isSubmitting}
-          maxFiles={12}
+          maxFiles={20}
         />
       </div>
 

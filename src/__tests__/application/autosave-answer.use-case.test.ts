@@ -3,14 +3,14 @@ import {
   AutosaveAnswerUseCase,
   type AutosaveAnswerUseCaseDeps,
   type AutosaveAnswerInput,
-} from "../../application/use-cases/autosave-answer.use-case";
-import { QuizAttempt, AttemptStatus } from "../../domain";
-import type { IAttemptRepository } from "../../application/ports";
+} from "@/application/features/attempt/autosave-answer.use-case";
+import { QuizAttempt, AttemptStatus } from "@/domain";
+import type { IAttemptRepository } from "@/application/ports";
 import {
   NotFoundError,
   ForbiddenError,
   ValidationError,
-} from "../../application/errors";
+} from "@/application/errors";
 
 describe("AutosaveAnswerUseCase", () => {
   let useCase: AutosaveAnswerUseCase;

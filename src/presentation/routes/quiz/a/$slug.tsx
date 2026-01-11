@@ -18,6 +18,8 @@ import {
   QuizAttemptView,
   ResumeAttemptDialog,
 } from "@/presentation/components/attempt";
+import PdfViewer from "@/presentation/components/attempt/pdf-viewer";
+import { getUserFriendlyMessage } from "@/presentation/lib";
 
 export const Route = createFileRoute("/quiz/a/$slug")({
   loader: async ({ params, context }) => {
@@ -61,9 +63,6 @@ function AttemptQuizPage() {
   const [showResumeDialog, setShowResumeDialog] = React.useState(
     isInProgressAttempt && hasAnswers && !resume
   );
-  const [currentAnswers, setCurrentAnswers] = React.useState(
-    attemptResult.attempt.answers
-  );
 
   const forceStartMutation = useMutation({
     mutationFn: async () => {
@@ -90,7 +89,7 @@ function AttemptQuizPage() {
     },
     onError: (error) => {
       toast.error("Failed to start attempt", {
-        description: error instanceof Error ? error.message : "Unknown error",
+        description: getUserFriendlyMessage(error, "attempt"),
       });
     },
   });
@@ -107,11 +106,10 @@ function AttemptQuizPage() {
     onSuccess: async () => {
       toast.success("Starting fresh!");
       setShowResumeDialog(false);
-      setCurrentAnswers({});
     },
     onError: (error) => {
       toast.error("Failed to reset attempt", {
-        description: error instanceof Error ? error.message : "Unknown error",
+        description: getUserFriendlyMessage(error, "attempt"),
       });
     },
   });
@@ -123,6 +121,10 @@ function AttemptQuizPage() {
   const handleStartOver = () => {
     resetAttemptMutation.mutate();
   };
+
+  React.useEffect(() => {
+    setShowResumeDialog(isInProgressAttempt && hasAnswers && !resume);
+  }, [isInProgressAttempt, hasAnswers, resume]);
 
   // New attempt - show the quiz immediately
   if (attemptResult.isNewAttempt) {
@@ -156,7 +158,7 @@ function AttemptQuizPage() {
         onContinue={handleContinue}
         onStartOver={handleStartOver}
         isResetting={resetAttemptMutation.isPending}
-        answeredCount={Object.keys(currentAnswers).length}
+        answeredCount={Object.keys(attemptResult.attempt.answers).length}
         totalQuestions={quizDetails.questions.length}
       />
       <QuizAttemptView
@@ -164,7 +166,7 @@ function AttemptQuizPage() {
         questions={quizDetails.questions}
         attemptId={attemptResult.attempt.id}
         userId={session?.user?.id ?? null}
-        initialAnswers={currentAnswers}
+        initialAnswers={attemptResult.attempt.answers}
       />
     </>
   );

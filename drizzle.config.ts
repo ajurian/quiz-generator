@@ -13,7 +13,7 @@ export default defineConfig({
     "./src/infrastructure/database/schema/index.ts",
     "./src/infrastructure/auth/auth.schema.ts",
   ],
-  out: "./drizzle",
+  out: process.env.MIGRATIONS_PATH!,
   dialect: "postgresql",
   dbCredentials: {
     url: process.env.DATABASE_URL!,

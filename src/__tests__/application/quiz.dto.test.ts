@@ -3,8 +3,8 @@ import {
   createQuizInputSchema,
   quizDistributionSchema,
   toQuizResponseDTO,
-} from "../../application/dtos/quiz.dto";
-import { Quiz, QuizVisibility } from "../../domain";
+} from "@/application/dtos/quiz.dto";
+import { Quiz, QuizVisibility } from "@/domain";
 
 describe("Quiz DTOs", () => {
   describe("quizDistributionSchema", () => {

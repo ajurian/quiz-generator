@@ -9,3 +9,8 @@ export {
   type QuizAttemptProps,
   type CreateQuizAttemptProps,
 } from "./quiz-attempt.entity";
+export {
+  SourceMaterial,
+  type SourceMaterialProps,
+  type CreateSourceMaterialProps,
+} from "./source-material.entity";

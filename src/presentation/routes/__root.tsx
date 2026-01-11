@@ -1,21 +1,21 @@
 /// <reference types="vite/client" />
-import React from "react";
-import {
-  Outlet,
-  createRootRouteWithContext,
-  HeadContent,
-  Scripts,
-} from "@tanstack/react-router";
-import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import type { QueryClient } from "@tanstack/react-query";
-import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/presentation/components/ui/sonner";
-import globalsCss from "@/presentation/styles/globals.css?url";
 import {
   getServerSession,
   type ServerSession,
 } from "@/presentation/server-functions";
+import globalsCss from "@/presentation/styles/globals.css?url";
+import type { QueryClient } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import {
+  createRootRouteWithContext,
+  HeadContent,
+  Outlet,
+  Scripts,
+} from "@tanstack/react-router";
+import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { ThemeProvider } from "next-themes";
+import React from "react";
 
 interface RouterContext {
   queryClient: QueryClient;
@@ -47,6 +47,9 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     ],
     links: [
       { rel: "stylesheet", href: globalsCss },
+      // { rel: "stylesheet", href: pdfViewerCss },
+      // { rel: "stylesheet", href: pdfAnnotationLayerCss },
+      // { rel: "stylesheet", href: pdfTextLayerCss },
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       {

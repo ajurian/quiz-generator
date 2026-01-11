@@ -1,39 +1,53 @@
 import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
+import { drizzle as drizzleNeon } from "drizzle-orm/neon-http";
+// import { drizzle as drizzlePostgres } from "drizzle-orm/postgres-js";
+// import postgres from "postgres";
 import * as schema from "./schema";
 
 /**
  * Type for the Drizzle database instance
  */
 export type DrizzleDatabase = ReturnType<
-  typeof drizzle<typeof schema, ReturnType<typeof neon<false, false>>>
+  typeof drizzleNeon<typeof schema, ReturnType<typeof neon<false, false>>>
 >;
 
 /**
- * Creates a new database connection with optional custom URL
- * Useful for testing or connecting to different databases
+ * Creates a new database connection
+ * - Development: Uses postgres-js (TCP) for local Docker database
+ * - Production: Uses Neon HTTP driver (stateless)
  */
 export function createDatabaseConnection(databaseUrl: string): DrizzleDatabase {
   if (!databaseUrl) {
     throw new Error("DATABASE_URL environment variable is required");
   }
-  const client = neon(databaseUrl);
-  return drizzle({ client, schema });
+
+  // // Use postgres-js for local development (Docker PostgreSQL)
+  // if (
+  //   process.env.NODE_ENV === "development" ||
+  //   databaseUrl.includes("localhost") ||
+  //   databaseUrl.includes("127.0.0.1")
+  // ) {
+  //   return drizzlePostgres({
+  //     client: postgres(databaseUrl, {
+  //       max: 1, // Single connection per request context
+  //       idle_timeout: 0, // Close immediately after use
+  //       connect_timeout: 10,
+  //     }),
+  //     schema,
+  //   });
+  // }
+
+  // Use Neon HTTP driver for production (stateless)
+  return drizzleNeon({
+    client: neon(databaseUrl),
+    schema,
+  });
 }
 
 /**
- * Default database instance
- */
-let databaseInstance: DrizzleDatabase | null = null;
-
-/**
- * Gets or creates the singleton database instance
+ * Gets a database connection
+ * Creates a fresh connection each time to avoid Workers I/O context issues
  */
 export function getDatabase(databaseUrl?: string): DrizzleDatabase {
-  if (!databaseInstance) {
-    databaseInstance = createDatabaseConnection(
-      databaseUrl ?? process.env.DATABASE_URL!
-    );
-  }
-  return databaseInstance;
+  return createDatabaseConnection(databaseUrl ?? process.env.DATABASE_URL!);
 }

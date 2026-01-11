@@ -6,10 +6,12 @@ import { Cloud, CloudOff, Loader2, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { autosaveAnswer, submitAttempt } from "@/presentation/server-functions";
 import { attemptKeys } from "@/presentation/queries";
+import { getUserFriendlyMessage } from "@/presentation/lib";
 import {
   QuestionCard,
   type Question,
 } from "@/presentation/components/quiz/question-card";
+import PdfViewer from "./pdf-viewer";
 
 interface Quiz {
   id: string;
@@ -234,11 +236,25 @@ export function QuizAttemptView({
       });
     } catch (error) {
       toast.error("Failed to submit quiz", {
-        description: error instanceof Error ? error.message : "Unknown error",
+        description: getUserFriendlyMessage(error, "attempt"),
       });
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const [pdfUrl, setPdfUrl] = React.useState<string | null>(null);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // 1. Create a temporary URL pointing to the file in memory
+    const objectUrl = URL.createObjectURL(file);
+    setPdfUrl(objectUrl);
+
+    // Note: If you upload a new file, you should strictly revoke the old one
+    // to avoid memory leaks (see "Cleanup" below)
   };
 
   // Reset state when questions or initialAnswers actually change (content-based comparison)
@@ -308,6 +324,13 @@ export function QuizAttemptView({
           />
         )}
       </div>
+      {/* <input type="file" accept="application/pdf" onChange={handleFileChange} />
+      {pdfUrl && (
+        <PdfViewer
+          fileURL={pdfUrl}
+          searchQuery="import java.util.Collections;\\ni"
+        />
+      )} */}
     </div>
   );
 }

@@ -2,14 +2,14 @@ import { describe, expect, it, beforeEach, mock } from "bun:test";
 import {
   SubmitAttemptUseCase,
   type SubmitAttemptUseCaseDeps,
-} from "../../application/use-cases/submit-attempt.use-case";
-import { QuizAttempt, AttemptStatus } from "../../domain";
-import type { IAttemptRepository } from "../../application/ports";
+} from "@/application/features/attempt/submit-attempt.use-case";
+import { QuizAttempt, AttemptStatus } from "@/domain";
+import type { IAttemptRepository } from "@/application/ports";
 import {
   NotFoundError,
   ForbiddenError,
   ValidationError,
-} from "../../application/errors";
+} from "@/application/errors";
 import { SubmitAttemptInput } from "@/application";
 
 describe("SubmitAttemptUseCase", () => {

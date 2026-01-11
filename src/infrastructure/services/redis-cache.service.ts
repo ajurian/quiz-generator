@@ -1,5 +1,5 @@
 import { Redis } from "@upstash/redis";
-import type { ICacheService } from "../../application";
+import type { ICacheService } from "@/application";
 
 /**
  * Redis Cache Service using Upstash Redis

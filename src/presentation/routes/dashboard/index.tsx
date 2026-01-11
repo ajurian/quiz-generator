@@ -20,6 +20,11 @@ import {
 import { updateQuizVisibility } from "@/presentation/server-functions";
 import { QuizVisibility } from "@/domain";
 import { toast } from "sonner";
+import { useQuizEvents } from "@/presentation/hooks";
+import {
+  getGenerationFailureMessage,
+  getUserFriendlyMessage,
+} from "@/presentation/lib";
 
 export const Route = createFileRoute("/dashboard/")({
   loader: async ({ context }) => {
@@ -50,6 +55,27 @@ function DashboardIndex() {
   const quizzes = response.data;
   const stats = calculateDashboardStats(quizzes);
 
+  // Subscribe to real-time quiz generation events
+  const { generatingQuizzes } = useQuizEvents({
+    userId: user.id,
+    onCompleted: (event) => {
+      toast.success(`Quiz "${event.quizSlug}" is ready!`, {
+        description: "You can now take the quiz.",
+        action: {
+          label: "View",
+          onClick: () => {
+            window.location.href = `/quiz/m/${event.quizSlug}`;
+          },
+        },
+      });
+    },
+    onFailed: (event) => {
+      toast.error("Quiz generation failed", {
+        description: getGenerationFailureMessage(event.errorMessage),
+      });
+    },
+  });
+
   const visibilityMutation = useMutation({
     mutationFn: async ({
       quizId,
@@ -68,7 +94,7 @@ function DashboardIndex() {
     },
     onError: (error) => {
       toast.error("Failed to update visibility", {
-        description: error instanceof Error ? error.message : "Unknown error",
+        description: getUserFriendlyMessage(error, "visibility"),
       });
     },
   });
@@ -86,6 +112,7 @@ function DashboardIndex() {
       <DashboardStatsGrid stats={stats} />
       <QuizList
         quizzes={quizzes}
+        generatingQuizzes={generatingQuizzes}
         onVisibilityChange={handleVisibilityChange}
         isPendingVisibility={visibilityMutation.isPending}
       />

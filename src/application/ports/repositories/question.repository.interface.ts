@@ -1,4 +1,4 @@
-import type { Question } from "../../../domain";
+import type { Question } from "@/domain";
 
 /**
  * Repository interface for Question entity persistence

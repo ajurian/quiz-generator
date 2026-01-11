@@ -3,15 +3,19 @@ import {
   DrizzleQuizRepository,
   DrizzleQuestionRepository,
   DrizzleAttemptRepository,
+  DrizzleSourceMaterialRepository,
   type DrizzleDatabase,
 } from "../database";
 import {
   GeminiQuizGeneratorService,
   FileStorageService,
+  S3StorageService,
   RedisCacheService,
   UuidIdGenerator,
+  RedisQuizGenerationEventPublisher,
+  RedisQuizGenerationEventSubscriber,
 } from "../services";
-import { getAuth, type Auth } from "../auth";
+import { createAuth, type Auth } from "../auth";
 import {
   CreateQuizUseCase,
   GetUserQuizzesUseCase,
@@ -27,33 +31,23 @@ import {
   AutosaveAnswerUseCase,
   ResetAttemptUseCase,
   GetUserAttemptHistoryUseCase,
-} from "../../application";
+  GetPresignedUploadUrlsUseCase,
+} from "@/application";
 import type {
   IQuizRepository,
   IQuestionRepository,
   IAttemptRepository,
+  ISourceMaterialRepository,
   IAIQuizGenerator,
   IFileStorageService,
+  IS3StorageService,
   ICacheService,
   IIdGenerator,
-} from "../../application";
+  IQuizGenerationEventPublisher,
+  IQuizGenerationEventSubscriber,
+} from "@/application";
 import { getDatabase } from "../database/connection";
-
-/**
- * Application Container Configuration
- */
-export interface ContainerConfig {
-  /** Base URL */
-  baseUrl: string;
-  /** Database URL */
-  databaseUrl: string;
-  /** Google AI API key */
-  googleAiApiKey: string;
-  /** Upstash Redis URL */
-  redisUrl: string;
-  /** Upstash Redis token */
-  redisToken: string;
-}
+import { getRuntimeConfig, type RuntimeConfig } from "../config";
 
 /**
  * Repositories available in the container
@@ -62,6 +56,7 @@ export interface Repositories {
   quizRepository: IQuizRepository;
   questionRepository: IQuestionRepository;
   attemptRepository: IAttemptRepository;
+  sourceMaterialRepository: ISourceMaterialRepository;
 }
 
 /**
@@ -70,8 +65,11 @@ export interface Repositories {
 export interface Services {
   aiGenerator: IAIQuizGenerator;
   fileStorage: IFileStorageService;
+  s3Storage: IS3StorageService;
   cache: ICacheService;
   idGenerator: IIdGenerator;
+  eventPublisher: IQuizGenerationEventPublisher;
+  eventSubscriber: IQuizGenerationEventSubscriber;
 }
 
 /**
@@ -92,6 +90,9 @@ export interface UseCases {
   autosaveAnswer: AutosaveAnswerUseCase;
   resetAttempt: ResetAttemptUseCase;
   getUserAttemptHistory: GetUserAttemptHistoryUseCase;
+  getPresignedUploadUrls: GetPresignedUploadUrlsUseCase;
+  // Note: Quiz generation use cases removed - now handled by Upstash Workflow
+  // See: src/presentation/routes/api/generate-quiz/index.ts
 }
 
 /**
@@ -124,48 +125,58 @@ export interface AppContainer {
  * Inner layers (Domain, Application) depend on abstractions (interfaces).
  * Outer layers (Infrastructure) provide concrete implementations.
  *
- * @param config Optional configuration overrides
+ * @param config Runtime configuration (loaded from environment)
  * @returns Fully configured application container
  */
-export function createAppContainer(config: ContainerConfig): AppContainer {
+export function createAppContainer(config: RuntimeConfig): AppContainer {
   // Infrastructure - Database
-  const database = getDatabase(config.databaseUrl);
+  const database = getDatabase(config.database.url);
 
   // Infrastructure - Redis
   const redis = new Redis({
-    url: config.redisUrl,
-    token: config.redisToken,
+    url: config.redis.url,
+    token: config.redis.token,
   });
 
   // Repositories (implementing ports)
   const quizRepository = new DrizzleQuizRepository(database);
   const questionRepository = new DrizzleQuestionRepository(database);
   const attemptRepository = new DrizzleAttemptRepository(database);
+  const sourceMaterialRepository = new DrizzleSourceMaterialRepository(
+    database
+  );
 
   // Services (implementing ports)
-  const aiGenerator = new GeminiQuizGeneratorService(config.googleAiApiKey);
-  const fileStorage = new FileStorageService(config.googleAiApiKey);
-  const cache = new RedisCacheService({
-    url: config.redisUrl,
-    token: config.redisToken,
-  });
+  const aiGenerator = new GeminiQuizGeneratorService(config.googleAi.apiKey);
+  const fileStorage = new FileStorageService(config.googleAi.apiKey);
   const idGenerator = new UuidIdGenerator();
+  const s3Storage = new S3StorageService(
+    {
+      endpoint: config.s3.endpoint,
+      accessKeyId: config.s3.accessKeyId,
+      secretAccessKey: config.s3.secretAccessKey,
+      bucketName: config.s3.bucketName,
+    },
+    idGenerator
+  );
+  const cache = new RedisCacheService({
+    url: config.redis.url,
+    token: config.redis.token,
+  });
 
-  // Infrastructure - Auth
-  const auth = getAuth({
+  // Event pub/sub for quiz generation events
+  const eventPublisher = new RedisQuizGenerationEventPublisher(redis);
+  const eventSubscriber = new RedisQuizGenerationEventSubscriber(redis);
+
+  // Infrastructure - Auth (receives all dependencies, no internal client creation)
+  const auth = createAuth({
     idGenerator,
-    secret: process.env.BETTER_AUTH_SECRET!,
+    secret: config.auth.secret,
     baseURL: config.baseUrl,
     db: database,
     redis,
-    googleClient: {
-      id: process.env.GOOGLE_CLIENT_ID!,
-      secret: process.env.GOOGLE_CLIENT_SECRET!,
-    },
-    microsoftClient: {
-      id: process.env.MICROSOFT_CLIENT_ID!,
-      secret: process.env.MICROSOFT_CLIENT_SECRET!,
-    },
+    googleClient: config.oauth.google,
+    microsoftClient: config.oauth.microsoft,
   });
 
   // Use Cases (Application layer - orchestrating domain logic)
@@ -182,6 +193,7 @@ export function createAppContainer(config: ContainerConfig): AppContainer {
   const getQuizById = new GetQuizByIdUseCase({
     quizRepository,
     questionRepository,
+    sourceMaterialRepository,
   });
 
   const shareQuiz = new ShareQuizUseCase({ quizRepository });
@@ -189,6 +201,8 @@ export function createAppContainer(config: ContainerConfig): AppContainer {
   const deleteQuiz = new DeleteQuizUseCase({
     quizRepository,
     questionRepository,
+    sourceMaterialRepository,
+    s3Storage,
   });
 
   const updateQuizVisibility = new UpdateQuizVisibilityUseCase({
@@ -220,6 +234,7 @@ export function createAppContainer(config: ContainerConfig): AppContainer {
     quizRepository,
     attemptRepository,
     questionRepository,
+    sourceMaterialRepository,
   });
 
   const autosaveAnswer = new AutosaveAnswerUseCase({
@@ -235,6 +250,13 @@ export function createAppContainer(config: ContainerConfig): AppContainer {
     attemptRepository,
   });
 
+  const getPresignedUploadUrls = new GetPresignedUploadUrlsUseCase({
+    s3Storage,
+  });
+
+  // Note: Quiz generation use cases removed - now handled by Upstash Workflow
+  // See: src/presentation/routes/api/generate-quiz/index.ts
+
   return {
     baseUrl: config.baseUrl,
     db: database,
@@ -244,12 +266,16 @@ export function createAppContainer(config: ContainerConfig): AppContainer {
       quizRepository,
       questionRepository,
       attemptRepository,
+      sourceMaterialRepository,
     },
     services: {
       aiGenerator,
       fileStorage,
+      s3Storage,
       cache,
       idGenerator,
+      eventPublisher,
+      eventSubscriber,
     },
     useCases: {
       createQuiz,
@@ -266,27 +292,35 @@ export function createAppContainer(config: ContainerConfig): AppContainer {
       autosaveAnswer,
       resetAttempt,
       getUserAttemptHistory,
+      getPresignedUploadUrls,
     },
   };
 }
 
 /**
  * Singleton container instance
+ *
+ * For Node serverless (Lambda/Vercel), the container is cached as a singleton
+ * across warm invocations. This is safe because:
+ * - Upstash Redis uses HTTP (stateless, no TCP connection pooling issues)
+ * - Neon uses HTTP driver in production (stateless)
+ * - Config is immutable after process start
+ *
+ * The singleton pattern reduces cold start overhead by reusing initialized
+ * clients across requests within the same Lambda/Vercel function instance.
  */
 let containerInstance: AppContainer | null = null;
 
 /**
- * Gets or creates the singleton container instance
+ * Gets or creates the container instance (singleton for serverless)
+ *
+ * @param forceNew Force create a new container (useful for testing or when you need isolation)
+ * @returns The application container
  */
-export function getContainer(): AppContainer {
-  if (!containerInstance) {
-    containerInstance = createAppContainer({
-      baseUrl: process.env.VITE_APP_URL!,
-      databaseUrl: process.env.DATABASE_URL!,
-      googleAiApiKey: process.env.GOOGLE_AI_API_KEY!,
-      redisUrl: process.env.UPSTASH_REDIS_REST_URL!,
-      redisToken: process.env.UPSTASH_REDIS_REST_TOKEN!,
-    });
+export function getContainer(forceNew = false): AppContainer {
+  if (forceNew || !containerInstance) {
+    const config = getRuntimeConfig();
+    containerInstance = createAppContainer(config);
   }
   return containerInstance;
 }

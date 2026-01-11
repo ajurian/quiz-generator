@@ -1,4 +1,4 @@
-import type { Quiz } from "../../../domain";
+import type { Quiz } from "@/domain";
 
 /**
  * Pagination parameters for list queries

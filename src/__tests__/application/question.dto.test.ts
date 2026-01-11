@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import { toQuestionResponseDTO } from "../../application/dtos/question.dto";
-import { Question, QuestionType } from "../../domain";
+import { toQuestionResponseDTO } from "@/application/dtos/question.dto";
+import { Question, QuestionType } from "@/domain";
 
 describe("Question DTOs", () => {
   describe("toQuestionResponseDTO", () => {
@@ -15,28 +15,30 @@ describe("Question DTOs", () => {
           {
             index: "A",
             text: "Paris",
-            explanation: "Paris is the capital of France",
             isCorrect: true,
           },
           {
             index: "B",
             text: "London",
-            explanation: "London is the capital of UK",
             isCorrect: false,
+            errorRationale: "London is the capital of UK",
           },
           {
             index: "C",
             text: "Berlin",
-            explanation: "Berlin is the capital of Germany",
             isCorrect: false,
+            errorRationale: "Berlin is the capital of Germany",
           },
           {
             index: "D",
             text: "Madrid",
-            explanation: "Madrid is the capital of Spain",
             isCorrect: false,
+            errorRationale: "Madrid is the capital of Spain",
           },
         ],
+        correctExplanation: "Paris is the capital of France",
+        sourceQuote: "Paris is the capital city of France.",
+        reference: 0,
       });
     };
 
@@ -59,8 +61,8 @@ describe("Question DTOs", () => {
       expect(dto.options[0]).toEqual({
         index: "A",
         text: "Paris",
-        explanation: "Paris is the capital of France",
         isCorrect: true,
+        errorRationale: undefined,
       });
     });
 
@@ -92,28 +94,30 @@ describe("Question DTOs", () => {
             {
               index: "A",
               text: "Option A",
-              explanation: "Explanation",
               isCorrect: true,
             },
             {
               index: "B",
               text: "Option B",
-              explanation: "Explanation",
               isCorrect: false,
+              errorRationale: "Rationale",
             },
             {
               index: "C",
               text: "Option C",
-              explanation: "Explanation",
               isCorrect: false,
+              errorRationale: "Rationale",
             },
             {
               index: "D",
               text: "Option D",
-              explanation: "Explanation",
               isCorrect: false,
+              errorRationale: "Rationale",
             },
           ],
+          correctExplanation: "Correct explanation",
+          sourceQuote: "Source quote",
+          reference: 0,
         });
 
         const dto = toQuestionResponseDTO(question);

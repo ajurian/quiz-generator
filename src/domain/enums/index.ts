@@ -22,3 +22,10 @@ export {
   isAttemptStatus,
   getAttemptStatusDisplayName,
 } from "./attempt-status.enum";
+
+export {
+  QuizStatus,
+  isQuizStatus,
+  getQuizStatusDisplayName,
+  getQuizStatusDescription,
+} from "./quiz-status.enum";

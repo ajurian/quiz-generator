@@ -3,8 +3,8 @@ import {
   QuizAttempt,
   type QuizAttemptProps,
   type CreateQuizAttemptProps,
-} from "../../domain/entities/quiz-attempt.entity";
-import { AttemptStatus } from "../../domain/enums/attempt-status.enum";
+} from "@/domain/entities/quiz-attempt.entity";
+import { AttemptStatus } from "@/domain/enums/attempt-status.enum";
 
 describe("QuizAttempt Entity", () => {
   // Valid UUIDs for testing

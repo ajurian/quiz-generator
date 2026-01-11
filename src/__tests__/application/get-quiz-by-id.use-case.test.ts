@@ -3,28 +3,30 @@ import {
   GetQuizByIdUseCase,
   type GetQuizByIdUseCaseDeps,
   type GetQuizByIdInput,
-} from "../../application/use-cases/get-quiz-by-id.use-case";
+} from "@/application/features/quiz/get-quiz-by-id.use-case";
 import {
   Quiz,
   Question,
   QuestionType,
   QuestionOption,
   QuizVisibility,
-} from "../../domain";
+} from "@/domain";
 import type {
   IQuizRepository,
   IQuestionRepository,
-} from "../../application/ports";
+  ISourceMaterialRepository,
+} from "@/application/ports";
 import {
   NotFoundError,
   ForbiddenError,
   ValidationError,
-} from "../../application/errors";
+} from "@/application/errors";
 
 describe("GetQuizByIdUseCase", () => {
   let useCase: GetQuizByIdUseCase;
   let mockQuizRepository: IQuizRepository;
   let mockQuestionRepository: IQuestionRepository;
+  let mockSourceMaterialRepository: ISourceMaterialRepository;
 
   const QUIZ_ID = "019b2194-72a0-7000-a712-5e5bc5c313c1";
   const OWNER_ID = "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10";
@@ -59,11 +61,29 @@ describe("GetQuizByIdUseCase", () => {
         type: QuestionType.DIRECT_QUESTION,
         stem: "What is 2+2?",
         options: [
-          { index: "A", text: "3", explanation: "Incorrect", isCorrect: false },
-          { index: "B", text: "4", explanation: "Correct", isCorrect: true },
-          { index: "C", text: "5", explanation: "Incorrect", isCorrect: false },
-          { index: "D", text: "6", explanation: "Incorrect", isCorrect: false },
+          {
+            index: "A",
+            text: "3",
+            isCorrect: false,
+            errorRationale: "Incorrect",
+          },
+          { index: "B", text: "4", isCorrect: true },
+          {
+            index: "C",
+            text: "5",
+            isCorrect: false,
+            errorRationale: "Incorrect",
+          },
+          {
+            index: "D",
+            text: "6",
+            isCorrect: false,
+            errorRationale: "Incorrect",
+          },
         ],
+        correctExplanation: "2+2 equals 4",
+        sourceQuote: "Basic arithmetic",
+        reference: 0,
       }),
     ];
   };
@@ -105,9 +125,16 @@ describe("GetQuizByIdUseCase", () => {
       deleteByQuizId: mock(async () => {}),
     };
 
+    mockSourceMaterialRepository = {
+      createBulk: mock(async () => []),
+      findByQuizId: mock(async () => []),
+      deleteByQuizId: mock(async () => {}),
+    };
+
     useCase = new GetQuizByIdUseCase({
       quizRepository: mockQuizRepository,
       questionRepository: mockQuestionRepository,
+      sourceMaterialRepository: mockSourceMaterialRepository,
     });
   });
 

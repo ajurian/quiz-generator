@@ -153,7 +153,7 @@ The Application layer contains use-case specific business logic and orchestrates
     * Input: quizId, userId, visibility? (defaults to UNLISTED)
     * Output: Quiz with share link using slug
     * Dependencies: IQuizRepository
-    * Logic: Sets visibility, generates /quiz/t/{slug} link
+    * Logic: Sets visibility, generates /quiz/a/{slug} link
 
 - **UpdateQuizVisibilityUseCase**
     * Input: quizId, userId, visibility
@@ -535,7 +535,7 @@ Routes are organized by role with clear affordances:
   - POST: Create quiz (CreateQuizUseCase)
 
 # Answer Flow (Taking a quiz)
-/quiz/t/{quiz_slug}
+/quiz/a/{quiz_slug}
   - GET: Start/resume attempt flow (StartAttemptUseCase)
   - Shows "already completed" screen if user has prior attempts
   - POST: Force start new attempt (ForceStartAttemptUseCase)
@@ -568,7 +568,7 @@ Routes are organized by role with clear affordances:
 ### Authorization Rules
 
 - **PRIVATE**: Only owner can access all routes; return 404 to non-owners (no existence leak)
-- **UNLISTED**: Anyone with link can access /quiz/t and /quiz/h routes
+- **UNLISTED**: Anyone with link can access /quiz/a/{slug}
 - **PUBLIC**: Same as unlisted, plus discoverable in directories
 - **Creator routes** (/quiz/m/*): Only owner can access; return 404 to non-owners
 
@@ -625,7 +625,7 @@ Routes are organized by role with clear affordances:
 
 ## Attempt UX Flow
 
-### On `/quiz/t/{quiz_slug}`:
+### On `/quiz/a/{quiz_slug}`:
 
 1. **If 0 attempts by current user**: Start a new attempt immediately
 
@@ -643,7 +643,7 @@ Routes are organized by role with clear affordances:
 
 - On `/quiz/m/{quiz_slug}`:
   - Visibility selector: private/unlisted/public (persists immediately)
-  - Share link copy (uses `/quiz/t/{quiz_slug}` URL)
+  - Share link copy (uses `/quiz/a/{quiz_slug}` URL)
   - Correct answers/rationales view (read-only preview)
   - Buttons: Primary "Take" (real attempt), Secondary "Share"
 
@@ -750,7 +750,7 @@ export function createAppContainer() {
 
 ## Data Flow Example: Taking a Quiz
 
-1. **Presentation**: User navigates to `/quiz/t/{quiz_slug}`
+1. **Presentation**: User navigates to `/quiz/a/{quiz_slug}`
 2. **Application**: StartAttemptUseCase receives quiz slug
 3. **Infrastructure**: QuizRepository.findBySlug loads quiz
 4. **Domain**: Quiz entity checks visibility for access control

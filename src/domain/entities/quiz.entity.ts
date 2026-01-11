@@ -3,6 +3,8 @@ import {
   type QuizDistribution,
 } from "../services/quiz-distribution.service";
 import { QuizVisibility } from "../enums/quiz-visibility.enum";
+import { QuizStatus } from "../enums/quiz-status.enum";
+import { InvariantViolationError, InvalidOperationError } from "../errors";
 import { uuidToSlug } from "../value-objects/slug.vo";
 
 /**
@@ -17,6 +19,8 @@ export interface QuizProps {
   updatedAt: Date;
   visibility: QuizVisibility;
   questionDistribution: number;
+  status: QuizStatus;
+  errorMessage: string | null;
 }
 
 /**
@@ -28,6 +32,7 @@ export interface CreateQuizProps {
   title: string;
   distribution: QuizDistribution;
   visibility?: QuizVisibility;
+  status?: QuizStatus;
 }
 
 /**
@@ -50,6 +55,8 @@ export class Quiz {
   private _updatedAt: Date;
   private _visibility: QuizVisibility;
   private _questionDistribution: number;
+  private _status: QuizStatus;
+  private _errorMessage: string | null;
 
   private constructor(props: QuizProps) {
     this._id = props.id;
@@ -60,6 +67,8 @@ export class Quiz {
     this._updatedAt = props.updatedAt;
     this._visibility = props.visibility;
     this._questionDistribution = props.questionDistribution;
+    this._status = props.status;
+    this._errorMessage = props.errorMessage;
   }
 
   /**
@@ -86,6 +95,8 @@ export class Quiz {
       updatedAt: now,
       visibility: props.visibility ?? QuizVisibility.PRIVATE,
       questionDistribution: encodedDistribution,
+      status: props.status ?? QuizStatus.GENERATING,
+      errorMessage: null,
     });
   }
 
@@ -103,11 +114,11 @@ export class Quiz {
    */
   private static validateCreateProps(props: CreateQuizProps): void {
     if (!props.id || typeof props.id !== "string") {
-      throw new Error("Quiz ID is required");
+      throw new InvariantViolationError("Quiz ID is required", "id");
     }
 
     if (!props.userId || typeof props.userId !== "string") {
-      throw new Error("User ID is required");
+      throw new InvariantViolationError("User ID is required", "userId");
     }
 
     if (
@@ -115,65 +126,123 @@ export class Quiz {
       typeof props.title !== "string" ||
       props.title.trim().length === 0
     ) {
-      throw new Error("Quiz title is required and cannot be empty");
+      throw new InvariantViolationError(
+        "Quiz title is required and cannot be empty",
+        "title"
+      );
     }
 
     if (props.title.length > 255) {
-      throw new Error("Quiz title cannot exceed 255 characters");
+      throw new InvariantViolationError(
+        "Quiz title cannot exceed 255 characters",
+        "title"
+      );
     }
 
     if (!QuizDistributionService.validate(props.distribution)) {
-      throw new Error("Invalid question distribution");
+      throw new InvariantViolationError(
+        "Invalid question distribution",
+        "distribution"
+      );
     }
 
     if (
       props.visibility !== undefined &&
       !Object.values(QuizVisibility).includes(props.visibility)
     ) {
-      throw new Error("Invalid visibility value");
+      throw new InvariantViolationError(
+        "Invalid visibility value",
+        "visibility"
+      );
     }
   }
 
   /**
-   * Validates properties for reconstituting a Quiz
+   * Validates properties for reconstituting a Quiz.
+   * Enforces full invariants including distribution encoding validity.
    */
   private static validateProps(props: QuizProps): void {
     if (!props.id || typeof props.id !== "string") {
-      throw new Error("Quiz ID is required");
+      throw new InvariantViolationError("Quiz ID is required", "id");
     }
 
     if (!props.userId || typeof props.userId !== "string") {
-      throw new Error("User ID is required");
+      throw new InvariantViolationError("User ID is required", "userId");
     }
 
-    if (!props.title || typeof props.title !== "string") {
-      throw new Error("Quiz title is required");
+    if (
+      !props.title ||
+      typeof props.title !== "string" ||
+      props.title.trim().length === 0
+    ) {
+      throw new InvariantViolationError(
+        "Quiz title is required and cannot be empty",
+        "title"
+      );
     }
 
     if (!props.slug || typeof props.slug !== "string") {
-      throw new Error("Quiz slug is required");
+      throw new InvariantViolationError("Quiz slug is required", "slug");
     }
 
     if (
       !(props.createdAt instanceof Date) ||
       isNaN(props.createdAt.getTime())
     ) {
-      throw new Error("Valid createdAt date is required");
+      throw new InvariantViolationError(
+        "Valid createdAt date is required",
+        "createdAt"
+      );
     }
 
     if (
       !(props.updatedAt instanceof Date) ||
       isNaN(props.updatedAt.getTime())
     ) {
-      throw new Error("Valid updatedAt date is required");
+      throw new InvariantViolationError(
+        "Valid updatedAt date is required",
+        "updatedAt"
+      );
     }
 
     if (!Object.values(QuizVisibility).includes(props.visibility)) {
-      throw new Error("visibility must be a valid QuizVisibility value");
+      throw new InvariantViolationError(
+        "visibility must be a valid QuizVisibility value",
+        "visibility"
+      );
     }
 
-    if (typeof props.questionDistribution !== "number") {
-      throw new Error("questionDistribution must be a number");
+    if (
+      typeof props.questionDistribution !== "number" ||
+      !Number.isInteger(props.questionDistribution)
+    ) {
+      throw new InvariantViolationError(
+        "questionDistribution must be an integer",
+        "questionDistribution"
+      );
+    }
+
+    // Validate the encoded distribution can be decoded to a valid distribution
+    const decoded = QuizDistributionService.decode(props.questionDistribution);
+    if (!QuizDistributionService.validate(decoded)) {
+      throw new InvariantViolationError(
+        "questionDistribution contains invalid encoded values",
+        "questionDistribution"
+      );
+    }
+
+    if (!Object.values(QuizStatus).includes(props.status)) {
+      throw new InvariantViolationError(
+        "status must be a valid QuizStatus value",
+        "status"
+      );
+    }
+
+    if (props.errorMessage !== null && typeof props.errorMessage !== "string") {
+      throw new InvariantViolationError(
+        "errorMessage must be a string or null",
+        "errorMessage"
+      );
     }
   }
 
@@ -200,6 +269,14 @@ export class Quiz {
 
   get updatedAt(): Date {
     return this._updatedAt;
+  }
+
+  get status(): QuizStatus {
+    return this._status;
+  }
+
+  get errorMessage(): string | null {
+    return this._errorMessage;
   }
 
   get visibility(): QuizVisibility {
@@ -240,11 +317,17 @@ export class Quiz {
    */
   public updateTitle(title: string): void {
     if (!title || typeof title !== "string" || title.trim().length === 0) {
-      throw new Error("Quiz title is required and cannot be empty");
+      throw new InvariantViolationError(
+        "Quiz title is required and cannot be empty",
+        "title"
+      );
     }
 
     if (title.length > 255) {
-      throw new Error("Quiz title cannot exceed 255 characters");
+      throw new InvariantViolationError(
+        "Quiz title cannot exceed 255 characters",
+        "title"
+      );
     }
 
     this._title = title.trim();
@@ -256,7 +339,10 @@ export class Quiz {
    */
   public setVisibility(visibility: QuizVisibility): void {
     if (!Object.values(QuizVisibility).includes(visibility)) {
-      throw new Error("Invalid visibility value");
+      throw new InvariantViolationError(
+        "Invalid visibility value",
+        "visibility"
+      );
     }
     this._visibility = visibility;
     this._updatedAt = new Date();
@@ -291,7 +377,10 @@ export class Quiz {
    */
   public updateDistribution(distribution: QuizDistribution): void {
     if (!QuizDistributionService.validate(distribution)) {
-      throw new Error("Invalid question distribution");
+      throw new InvariantViolationError(
+        "Invalid question distribution",
+        "distribution"
+      );
     }
 
     this._questionDistribution = QuizDistributionService.encode(distribution);
@@ -333,6 +422,51 @@ export class Quiz {
   }
 
   /**
+   * Checks if the quiz is currently being generated
+   */
+  public isGenerating(): boolean {
+    return this._status === QuizStatus.GENERATING;
+  }
+
+  /**
+   * Checks if the quiz is ready
+   */
+  public isReady(): boolean {
+    return this._status === QuizStatus.READY;
+  }
+
+  /**
+   * Checks if the quiz generation failed
+   */
+  public hasFailed(): boolean {
+    return this._status === QuizStatus.FAILED;
+  }
+
+  /**
+   * Marks the quiz as ready (generation completed successfully)
+   */
+  public markAsReady(): void {
+    this._status = QuizStatus.READY;
+    this._errorMessage = null;
+    this._updatedAt = new Date();
+  }
+
+  /**
+   * Marks the quiz as failed with an error message
+   */
+  public markAsFailed(errorMessage: string): void {
+    if (!errorMessage || errorMessage.trim().length === 0) {
+      throw new InvariantViolationError(
+        "Error message is required when marking quiz as failed",
+        "errorMessage"
+      );
+    }
+    this._status = QuizStatus.FAILED;
+    this._errorMessage = errorMessage;
+    this._updatedAt = new Date();
+  }
+
+  /**
    * Converts the entity to a plain object for persistence
    */
   public toPlain(): QuizProps {
@@ -345,6 +479,8 @@ export class Quiz {
       updatedAt: this._updatedAt,
       visibility: this._visibility,
       questionDistribution: this._questionDistribution,
+      status: this._status,
+      errorMessage: this._errorMessage,
     };
   }
 }

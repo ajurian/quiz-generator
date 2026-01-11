@@ -39,7 +39,6 @@ export function AttemptHistoryCard({ item }: AttemptHistoryCardProps) {
     navigate({
       to: "/quiz/a/$slug",
       params: { slug: quiz.slug },
-      state: { restart: true },
     });
   };
 
@@ -74,8 +73,8 @@ export function AttemptHistoryCard({ item }: AttemptHistoryCardProps) {
                 latestAttempt.score >= 70
                   ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
                   : latestAttempt.score >= 50
-                    ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                    : "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400"
+                  ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                  : "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400"
               }`}
             >
               <Trophy className="h-3 w-3" />

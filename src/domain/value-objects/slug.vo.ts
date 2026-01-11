@@ -1,3 +1,5 @@
+import { InvalidValueError } from "../errors";
+
 /**
  * Slug Value Object
  *
@@ -39,7 +41,7 @@ export function uuidToSlug(uuid: string): string {
   const hex = uuid.replace(/-/g, "");
 
   if (!/^[0-9a-f]{32}$/i.test(hex)) {
-    throw new Error(`Invalid UUID format: ${uuid}`);
+    throw new InvalidValueError("UUID", `Invalid UUID format: ${uuid}`);
   }
 
   // Convert hex string to bytes
@@ -79,7 +81,7 @@ export function uuidToSlug(uuid: string): string {
  */
 export function slugToUuid(slug: string): string {
   if (!/^[A-Za-z0-9_-]{22}$/.test(slug)) {
-    throw new Error(`Invalid slug format: ${slug}`);
+    throw new InvalidValueError("Slug", `Invalid slug format: ${slug}`);
   }
 
   // Convert from URL-safe base64 to standard base64 with padding
@@ -101,7 +103,8 @@ export function slugToUuid(slug: string): string {
   }
 
   if (bytes.length !== 16) {
-    throw new Error(
+    throw new InvalidValueError(
+      "Slug",
       `Invalid slug: decoded to ${bytes.length} bytes instead of 16`
     );
   }
@@ -137,11 +140,11 @@ export class Slug {
 
   /**
    * Creates a Slug from a base64url string
-   * @throws Error if the slug is invalid
+   * @throws {InvalidValueError} if the slug is invalid
    */
   public static fromString(slug: string): Slug {
     if (!isValidSlug(slug)) {
-      throw new Error(`Invalid slug format: ${slug}`);
+      throw new InvalidValueError("Slug", `Invalid slug format: ${slug}`);
     }
     return new Slug(slug);
   }

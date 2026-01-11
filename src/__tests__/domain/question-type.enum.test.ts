@@ -3,7 +3,7 @@ import {
   QuestionType,
   isQuestionType,
   getQuestionTypeDisplayName,
-} from "../../domain/enums/question-type.enum";
+} from "@/domain/enums/question-type.enum";
 
 describe("QuestionType Enum", () => {
   describe("enum values", () => {

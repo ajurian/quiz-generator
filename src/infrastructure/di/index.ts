@@ -7,7 +7,6 @@ export {
   setContainer,
   resetContainer,
   type AppContainer,
-  type ContainerConfig,
   type Repositories,
   type Services,
   type UseCases,

@@ -1,9 +1,10 @@
 import type {
   QuestionType,
   QuizDistribution,
-  GeminiModel,
   OptionIndex,
-} from "../../../domain";
+  QuestionPreview,
+} from "@/domain";
+import type { AIModel } from "../../types";
 
 /**
  * Metadata for an uploaded file
@@ -22,7 +23,25 @@ export interface FileMetadata {
 export interface GenerateQuizParams {
   files: FileMetadata[];
   distribution: QuizDistribution;
-  model: GeminiModel;
+  model: AIModel;
+}
+
+/**
+ * Callback for streaming progress updates
+ */
+export interface StreamingProgressCallback {
+  (progress: {
+    questionsGenerated: number;
+    questions: QuestionPreview[];
+  }): void;
+}
+
+/**
+ * Parameters for streaming quiz question generation
+ */
+export interface StreamGenerateQuizParams extends GenerateQuizParams {
+  /** Callback invoked as questions are progressively generated */
+  onProgress?: StreamingProgressCallback;
 }
 
 /**
@@ -35,9 +54,12 @@ export interface GeneratedQuestionData {
   options: {
     index: OptionIndex;
     text: string;
-    explanation: string;
     isCorrect: boolean;
+    errorRationale?: string;
   }[];
+  correctExplanation: string;
+  sourceQuote: string;
+  reference: number;
 }
 
 /**
@@ -55,9 +77,18 @@ export interface IAIQuizGenerator {
   ): Promise<GeneratedQuestionData[]>;
 
   /**
+   * Generates quiz questions with streaming progress updates
+   * @param params Generation parameters including files, distribution, and progress callback
+   * @returns Array of generated question data (plain objects, not entities)
+   */
+  generateQuestionsStream(
+    params: StreamGenerateQuizParams
+  ): Promise<GeneratedQuestionData[]>;
+
+  /**
    * Validates if the specified model has available quota
-   * @param model The Gemini model to check
+   * @param model The AI model to check
    * @returns true if quota is available
    */
-  validateQuota(model: GeminiModel): Promise<boolean>;
+  validateQuota(model: AIModel): Promise<boolean>;
 }

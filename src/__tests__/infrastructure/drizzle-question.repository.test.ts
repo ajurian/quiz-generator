@@ -1,8 +1,8 @@
 import { describe, expect, it, beforeEach, mock } from "bun:test";
 import { DrizzleQuestionRepository } from "../../infrastructure/database/repositories/drizzle-question.repository";
-import { Question, QuestionType } from "../../domain";
+import { Question, QuestionType } from "@/domain";
 import type { DrizzleDatabase } from "../../infrastructure/database/connection";
-import type { QuestionOptionProps } from "../../domain";
+import type { QuestionOptionProps } from "@/domain";
 
 describe("DrizzleQuestionRepository", () => {
   let repository: DrizzleQuestionRepository;
@@ -13,26 +13,25 @@ describe("DrizzleQuestionRepository", () => {
     {
       index: "A",
       text: "Option A",
-      explanation: "Explanation A",
       isCorrect: true,
     },
     {
       index: "B",
       text: "Option B",
-      explanation: "Explanation B",
       isCorrect: false,
+      errorRationale: "Rationale B",
     },
     {
       index: "C",
       text: "Option C",
-      explanation: "Explanation C",
       isCorrect: false,
+      errorRationale: "Rationale C",
     },
     {
       index: "D",
       text: "Option D",
-      explanation: "Explanation D",
       isCorrect: false,
+      errorRationale: "Rationale D",
     },
   ];
 
@@ -52,6 +51,9 @@ describe("DrizzleQuestionRepository", () => {
       type: QuestionType.DIRECT_QUESTION,
       options: createValidOptions(),
       orderIndex: overrides.orderIndex ?? 0,
+      correctExplanation: "Correct explanation",
+      sourceQuote: "Source quote",
+      reference: 0,
     });
   };
 
@@ -63,6 +65,9 @@ describe("DrizzleQuestionRepository", () => {
     type: question.type,
     stem: question.stem,
     options: question.options.map((opt) => opt.toPlain()),
+    correctExplanation: question.correctExplanation,
+    sourceQuote: question.sourceQuote,
+    reference: question.reference,
   });
 
   beforeEach(() => {
@@ -127,8 +132,8 @@ describe("DrizzleQuestionRepository", () => {
       expect(values[0]!.options[0]).toEqual({
         index: "A",
         text: "Option A",
-        explanation: "Explanation A",
         isCorrect: true,
+        errorRationale: undefined,
       });
     });
   });

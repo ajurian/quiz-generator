@@ -3,8 +3,9 @@ import {
   GeminiQuizGeneratorService,
   QuotaExceededError,
 } from "../../infrastructure/services/gemini-quiz-generator.service";
-import { GeminiModel, QuestionType } from "../../domain";
-import type { GenerateQuizParams, FileMetadata } from "../../application";
+import { QuestionType } from "@/domain";
+import { AIModel } from "@/application";
+import type { GenerateQuizParams, FileMetadata } from "@/application";
 
 // Mock the @google/genai module
 const mockGenerateContent = mock(() => Promise.resolve({ text: "[]" }));
@@ -35,7 +36,7 @@ describe("GeminiQuizGeneratorService", () => {
       twoStatementCompound: 2,
       contextual: 1,
     },
-    model: GeminiModel.FLASH_2_5,
+    model: AIModel.PRIMARY,
   });
 
   const createMockGeneratedQuestions = () => [
@@ -47,28 +48,30 @@ describe("GeminiQuizGeneratorService", () => {
         {
           index: "A",
           text: "Energy production",
-          explanation: "Correct - ATP synthesis",
           isCorrect: true,
         },
         {
           index: "B",
           text: "Protein synthesis",
-          explanation: "Incorrect - ribosomes do this",
           isCorrect: false,
+          errorRationale: "Incorrect - ribosomes do this",
         },
         {
           index: "C",
           text: "DNA replication",
-          explanation: "Incorrect - nucleus handles this",
           isCorrect: false,
+          errorRationale: "Incorrect - nucleus handles this",
         },
         {
           index: "D",
           text: "Cell division",
-          explanation: "Incorrect - centrosomes do this",
           isCorrect: false,
+          errorRationale: "Incorrect - centrosomes do this",
         },
       ],
+      correctExplanation: "Mitochondria are responsible for ATP synthesis",
+      sourceQuote: "The mitochondria is the powerhouse of the cell.",
+      reference: 0,
     },
   ];
 
@@ -151,7 +154,7 @@ describe("GeminiQuizGeneratorService", () => {
         },
       } as unknown as typeof service extends { client: infer C } ? C : never;
 
-      const result = await service.validateQuota(GeminiModel.FLASH_2_5);
+      const result = await service.validateQuota(AIModel.PRIMARY);
 
       expect(result).toBe(true);
     });
@@ -171,7 +174,7 @@ describe("GeminiQuizGeneratorService", () => {
         },
       } as unknown as typeof service extends { client: infer C } ? C : never;
 
-      const result = await service.validateQuota(GeminiModel.FLASH_2_5);
+      const result = await service.validateQuota(AIModel.PRIMARY);
 
       expect(result).toBe(false);
     });
@@ -191,9 +194,9 @@ describe("GeminiQuizGeneratorService", () => {
         },
       } as unknown as typeof service extends { client: infer C } ? C : never;
 
-      await expect(
-        service.validateQuota(GeminiModel.FLASH_2_5)
-      ).rejects.toThrow("Invalid API key");
+      await expect(service.validateQuota(AIModel.PRIMARY)).rejects.toThrow(
+        "Invalid API key"
+      );
     });
   });
 
@@ -237,7 +240,7 @@ describe("GeminiQuizGeneratorService", () => {
 
 describe("QuotaExceededError", () => {
   it("should have correct name and message", () => {
-    const error = new QuotaExceededError(GeminiModel.FLASH_2_5);
+    const error = new QuotaExceededError("gemini-2.5-flash");
 
     expect(error.name).toBe("QuotaExceededError");
     expect(error.message).toBe("Quota exceeded for model: gemini-2.5-flash");

@@ -1,10 +1,10 @@
 import { describe, expect, it, beforeEach, mock } from "bun:test";
-import { Quiz, type CreateQuizProps } from "../../domain/entities/quiz.entity";
+import { Quiz, type CreateQuizProps } from "@/domain/entities/quiz.entity";
 import {
   QuizDistributionService,
   type QuizDistribution,
-} from "../../domain/services/quiz-distribution.service";
-import { QuizVisibility } from "../../domain";
+} from "@/domain/services/quiz-distribution.service";
+import { QuizVisibility, QuizStatus } from "@/domain";
 
 describe("Quiz Entity", () => {
   // Valid UUIDs for testing (slug generation requires valid UUID format)
@@ -148,6 +148,8 @@ describe("Quiz Entity", () => {
         updatedAt,
         visibility: QuizVisibility.PUBLIC,
         questionDistribution: encodedDistribution,
+        status: QuizStatus.READY,
+        errorMessage: null,
       });
 
       expect(quiz.id).toBe(QUIZ_ID);
@@ -171,6 +173,8 @@ describe("Quiz Entity", () => {
           updatedAt: new Date(),
           visibility: QuizVisibility.PRIVATE,
           questionDistribution: 1,
+          status: QuizStatus.READY,
+          errorMessage: null,
         })
       ).toThrow("Valid createdAt date is required");
     });
@@ -191,7 +195,9 @@ describe("Quiz Entity", () => {
       expect(quiz.totalQuestions).toBe(18);
     });
 
-    it("should handle edge case with all zeros after reconstitution", () => {
+    it("should handle edge case with minimum distribution after reconstitution", () => {
+      // Minimum valid distribution: 1 question total
+      const minDistribution = 1; // 1 directQuestion, 0 others
       const quiz = Quiz.reconstitute({
         id: QUIZ_ID,
         slug: "AZshlHKgcACnEl5bxcMTwQ",
@@ -200,10 +206,12 @@ describe("Quiz Entity", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         visibility: QuizVisibility.PRIVATE,
-        questionDistribution: 0,
+        questionDistribution: minDistribution,
+        status: QuizStatus.READY,
+        errorMessage: null,
       });
 
-      expect(quiz.totalQuestions).toBe(0);
+      expect(quiz.totalQuestions).toBe(1);
     });
   });
 

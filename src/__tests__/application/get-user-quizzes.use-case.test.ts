@@ -3,10 +3,10 @@ import {
   GetUserQuizzesUseCase,
   type GetUserQuizzesUseCaseDeps,
   type GetUserQuizzesInput,
-} from "../../application/use-cases/get-user-quizzes.use-case";
-import { Quiz, QuizVisibility } from "../../domain";
-import type { IQuizRepository, PaginatedResult } from "../../application/ports";
-import { ValidationError } from "../../application/errors";
+} from "@/application/features/quiz/get-user-quizzes.use-case";
+import { Quiz, QuizVisibility } from "@/domain";
+import type { IQuizRepository, PaginatedResult } from "@/application/ports";
+import { ValidationError } from "@/application/errors";
 
 describe("GetUserQuizzesUseCase", () => {
   let useCase: GetUserQuizzesUseCase;

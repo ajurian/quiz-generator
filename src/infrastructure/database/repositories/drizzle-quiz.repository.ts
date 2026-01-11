@@ -3,8 +3,8 @@ import type {
   IQuizRepository,
   PaginationParams,
   PaginatedResult,
-} from "../../../application";
-import { Quiz, QuizVisibility } from "../../../domain";
+} from "@/application";
+import { Quiz, QuizVisibility, QuizStatus } from "@/domain";
 import type { DrizzleDatabase } from "../connection";
 import { quizzes } from "../schema";
 
@@ -32,6 +32,8 @@ export class DrizzleQuizRepository implements IQuizRepository {
         visibility: quiz.visibility,
         createdAt: quiz.createdAt,
         updatedAt: quiz.updatedAt,
+        status: quiz.status,
+        errorMessage: quiz.errorMessage,
       })
       .returning();
 
@@ -178,6 +180,8 @@ export class DrizzleQuizRepository implements IQuizRepository {
         visibility: quiz.visibility,
         questionDistribution: quiz.questionDistribution,
         updatedAt: quiz.updatedAt,
+        status: quiz.status,
+        errorMessage: quiz.errorMessage,
       })
       .where(eq(quizzes.id, quiz.id))
       .returning();
@@ -235,6 +239,8 @@ export class DrizzleQuizRepository implements IQuizRepository {
       visibility: row.visibility as QuizVisibility,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
+      status: row.status as QuizStatus,
+      errorMessage: row.errorMessage,
     });
   }
 }

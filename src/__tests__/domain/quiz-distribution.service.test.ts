@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 import {
   QuizDistributionService,
   type QuizDistribution,
-} from "../../domain/services/quiz-distribution.service";
+} from "@/domain/services/quiz-distribution.service";
 
 describe("QuizDistributionService", () => {
   describe("encode", () => {

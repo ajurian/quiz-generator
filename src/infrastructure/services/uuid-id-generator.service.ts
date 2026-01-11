@@ -1,5 +1,5 @@
-import { randomUUIDv7 } from "bun";
-import type { IIdGenerator } from "../../application";
+import { v7 as randomUUIDv7 } from "uuid";
+import type { IIdGenerator } from "@/application";
 
 /**
  * UUID v7 ID Generator Service

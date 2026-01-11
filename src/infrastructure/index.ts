@@ -1,63 +1,61 @@
 // Infrastructure Layer
 // Frameworks & Drivers - Contains implementations of interfaces defined in Application layer
+//
+// IMPORTANT: This barrel export is intentionally minimal.
+// Presentation layer should NOT import from here directly.
+// Use @/presentation/lib/composition instead.
+//
+// These exports exist primarily for:
+// - Testing (mocking/stubbing implementations)
+// - Infrastructure-internal composition
 
-// Database
+// Config
 export {
-  createDatabaseConnection,
-  type DrizzleDatabase,
-  // Schema
-  quizzes,
-  quizzesRelations,
-  questions,
-  questionsRelations,
-  type InsertQuiz,
-  type SelectQuiz,
-  type InsertQuestion,
-  type SelectQuestion,
-  // Repositories
-  DrizzleQuizRepository,
-  DrizzleQuestionRepository,
-} from "./database";
+  getRuntimeConfig,
+  resetRuntimeConfig,
+  type RuntimeConfig,
+} from "./config";
 
-// Services
-export {
-  GeminiQuizGeneratorService,
-  QuotaExceededError,
-  FileStorageService,
-  RedisCacheService,
-  UuidIdGenerator,
-} from "./services";
-
-// Auth
-export {
-  createAuth,
-  getAuth,
-  setAuth,
-  resetAuth,
-  type Auth,
-  type AuthConfigOptions,
-  authSchema,
-  users,
-  sessions,
-  accounts,
-  verifications,
-  type SelectUser,
-  type InsertUser,
-  type SelectSession,
-  type InsertSession,
-  type SelectAccount,
-  type InsertAccount,
-} from "./auth";
-
-// Dependency Injection
+// Dependency Injection (the composition root)
 export {
   createAppContainer,
   getContainer,
   setContainer,
   resetContainer,
   type AppContainer,
-  type ContainerConfig,
   type Repositories,
   type Services,
   type UseCases,
 } from "./di";
+
+// Auth (for testing utilities)
+export {
+  createAuth,
+  setAuth,
+  getTestAuth,
+  resetAuth,
+  type Auth,
+  type AuthConfigOptions,
+} from "./auth";
+
+// Database types and connection (for migrations and testing)
+export {
+  createDatabaseConnection,
+  getDatabase,
+  type DrizzleDatabase,
+} from "./database";
+
+// Schema exports (for migrations tooling)
+export {
+  quizzes,
+  quizzesRelations,
+  questions,
+  questionsRelations,
+  quizAttempts,
+  quizAttemptsRelations,
+  sourceMaterials,
+  sourceMaterialsRelations,
+} from "./database";
+
+// Auth schema (for migrations tooling)
+export { authSchema, users, sessions, accounts, verifications } from "./auth";

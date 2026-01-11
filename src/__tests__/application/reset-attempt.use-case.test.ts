@@ -3,14 +3,14 @@ import {
   ResetAttemptUseCase,
   type ResetAttemptUseCaseDeps,
   type ResetAttemptInput,
-} from "../../application/use-cases/reset-attempt.use-case";
-import { QuizAttempt, AttemptStatus } from "../../domain";
-import type { IAttemptRepository } from "../../application/ports";
+} from "@/application/features/attempt/reset-attempt.use-case";
+import { QuizAttempt, AttemptStatus } from "@/domain";
+import type { IAttemptRepository } from "@/application/ports";
 import {
   NotFoundError,
   ForbiddenError,
   ValidationError,
-} from "../../application/errors";
+} from "@/application/errors";
 
 describe("ResetAttemptUseCase", () => {
   let useCase: ResetAttemptUseCase;

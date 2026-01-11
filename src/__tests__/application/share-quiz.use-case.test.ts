@@ -3,14 +3,14 @@ import {
   ShareQuizUseCase,
   type ShareQuizUseCaseDeps,
   type ShareQuizInput,
-} from "../../application/use-cases/share-quiz.use-case";
-import { Quiz, QuizVisibility } from "../../domain";
-import type { IQuizRepository } from "../../application/ports";
+} from "@/application/features/quiz/share-quiz.use-case";
+import { Quiz, QuizVisibility } from "@/domain";
+import type { IQuizRepository } from "@/application/ports";
 import {
   NotFoundError,
   ForbiddenError,
   ValidationError,
-} from "../../application/errors";
+} from "@/application/errors";
 
 describe("ShareQuizUseCase", () => {
   let useCase: ShareQuizUseCase;

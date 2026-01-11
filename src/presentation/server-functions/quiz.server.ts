@@ -1,8 +1,10 @@
-import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
-import { QuizVisibility } from "@/domain";
 import { quizDistributionSchema } from "@/application";
-import { getContainer } from "@/infrastructure";
+import { QuizVisibility } from "@/domain";
+import { getContainer } from "@/presentation/lib/composition";
+import { createServerFn } from "@tanstack/react-start";
+import { waitUntil } from "@vercel/functions";
+import { z } from "zod";
+import { continueQuizGeneration, createQuizRecord } from "../features";
 
 // Validation schemas
 const paginationSchema = z.object({
@@ -128,4 +130,84 @@ export const deleteQuiz = createServerFn({ method: "POST" })
       userId: data.userId,
     });
     return { success: true };
+  });
+
+// File info schema for presigned URL generation
+const fileInfoSchema = z.object({
+  filename: z.string().min(1).max(255),
+  mimeType: z.string().min(1),
+  sizeBytes: z.number().int().positive(),
+});
+
+export type FileInfo = z.infer<typeof fileInfoSchema>;
+
+// POST Get Presigned Upload URLs
+export const getPresignedUploadUrls = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      userId: z.uuidv7(),
+      quizSlug: z.string().min(1).max(255),
+      files: z.array(fileInfoSchema).min(1).max(10),
+    })
+  )
+  .handler(async ({ data }) => {
+    const container = getContainer();
+    const result = await container.useCases.getPresignedUploadUrls.execute({
+      userId: data.userId,
+      quizSlug: data.quizSlug,
+      files: data.files,
+    });
+    return result;
+  });
+
+// POST Start Quiz Generation (triggers Upstash Workflow for background generation in production,
+// or executes directly in development)
+export const startQuizGeneration = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      userId: z.uuidv7(),
+      title: z.string().min(1).max(255),
+      distribution: quizDistributionSchema,
+      visibility: z
+        .enum(QuizVisibility)
+        .optional()
+        .default(QuizVisibility.PRIVATE),
+      files: z.array(
+        z.object({
+          filename: z.string().min(1),
+          key: z.string().min(1),
+          mimeType: z.string().min(1),
+          sizeBytes: z.number().int().positive(),
+        })
+      ),
+    })
+  )
+  .handler(async ({ data }) => {
+    console.log("[Development] Creating quiz record...");
+
+    // Step 1: Create quiz record immediately so it appears in dashboard
+    const quizData = await createQuizRecord({
+      userId: data.userId,
+      title: data.title,
+      distribution: data.distribution,
+      visibility: data.visibility,
+      files: data.files,
+    });
+
+    // Fire-and-forget: Continue generation in background
+    waitUntil(
+      continueQuizGeneration(quizData, {
+        userId: data.userId,
+        title: data.title,
+        distribution: data.distribution,
+        visibility: data.visibility,
+        files: data.files,
+      })
+    );
+
+    // Return immediately so client can redirect to dashboard
+    return {
+      quizId: quizData.id,
+      quizSlug: quizData.slug,
+    };
   });

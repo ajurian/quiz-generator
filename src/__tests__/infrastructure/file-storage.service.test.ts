@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach, mock } from "bun:test";
 import { FileStorageService } from "../../infrastructure/services/file-storage.service";
-import type { FileMetadata } from "../../application";
+import type { FileMetadata } from "@/application";
 
 describe("FileStorageService", () => {
   const testApiKey = "test-api-key";

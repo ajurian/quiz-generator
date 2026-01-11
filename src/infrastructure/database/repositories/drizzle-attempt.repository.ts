@@ -3,8 +3,8 @@ import type {
   IAttemptRepository,
   PaginationParams,
   PaginatedResult,
-} from "../../../application";
-import { QuizAttempt, AttemptStatus } from "../../../domain";
+} from "@/application";
+import { QuizAttempt, AttemptStatus } from "@/domain";
 import type { DrizzleDatabase } from "../connection";
 import { quizAttempts } from "../schema";
 

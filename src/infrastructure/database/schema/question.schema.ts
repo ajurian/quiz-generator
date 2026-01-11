@@ -8,7 +8,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { quizzes } from "./quiz.schema";
-import { QuestionType, type QuestionOptionProps } from "../../../domain";
+import { QuestionType, type QuestionOptionProps } from "@/domain";
 
 export const questionTypeEnum = pgEnum("question_type", [
   QuestionType.DIRECT_QUESTION,
@@ -42,6 +42,15 @@ export const questions = pgTable("questions", {
 
   /** Answer options stored as JSONB array */
   options: jsonb("options").$type<QuestionOptionProps[]>().notNull(),
+
+  /** Explanation for the correct answer */
+  correctExplanation: text("correct_explanation").notNull(),
+
+  /** Verbatim evidence from the source material */
+  sourceQuote: text("source_quote").notNull(),
+
+  /** Exact source material reference */
+  reference: integer("reference").notNull(),
 });
 
 /**

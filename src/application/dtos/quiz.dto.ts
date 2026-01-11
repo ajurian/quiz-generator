@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { QuizDistributionService, QuizVisibility } from "../../domain";
+import { QuizDistributionService, QuizVisibility, QuizStatus } from "@/domain";
 
 /**
  * Validation schema for question distribution
@@ -24,6 +24,11 @@ export const quizDistributionSchema = z
 export const visibilitySchema = z.enum(QuizVisibility);
 
 /**
+ * Validation schema for quiz status
+ */
+export const statusSchema = z.enum(QuizStatus);
+
+/**
  * Schema for creating a new quiz
  */
 export const createQuizInputSchema = z.object({
@@ -45,11 +50,13 @@ export const quizResponseSchema = z.object({
   id: z.uuidv7(),
   slug: z.string().length(22),
   title: z.string(),
+  status: statusSchema,
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
   totalQuestions: z.number().int().min(0),
   visibility: visibilitySchema,
   distribution: quizDistributionSchema,
+  errorMessage: z.string().optional(),
 });
 
 /**
@@ -64,10 +71,12 @@ export function toQuizResponseDTO(quiz: {
   id: string;
   slug: string;
   title: string;
+  status: QuizStatus;
   createdAt: Date;
   updatedAt: Date;
   visibility: QuizVisibility;
   questionDistribution: number;
+  errorMessage?: string | null;
 }): QuizResponseDTO {
   const distribution = QuizDistributionService.decode(
     quiz.questionDistribution
@@ -80,11 +89,13 @@ export function toQuizResponseDTO(quiz: {
     id: quiz.id,
     slug: quiz.slug,
     title: quiz.title,
+    status: quiz.status,
     createdAt: quiz.createdAt.toISOString(),
     updatedAt: quiz.updatedAt.toISOString(),
     totalQuestions,
     visibility: quiz.visibility,
     distribution,
+    errorMessage: quiz.errorMessage ?? undefined,
   };
 }
 

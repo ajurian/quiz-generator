@@ -1,16 +1,10 @@
 import { describe, expect, it, beforeEach, mock } from "bun:test";
 import {
   CreateQuizUseCase,
-  type CreateQuizUseCaseDeps,
   type CreateQuizUseCaseInput,
-} from "../../application/use-cases/create-quiz.use-case";
-import {
-  Quiz,
-  Question,
-  QuestionType,
-  GeminiModel,
-  QuizVisibility,
-} from "../../domain";
+} from "@/application/features/quiz/create-quiz.use-case";
+import { Quiz, Question, QuestionType, QuizVisibility } from "@/domain";
+import { AIModel } from "@/application";
 import type {
   IQuizRepository,
   IQuestionRepository,
@@ -18,13 +12,13 @@ import type {
   IFileStorageService,
   IIdGenerator,
   FileMetadata,
-} from "../../application/ports";
+} from "@/application/ports";
 import {
   ValidationError,
   ExternalServiceError,
   QuotaExceededError,
-} from "../../application/errors";
-import { randomUUIDv7 } from "bun";
+} from "@/application/errors";
+import { v7 as randomUUIDv7 } from "uuid";
 
 describe("CreateQuizUseCase", () => {
   let useCase: CreateQuizUseCase;
@@ -69,28 +63,30 @@ describe("CreateQuizUseCase", () => {
         {
           index: "A" as const,
           text: "Paris",
-          explanation: "Paris is the capital of France",
           isCorrect: true,
         },
         {
           index: "B" as const,
           text: "London",
-          explanation: "London is the capital of UK",
           isCorrect: false,
+          errorRationale: "London is the capital of UK",
         },
         {
           index: "C" as const,
           text: "Berlin",
-          explanation: "Berlin is the capital of Germany",
           isCorrect: false,
+          errorRationale: "Berlin is the capital of Germany",
         },
         {
           index: "D" as const,
           text: "Madrid",
-          explanation: "Madrid is the capital of Spain",
           isCorrect: false,
+          errorRationale: "Madrid is the capital of Spain",
         },
       ],
+      correctExplanation: "Paris is the capital of France",
+      sourceQuote: "Paris is the capital city of France.",
+      reference: 0,
     },
   ];
 
@@ -135,6 +131,7 @@ describe("CreateQuizUseCase", () => {
 
     mockAiGenerator = {
       generateQuestions: mock(async () => createMockGeneratedQuestions()),
+      generateQuestionsStream: mock(async () => createMockGeneratedQuestions()),
       validateQuota: mock(async () => true),
     };
 
@@ -184,7 +181,7 @@ describe("CreateQuizUseCase", () => {
       expect(mockAiGenerator.generateQuestions).toHaveBeenCalledWith({
         files: createMockFileMetadata(),
         distribution: input.distribution,
-        model: GeminiModel.FLASH_2_5,
+        model: AIModel.PRIMARY,
       });
     });
 

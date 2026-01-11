@@ -8,6 +8,7 @@ import { updateQuizVisibility } from "@/presentation/server-functions";
 import { quizBySlugQueryOptions, quizKeys } from "@/presentation/queries";
 import { QuizVisibility } from "@/domain";
 import { toast } from "sonner";
+import { getUserFriendlyMessage } from "@/presentation/lib";
 import {
   ManageQuizSkeleton,
   ManageQuizHeader,
@@ -64,7 +65,7 @@ function ManagePage() {
     },
     onError: (error) => {
       toast.error("Failed to update visibility", {
-        description: error instanceof Error ? error.message : "Unknown error",
+        description: getUserFriendlyMessage(error, "visibility"),
       });
     },
   });

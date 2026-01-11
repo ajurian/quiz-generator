@@ -4,7 +4,7 @@ import {
   type QuestionOptionProps,
   VALID_OPTION_INDICES,
   isValidOptionIndex,
-} from "../../domain/value-objects/question-option.vo";
+} from "@/domain/value-objects/question-option.vo";
 
 describe("QuestionOption Value Object", () => {
   // Helper to create valid props
@@ -13,8 +13,8 @@ describe("QuestionOption Value Object", () => {
   ): QuestionOptionProps => ({
     index: "A",
     text: "Option A text",
-    explanation: "Explanation for option A",
     isCorrect: false,
+    errorRationale: "Rationale for option A",
     ...overrides,
   });
 
@@ -58,7 +58,7 @@ describe("QuestionOption Value Object", () => {
 
       expect(option.index).toBe("A");
       expect(option.text).toBe("Option A text");
-      expect(option.explanation).toBe("Explanation for option A");
+      expect(option.errorRationale).toBe("Rationale for option A");
       expect(option.isCorrect).toBe(false);
     });
 
@@ -76,11 +76,11 @@ describe("QuestionOption Value Object", () => {
       }
     });
 
-    it("should accept empty explanation", () => {
+    it("should accept empty errorRationale", () => {
       const option = QuestionOption.create(
-        createValidProps({ explanation: "" })
+        createValidProps({ errorRationale: "" })
       );
-      expect(option.explanation).toBe("");
+      expect(option.errorRationale).toBe("");
     });
 
     describe("validation errors", () => {
@@ -102,10 +102,12 @@ describe("QuestionOption Value Object", () => {
         ).toThrow("Option text is required and cannot be empty");
       });
 
-      it("should throw for non-string explanation", () => {
+      it("should throw for non-string errorRationale", () => {
         expect(() =>
-          QuestionOption.create(createValidProps({ explanation: 123 as any }))
-        ).toThrow("Option explanation must be a string");
+          QuestionOption.create(
+            createValidProps({ errorRationale: 123 as any })
+          )
+        ).toThrow("Option errorRationale must be a string if provided");
       });
 
       it("should throw for non-boolean isCorrect", () => {
@@ -121,30 +123,30 @@ describe("QuestionOption Value Object", () => {
       const plain = {
         index: "B",
         text: "Option B",
-        explanation: "B explanation",
         isCorrect: true,
+        errorRationale: "B rationale",
       };
 
       const option = QuestionOption.fromPlain(plain);
 
       expect(option.index).toBe("B");
       expect(option.text).toBe("Option B");
-      expect(option.explanation).toBe("B explanation");
+      expect(option.errorRationale).toBe("B rationale");
       expect(option.isCorrect).toBe(true);
     });
 
     it("should throw for invalid structure", () => {
       expect(() => QuestionOption.fromPlain(null)).toThrow(
-        "Invalid QuestionOption structure"
+        "Invalid QuestionOption: Invalid structure"
       );
       expect(() => QuestionOption.fromPlain(undefined)).toThrow(
-        "Invalid QuestionOption structure"
+        "Invalid QuestionOption: Invalid structure"
       );
       expect(() => QuestionOption.fromPlain({})).toThrow(
-        "Invalid QuestionOption structure"
+        "Invalid QuestionOption: Invalid structure"
       );
       expect(() => QuestionOption.fromPlain({ index: "A" })).toThrow(
-        "Invalid QuestionOption structure"
+        "Invalid QuestionOption: Invalid structure"
       );
     });
   });
@@ -176,12 +178,12 @@ describe("QuestionOption Value Object", () => {
       expect(option1.equals(option2)).toBe(false);
     });
 
-    it("should return false for different explanation", () => {
+    it("should return false for different errorRationale", () => {
       const option1 = QuestionOption.create(
-        createValidProps({ explanation: "Exp 1" })
+        createValidProps({ errorRationale: "Exp 1" })
       );
       const option2 = QuestionOption.create(
-        createValidProps({ explanation: "Exp 2" })
+        createValidProps({ errorRationale: "Exp 2" })
       );
 
       expect(option1.equals(option2)).toBe(false);
@@ -206,7 +208,7 @@ describe("QuestionOption Value Object", () => {
 
       expect(copy.index).toBe("B");
       expect(copy.text).toBe(original.text);
-      expect(copy.explanation).toBe(original.explanation);
+      expect(copy.errorRationale).toBe(original.errorRationale);
       expect(copy.isCorrect).toBe(original.isCorrect);
     });
 
@@ -241,8 +243,8 @@ describe("QuestionOption Value Object", () => {
       const props = createValidProps({
         index: "C",
         text: "Option C",
-        explanation: "C explanation",
         isCorrect: true,
+        errorRationale: "C rationale",
       });
       const option = QuestionOption.create(props);
 
@@ -251,8 +253,8 @@ describe("QuestionOption Value Object", () => {
       expect(plain).toEqual({
         index: "C",
         text: "Option C",
-        explanation: "C explanation",
         isCorrect: true,
+        errorRationale: "C rationale",
       });
     });
 

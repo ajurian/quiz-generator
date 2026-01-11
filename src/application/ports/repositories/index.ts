@@ -5,3 +5,4 @@ export type {
 } from "./quiz.repository.interface";
 export type { IQuestionRepository } from "./question.repository.interface";
 export type { IAttemptRepository } from "./attempt.repository.interface";
+export type { ISourceMaterialRepository } from "./source-material.repository.interface";

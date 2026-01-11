@@ -1,8 +1,5 @@
-import {
-  createAuth,
-  createDatabaseConnection,
-  UuidIdGenerator,
-} from "@/infrastructure";
+import { createAuth, createDatabaseConnection } from "@/infrastructure";
+import { UuidIdGenerator } from "@/infrastructure/services";
 import { Redis } from "@upstash/redis";
 
 export const auth = createAuth({

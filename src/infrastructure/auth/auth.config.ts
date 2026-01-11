@@ -19,8 +19,8 @@ export interface AuthConfigOptions {
   db: DrizzleDatabase;
   /** Upstash Redis instance for session caching */
   redis: Redis;
-  googleClient: { id: string; secret: string };
-  microsoftClient: { id: string; secret: string };
+  googleClient: { clientId: string; clientSecret: string };
+  microsoftClient: { clientId: string; clientSecret: string };
 }
 
 /**
@@ -87,12 +87,12 @@ export function createAuth(options: AuthConfigOptions) {
     // Social login providers
     socialProviders: {
       google: {
-        clientId: options.googleClient.id,
-        clientSecret: options.googleClient.secret!,
+        clientId: options.googleClient.clientId!,
+        clientSecret: options.googleClient.clientSecret!,
       },
       microsoft: {
-        clientId: options.microsoftClient.id!,
-        clientSecret: options.microsoftClient.secret!,
+        clientId: options.microsoftClient.clientId!,
+        clientSecret: options.microsoftClient.clientSecret!,
       },
     },
   });

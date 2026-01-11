@@ -5,16 +5,13 @@
     "build": "vite build",
     "preview": "vite preview",
     "deploy": "bun run build && wrangler deploy",
-    "cf-typegen": "wrangler types",
     "auth:generate": "bunx --env-file=.env.development @better-auth/cli@latest generate --output \"src\\infrastructure\\database\\schema\\auth.schema.ts\"",
-    "db:push:dev": "bun --env-file=.env.development drizzle-kit generate",
     "db:generate:dev": "bun --env-file=.env.development drizzle-kit generate",
     "db:generate:staging": "bun --env-file=.env.staging drizzle-kit generate",
     "db:generate:prod": "bun --env-file=.env.production drizzle-kit generate",
     "db:migrate:dev": "bun --env-file=.env.development drizzle-kit migrate",
     "db:migrate:staging": "bun --env-file=.env.staging drizzle-kit migrate",
     "db:migrate:prod": "bun --env-file=.env.production drizzle-kit migrate",
-    "db:push": "bun --env-file=.env.development drizzle-kit push",
     "lint": "tsc --noEmit"
   },
   "dependencies": {

@@ -5,7 +5,7 @@ import { createAuthClient } from "better-auth/react";
  * Provides hooks for authentication in React components
  */
 export const authClient = createAuthClient({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000",
+  baseURL: `${import.meta.env.DEV ? "http" : "https"}://${import.meta.env.VITE_VERCEL_URL}`,
 });
 
 /**

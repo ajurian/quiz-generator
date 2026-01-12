@@ -178,7 +178,6 @@ export function createAppContainer(config: RuntimeConfig): AppContainer {
     googleClient: config.oauth.google,
     microsoftClient: config.oauth.microsoft,
   });
-  console.log("BaseURL", auth.options.baseURL);
 
   // Use Cases (Application layer - orchestrating domain logic)
   const createQuiz = new CreateQuizUseCase({

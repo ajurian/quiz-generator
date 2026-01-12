@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_APP_URL: string;
+  readonly VITE_VERCEL_URL: string;
 }
 
 interface ImportMeta {
@@ -13,7 +13,6 @@ declare namespace NodeJS {
   interface ProcessEnv {
     NODE_ENV?: "development" | "staging" | "production";
     VERCEL_URL?: string;
-    VITE_APP_URL?: string;
     DATABASE_URL?: string;
     UPSTASH_REDIS_REST_URL?: string;
     UPSTASH_REDIS_REST_TOKEN?: string;

@@ -17,7 +17,10 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  define: {
+    "import.meta.env.VITE_VERCEL_URL": JSON.stringify(process.env.VERCEL_URL),
+  },
   server: {
-    port: 3000,
+    port: process.env.PORT ? Number(process.env.PORT) : 3000,
   },
 });

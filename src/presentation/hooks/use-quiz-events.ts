@@ -167,76 +167,101 @@ export function useQuizEvents(
       return;
     }
 
-    // Create EventSource connection
-    const eventSource = new EventSource("/api/quiz-events");
-    eventSourceRef.current = eventSource;
+    // Reconnection interval: 4 minutes 45 seconds
+    const RECONNECT_INTERVAL_MS = 4 * 60 * 1000 + 45 * 1000; // 285000ms
 
-    // Handle connection open
-    eventSource.onopen = () => {
-      setIsConnected(true);
-      callbacksRef.current.onConnectionChange?.(true);
+    const createEventSource = () => {
+      // Close existing connection if any
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
+
+      // Create EventSource connection
+      const eventSource = new EventSource("/api/quiz-events");
+      eventSourceRef.current = eventSource;
+
+      // Handle connection open
+      eventSource.onopen = () => {
+        setIsConnected(true);
+        callbacksRef.current.onConnectionChange?.(true);
+      };
+
+      // Handle connection error
+      eventSource.onerror = (error) => {
+        console.error("[useQuizEvents] SSE error:", error);
+        setIsConnected(false);
+        callbacksRef.current.onConnectionChange?.(false);
+      };
+
+      // Handle connected event
+      eventSource.addEventListener("connected", (e) => {
+        const data = JSON.parse((e as MessageEvent).data);
+        console.log("[useQuizEvents] Connected for user:", data.userId);
+      });
+
+      // Handle processing events (progress updates)
+      eventSource.addEventListener("quiz.generation.processing", (e) => {
+        try {
+          const event = JSON.parse(
+            (e as MessageEvent).data
+          ) as QuizGenerationProcessingEvent;
+          console.log("Questions Generated:", event.questionsGenerated);
+          handleEvent(event);
+        } catch (error) {
+          console.error(
+            "[useQuizEvents] Failed to parse processing event:",
+            error
+          );
+        }
+      });
+
+      // Handle completed events
+      eventSource.addEventListener("quiz.generation.completed", (e) => {
+        try {
+          const event = JSON.parse(
+            (e as MessageEvent).data
+          ) as QuizGenerationEvent;
+          handleEvent(event);
+        } catch (error) {
+          console.error(
+            "[useQuizEvents] Failed to parse completed event:",
+            error
+          );
+        }
+      });
+
+      // Handle failed events
+      eventSource.addEventListener("quiz.generation.failed", (e) => {
+        try {
+          const event = JSON.parse(
+            (e as MessageEvent).data
+          ) as QuizGenerationEvent;
+          handleEvent(event);
+        } catch (error) {
+          console.error("[useQuizEvents] Failed to parse failed event:", error);
+        }
+      });
+
+      return eventSource;
     };
 
-    // Handle connection error
-    eventSource.onerror = (error) => {
-      console.error("[useQuizEvents] SSE error:", error);
-      setIsConnected(false);
-      callbacksRef.current.onConnectionChange?.(false);
-    };
+    // Initial connection
+    createEventSource();
 
-    // Handle connected event
-    eventSource.addEventListener("connected", (e) => {
-      const data = JSON.parse((e as MessageEvent).data);
-      console.log("[useQuizEvents] Connected for user:", data.userId);
-    });
-
-    // Handle processing events (progress updates)
-    eventSource.addEventListener("quiz.generation.processing", (e) => {
-      try {
-        const event = JSON.parse(
-          (e as MessageEvent).data
-        ) as QuizGenerationProcessingEvent;
-        console.log("Questions Generated:", event.questionsGenerated);
-        handleEvent(event);
-      } catch (error) {
-        console.error(
-          "[useQuizEvents] Failed to parse processing event:",
-          error
-        );
-      }
-    });
-
-    // Handle completed events
-    eventSource.addEventListener("quiz.generation.completed", (e) => {
-      try {
-        const event = JSON.parse(
-          (e as MessageEvent).data
-        ) as QuizGenerationEvent;
-        handleEvent(event);
-      } catch (error) {
-        console.error(
-          "[useQuizEvents] Failed to parse completed event:",
-          error
-        );
-      }
-    });
-
-    // Handle failed events
-    eventSource.addEventListener("quiz.generation.failed", (e) => {
-      try {
-        const event = JSON.parse(
-          (e as MessageEvent).data
-        ) as QuizGenerationEvent;
-        handleEvent(event);
-      } catch (error) {
-        console.error("[useQuizEvents] Failed to parse failed event:", error);
-      }
-    });
+    // Set up periodic reconnection every 4 minutes 45 seconds
+    const reconnectInterval = setInterval(() => {
+      console.log("[useQuizEvents] Forcing reconnection...");
+      createEventSource();
+    }, RECONNECT_INTERVAL_MS);
 
     // Cleanup on unmount
     return () => {
-      eventSource.close();
-      eventSourceRef.current = null;
+      clearInterval(reconnectInterval);
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
       setIsConnected(false);
     };
   }, [enabled, userId, handleEvent]);

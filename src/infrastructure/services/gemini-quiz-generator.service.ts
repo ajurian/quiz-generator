@@ -402,6 +402,7 @@ export class GeminiQuizGeneratorService implements IAIQuizGenerator {
 
     const prompt = `
 Your specific goal is to create ${totalQuestions} questions distributed as follows.
+(\`orderIndex\` should start at 0 for the first question, and end at ${totalQuestions - 1} for the last question.)
 
 ---
 ${
@@ -422,6 +423,17 @@ Standard MCQ item.
 - Must be unequivocally T/F based on HANDOUTS
 - Avoid vague wording, double negatives
 - No labels (e.g., "Statement 1", "first statement")
+
+
+### Stem (Format)
+The stem MUST present BOTH statements together as follows (separated by \`\\n\`):
+\`\`\`
+{
+  ...
+  "stem": "Statement 1: [Statement 1 text].\\nStatement 2: [Statement 2 text].",
+  ...
+}
+\`\`\`
 
 ### Options (FIXED TEXT — do not paraphrase)
 \`\`\`

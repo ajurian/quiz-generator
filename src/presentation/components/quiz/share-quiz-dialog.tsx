@@ -118,7 +118,7 @@ export function ShareQuizDialog({
                 variant="outline"
                 size="sm"
                 onClick={handleCopy}
-                className="flex-shrink-0"
+                className="shrink-0"
               >
                 {copied ? (
                   <Check className="h-4 w-4" />
@@ -188,7 +188,7 @@ function VisibilityOption({
         <p className="text-xs text-muted-foreground">{description}</p>
       </div>
       {isSelected && (
-        <div className="h-2 w-2 rounded-full bg-primary flex-shrink-0" />
+        <div className="h-2 w-2 rounded-full bg-primary shrink-0" />
       )}
     </button>
   );

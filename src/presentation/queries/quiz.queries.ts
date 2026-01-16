@@ -2,6 +2,7 @@ import { queryOptions } from "@tanstack/react-query";
 import {
   getUserQuizzes,
   getQuizById,
+  getCachedQuizEvents,
 } from "@/presentation/server-functions/quiz.server";
 import { getQuizBySlug } from "@/presentation/server-functions/attempt.server";
 
@@ -16,6 +17,8 @@ export const quizKeys = {
   details: () => [...quizKeys.all, "detail"] as const,
   detail: (quizId: string) => [...quizKeys.details(), quizId] as const,
   bySlug: (slug: string) => [...quizKeys.all, "slug", slug] as const,
+  generatingEvents: (userId: string) =>
+    [...quizKeys.all, "generating-events", userId] as const,
 } as const;
 
 /**
@@ -57,5 +60,20 @@ export function quizBySlugQueryOptions(
     queryKey: quizKeys.bySlug(quizSlug),
     queryFn: () => getQuizBySlug({ data: { quizSlug, userId } }),
     staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+}
+
+/**
+ * Query options for fetching cached quiz generation events
+ * Used to hydrate the generating quizzes state on page load/refresh
+ * @param userId - The authenticated user's ID
+ */
+export function cachedQuizEventsQueryOptions(userId: string) {
+  return queryOptions({
+    queryKey: quizKeys.generatingEvents(userId),
+    queryFn: () => getCachedQuizEvents({ data: { userId } }),
+    staleTime: 0, // Always refetch on mount to get latest state
+    gcTime: 1000 * 60, // Keep in cache for 1 minute
+    enabled: !!userId,
   });
 }

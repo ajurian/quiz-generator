@@ -14,16 +14,18 @@ describe("QuizGenerationEvents", () => {
 
   describe("processing", () => {
     it("should create a processing event with correct type", () => {
-      const questions: QuestionPreview[] = [
-        { orderIndex: 0, type: "direct_question", stem: "What is X?" },
-      ];
+      const lastQuestion: QuestionPreview = {
+        orderIndex: 0,
+        type: "direct_question",
+        stem: "What is X?",
+      };
 
       const event = QuizGenerationEvents.processing({
         quizId: QUIZ_ID,
         quizSlug: QUIZ_SLUG,
         userId: USER_ID,
         questionsGenerated: 1,
-        questions,
+        lastQuestion,
         totalQuestions: 1,
       });
 
@@ -32,7 +34,7 @@ describe("QuizGenerationEvents", () => {
       expect(event.quizSlug).toBe(QUIZ_SLUG);
       expect(event.userId).toBe(USER_ID);
       expect(event.questionsGenerated).toBe(1);
-      expect(event.questions).toEqual(questions);
+      expect(event.lastQuestion).toEqual(lastQuestion);
     });
 
     it("should include timestamp", () => {
@@ -43,7 +45,7 @@ describe("QuizGenerationEvents", () => {
         quizSlug: QUIZ_SLUG,
         userId: USER_ID,
         questionsGenerated: 5,
-        questions: [],
+        lastQuestion: null,
         totalQuestions: 0,
       });
 
@@ -56,27 +58,27 @@ describe("QuizGenerationEvents", () => {
       expect(event.timestamp.getTime()).toBeLessThanOrEqual(after.getTime());
     });
 
-    it("should handle multiple questions", () => {
-      const questions: QuestionPreview[] = [
-        { orderIndex: 0, type: "direct_question", stem: "Question 1" },
-        { orderIndex: 1, type: "two_statement_compound", stem: "Question 2" },
-        { orderIndex: 2, type: "contextual", stem: "Question 3" },
-      ];
+    it("should handle last question being the latest generated", () => {
+      const lastQuestion: QuestionPreview = {
+        orderIndex: 2,
+        type: "contextual",
+        stem: "Question 3",
+      };
 
       const event = QuizGenerationEvents.processing({
         quizId: QUIZ_ID,
         quizSlug: QUIZ_SLUG,
         userId: USER_ID,
         questionsGenerated: 3,
-        questions,
+        lastQuestion,
         totalQuestions: 3,
       });
 
       expect(event.questionsGenerated).toBe(3);
-      expect(event.questions).toHaveLength(3);
-      expect(event.questions[0]!.type).toBe("direct_question");
-      expect(event.questions[1]!.type).toBe("two_statement_compound");
-      expect(event.questions[2]!.type).toBe("contextual");
+      expect(event.lastQuestion).not.toBeNull();
+      expect(event.lastQuestion!.orderIndex).toBe(2);
+      expect(event.lastQuestion!.type).toBe("contextual");
+      expect(event.lastQuestion!.stem).toBe("Question 3");
     });
   });
 
@@ -172,7 +174,7 @@ describe("QuizGenerationEvents", () => {
         quizSlug: QUIZ_SLUG,
         userId: USER_ID,
         questionsGenerated: 1,
-        questions: [],
+        lastQuestion: null,
         totalQuestions: 1,
       });
 

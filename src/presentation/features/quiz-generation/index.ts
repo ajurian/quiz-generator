@@ -5,11 +5,7 @@
  * Routes and server-functions should import from here.
  */
 
-export {
-  createQuizRecord,
-  continueQuizGeneration,
-  executeQuizGenerationDirect,
-} from "./orchestrator";
+export { createQuizRecord, continueQuizGeneration } from "./orchestrator";
 
 export type {
   QuizGenerationInput,

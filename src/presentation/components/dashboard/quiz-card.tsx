@@ -114,14 +114,14 @@ export function QuizCard({
           {isGenerating && (
             <Badge
               variant="secondary"
-              className="flex-shrink-0 gap-1.5 bg-primary/20 text-primary animate-pulse"
+              className="shrink-0 gap-1.5 bg-primary/20 text-primary animate-pulse"
             >
               <Loader2 className="h-3 w-3 animate-spin" />
               Generating
             </Badge>
           )}
           {isFailed && (
-            <Badge variant="destructive" className="flex-shrink-0 gap-1">
+            <Badge variant="destructive" className="shrink-0 gap-1">
               <AlertCircle className="h-3 w-3" />
               Failed
             </Badge>
@@ -129,7 +129,7 @@ export function QuizCard({
           {isReady && quiz.visibility !== QuizVisibility.PRIVATE && (
             <Badge
               variant="secondary"
-              className="flex-shrink-0 gap-1 bg-primary/10 text-primary hover:bg-primary/15"
+              className="shrink-0 gap-1 bg-primary/10 text-primary hover:bg-primary/15"
             >
               {quiz.visibility === QuizVisibility.PUBLIC ? (
                 <>

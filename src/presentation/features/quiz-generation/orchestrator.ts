@@ -146,33 +146,6 @@ export async function continueQuizGeneration(
   }
 }
 
-/**
- * Executes the full quiz generation workflow directly (synchronously).
- * Use this for development/testing when Upstash Workflow is not available.
- */
-export async function executeQuizGenerationDirect(
-  input: QuizGenerationInput
-): Promise<QuizGenerationResult> {
-  let quizData: QuizData | null = null;
-
-  try {
-    // Step 1: Create quiz record
-    console.log("[QuizGeneration] Step 1: Creating quiz record...");
-    quizData = await createQuizRecord(input);
-
-    // Continue with the rest of the generation
-    return await continueQuizGeneration(quizData, input);
-  } catch (error) {
-    // If we created a quiz but failed later, the error is already handled
-    // in continueQuizGeneration. If we failed before creating, just rethrow.
-    if (!quizData) {
-      throw error;
-    }
-    // Error already handled in continueQuizGeneration
-    throw error;
-  }
-}
-
 // ============================================================================
 // Internal Helper Functions
 // ============================================================================
@@ -268,6 +241,12 @@ async function generateQuestions(
     questions: QuestionPreview[];
   }) => {
     // Publish progress event via Redis
+    // Only send the last question to reduce payload size
+    const lastQuestion =
+      progress.questions.length > 0
+        ? progress.questions[progress.questions.length - 1]!
+        : null;
+
     await container.services.eventPublisher.publish(
       QuizGenerationEvents.processing({
         quizId: quizData.id,
@@ -275,7 +254,7 @@ async function generateQuestions(
         userId: quizData.userId,
         questionsGenerated: progress.questionsGenerated,
         totalQuestions,
-        questions: progress.questions,
+        lastQuestion,
       })
     );
   };
@@ -369,29 +348,45 @@ async function handleGenerationFailure(
   error: unknown
 ): Promise<void> {
   const container = getContainer();
+  const errorMessage =
+    error instanceof Error ? error.message : "Quiz generation failed";
 
   try {
-    const quiz = await container.repositories.quizRepository.findById(
-      quizData.id
-    );
-
-    if (quiz && quiz.status === QuizStatus.GENERATING) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Quiz generation failed";
-      quiz.markAsFailed(errorMessage);
-      await container.repositories.quizRepository.update(quiz);
-
-      // Publish failure event
-      await container.services.eventPublisher.publish(
-        QuizGenerationEvents.failed({
-          quizId: quizData.id,
-          quizSlug: quizData.slug,
-          userId: quizData.userId,
-          errorMessage,
-        })
+    // 1. Delete S3 files associated with this quiz (if any source materials exist)
+    const sourceMaterials =
+      await container.repositories.sourceMaterialRepository.findByQuizId(
+        quizData.id
       );
+    if (sourceMaterials.length > 0) {
+      const fileKeys = sourceMaterials.map((sm) => sm.fileKey);
+      try {
+        await container.services.s3Storage.deleteObjects(fileKeys);
+        console.log(
+          `[QuizGeneration] Cleaned up ${fileKeys.length} S3 files for failed quiz`
+        );
+      } catch (s3Error) {
+        console.warn("[QuizGeneration] Failed to cleanup S3 files:", s3Error);
+      }
     }
+
+    // 2. Delete the quiz record entirely (cascades to questions/source_materials)
+    // This prevents "zombie" quiz records from appearing in the user's dashboard
+    await container.repositories.quizRepository.delete(quizData.id);
+    console.log(`[QuizGeneration] Deleted failed quiz record: ${quizData.id}`);
+
+    // 3. Publish failure event (still cached for 1 hour so user sees the error)
+    await container.services.eventPublisher.publish(
+      QuizGenerationEvents.failed({
+        quizId: quizData.id,
+        quizSlug: quizData.slug,
+        userId: quizData.userId,
+        errorMessage,
+      })
+    );
   } catch (failureError) {
-    console.error("Failed to handle quiz generation failure:", failureError);
+    console.error(
+      "[QuizGeneration] Failed to handle quiz generation failure:",
+      failureError
+    );
   }
 }

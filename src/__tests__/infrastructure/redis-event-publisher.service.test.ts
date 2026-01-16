@@ -5,11 +5,19 @@ import {
   QuizGenerationEvents,
   type QuizGenerationEvent,
 } from "@/domain/events/quiz-generation.events";
+import type { ICacheService } from "@/application";
 
 describe("RedisEventPublisher", () => {
   let publisher: RedisQuizGenerationEventPublisher;
   let mockRedis: Redis;
+  let mockCache: ICacheService;
   let publishedMessages: Array<{ channel: string; event: QuizGenerationEvent }>;
+  let cachedEvents: Array<{
+    key: string;
+    field: string;
+    value: unknown;
+    ttl?: number;
+  }>;
 
   const QUIZ_ID = "019b2194-72a0-7000-a712-5e5bc5c313c1";
   const QUIZ_SLUG = "AZshGnKgBwCnElXrxcMTwQ";
@@ -17,6 +25,7 @@ describe("RedisEventPublisher", () => {
 
   beforeEach(() => {
     publishedMessages = [];
+    cachedEvents = [];
 
     mockRedis = {
       publish: mock(async (channel: string, event: QuizGenerationEvent) => {
@@ -25,7 +34,23 @@ describe("RedisEventPublisher", () => {
       }),
     } as unknown as Redis;
 
-    publisher = new RedisQuizGenerationEventPublisher(mockRedis);
+    mockCache = {
+      hset: mock(
+        async (key: string, field: string, value: unknown, ttl?: number) => {
+          cachedEvents.push({ key, field, value, ttl });
+        }
+      ),
+      hget: mock(async () => null),
+      hgetall: mock(async () => null),
+      hdel: mock(async () => {}),
+      expire: mock(async () => {}),
+      get: mock(async () => null),
+      set: mock(async () => {}),
+      delete: mock(async () => {}),
+      invalidate: mock(async () => {}),
+    } as unknown as ICacheService;
+
+    publisher = new RedisQuizGenerationEventPublisher(mockRedis, mockCache);
   });
 
   describe("publish", () => {
@@ -37,11 +62,11 @@ describe("RedisEventPublisher", () => {
           userId: USER_ID,
           questionsGenerated: 3,
           totalQuestions: 10,
-          questions: [
-            { orderIndex: 0, type: "direct_question", stem: "Q1" },
-            { orderIndex: 1, type: "contextual", stem: "Q2" },
-            { orderIndex: 2, type: "two_statement_compound", stem: "Q3" },
-          ],
+          lastQuestion: {
+            orderIndex: 2,
+            type: "two_statement_compound",
+            stem: "Q3",
+          },
         });
 
         await publisher.publish(event);
@@ -50,10 +75,30 @@ describe("RedisEventPublisher", () => {
         expect(publishedMessages[0]!.channel).toBe(USER_ID);
       });
 
+      it("should cache processing event with TTL", async () => {
+        const event = QuizGenerationEvents.processing({
+          quizId: QUIZ_ID,
+          quizSlug: QUIZ_SLUG,
+          userId: USER_ID,
+          questionsGenerated: 3,
+          totalQuestions: 10,
+          lastQuestion: { orderIndex: 2, type: "contextual", stem: "Q3" },
+        });
+
+        await publisher.publish(event);
+
+        expect(cachedEvents).toHaveLength(1);
+        expect(cachedEvents[0]!.key).toBe(`quiz-events:${USER_ID}`);
+        expect(cachedEvents[0]!.field).toBe(QUIZ_ID);
+        expect(cachedEvents[0]!.ttl).toBe(3600); // 1 hour
+      });
+
       it("should include all event data", async () => {
-        const questions = [
-          { orderIndex: 0, type: "direct_question", stem: "What is X?" },
-        ];
+        const lastQuestion = {
+          orderIndex: 0,
+          type: "direct_question",
+          stem: "What is X?",
+        };
 
         const event = QuizGenerationEvents.processing({
           quizId: QUIZ_ID,
@@ -61,7 +106,7 @@ describe("RedisEventPublisher", () => {
           userId: USER_ID,
           questionsGenerated: 1,
           totalQuestions: 5,
-          questions,
+          lastQuestion,
         });
 
         await publisher.publish(event);
@@ -76,7 +121,7 @@ describe("RedisEventPublisher", () => {
         if (published.type === "quiz.generation.processing") {
           expect(published.questionsGenerated).toBe(1);
           expect(published.totalQuestions).toBe(5);
-          expect(published.questions).toEqual(questions);
+          expect(published.lastQuestion).toEqual(lastQuestion);
         }
       });
 
@@ -87,7 +132,7 @@ describe("RedisEventPublisher", () => {
           userId: USER_ID,
           questionsGenerated: 0,
           totalQuestions: 10,
-          questions: [],
+          lastQuestion: null,
         });
 
         await publisher.publish(event);
@@ -182,7 +227,7 @@ describe("RedisEventPublisher", () => {
             userId: user1Id,
             questionsGenerated: 1,
             totalQuestions: 5,
-            questions: [],
+            lastQuestion: null,
           })
         );
 
@@ -206,7 +251,7 @@ describe("RedisEventPublisher", () => {
             userId: USER_ID,
             questionsGenerated: 1,
             totalQuestions: 5,
-            questions: [],
+            lastQuestion: null,
           })
         );
 

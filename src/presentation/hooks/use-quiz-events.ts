@@ -22,6 +22,11 @@ export interface UseQuizEventsOptions {
    */
   enabled?: boolean;
   /**
+   * Initial events from Redis cache (for hydration on page load/refresh)
+   * These are used to initialize the generatingQuizzes state before SSE connects
+   */
+  initialEvents?: QuizGenerationEvent[];
+  /**
    * Callback when a progress event is received
    */
   onProcessing?: (event: QuizGenerationProcessingEvent) => void;
@@ -83,6 +88,7 @@ export function useQuizEvents(
   const {
     userId,
     enabled = true,
+    initialEvents = [],
     onProcessing,
     onCompleted,
     onFailed,
@@ -93,9 +99,21 @@ export function useQuizEvents(
   const eventSourceRef = useRef<EventSource | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [lastEvent, setLastEvent] = useState<QuizGenerationEvent | null>(null);
+
+  // Initialize generatingQuizzes from cached events (only processing events)
   const [generatingQuizzes, setGeneratingQuizzes] = useState<
     Map<string, QuizGenerationEvent>
-  >(new Map());
+  >(() => {
+    const map = new Map<string, QuizGenerationEvent>();
+    for (const event of initialEvents) {
+      // Only include processing events in the generating state
+      // Completed/failed events are kept in cache for toast notifications
+      if (event.type === "quiz.generation.processing") {
+        map.set(event.quizId, event);
+      }
+    }
+    return map;
+  });
 
   // Store callbacks in refs to avoid re-subscribing on every render
   const callbacksRef = useRef({
@@ -122,7 +140,6 @@ export function useQuizEvents(
           // Update generating quizzes map
           setGeneratingQuizzes((prev) => {
             const next = new Map(prev);
-            console.log(next.entries());
             next.set(event.quizId, event);
             return next;
           });
@@ -196,7 +213,12 @@ export function useQuizEvents(
         const event = JSON.parse(
           (e as MessageEvent).data
         ) as QuizGenerationProcessingEvent;
-        console.log("Questions Generated:", event.questionsGenerated);
+        console.log(
+          `[useQuizEvents] Processing: ${event.questionsGenerated}/${event.totalQuestions}`,
+          event.lastQuestion
+            ? `Last: "${event.lastQuestion.stem.slice(0, 50)}..."`
+            : ""
+        );
         handleEvent(event);
       } catch (error) {
         console.error(

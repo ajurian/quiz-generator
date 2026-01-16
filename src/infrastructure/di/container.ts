@@ -165,7 +165,8 @@ export function createAppContainer(config: RuntimeConfig): AppContainer {
   });
 
   // Event pub/sub for quiz generation events
-  const eventPublisher = new RedisQuizGenerationEventPublisher(redis);
+  // Publisher also uses cache for event state recovery
+  const eventPublisher = new RedisQuizGenerationEventPublisher(redis, cache);
   const eventSubscriber = new RedisQuizGenerationEventSubscriber(redis);
 
   // Infrastructure - Auth (receives all dependencies, no internal client creation)
@@ -253,9 +254,6 @@ export function createAppContainer(config: RuntimeConfig): AppContainer {
   const getPresignedUploadUrls = new GetPresignedUploadUrlsUseCase({
     s3Storage,
   });
-
-  // Note: Quiz generation use cases removed - now handled by Upstash Workflow
-  // See: src/presentation/routes/api/generate-quiz/index.ts
 
   return {
     baseUrl: config.baseUrl,

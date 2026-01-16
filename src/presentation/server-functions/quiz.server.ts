@@ -1,10 +1,18 @@
 import { quizDistributionSchema } from "@/application";
-import { QuizVisibility } from "@/domain";
+import { QuizGenerationEvent, QuizVisibility } from "@/domain";
 import { getContainer } from "@/presentation/lib/composition";
 import { createServerFn } from "@tanstack/react-start";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { continueQuizGeneration, createQuizRecord } from "../features";
+
+/**
+ * Cache key pattern for user's quiz generation events
+ * Format: quiz-events:{userId}
+ */
+function getEventsCacheKey(userId: string): string {
+  return `quiz-events:${userId}`;
+}
 
 // Validation schemas
 const paginationSchema = z.object({
@@ -210,4 +218,26 @@ export const startQuizGeneration = createServerFn({ method: "POST" })
       quizId: quizData.id,
       quizSlug: quizData.slug,
     };
+  });
+
+// GET Cached Quiz Generation Events (for hydration on page load/refresh)
+export const getCachedQuizEvents = createServerFn({ method: "GET" })
+  .inputValidator(
+    z.object({
+      userId: z.uuidv7(),
+    })
+  )
+  .handler(async ({ data }) => {
+    const container = getContainer();
+    const cacheKey = getEventsCacheKey(data.userId);
+
+    const cachedEvents =
+      await container.services.cache.hgetall<QuizGenerationEvent>(cacheKey);
+
+    // Return as array of events (or empty array if no cached events)
+    if (!cachedEvents) {
+      return [];
+    }
+
+    return Object.values(cachedEvents);
   });

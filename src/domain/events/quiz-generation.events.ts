@@ -36,13 +36,14 @@ export interface QuizGenerationBaseEvent extends DomainEvent {
 
 /**
  * Event emitted when quiz generation processing updates
- * This is published processingively as questions are generated via streaming
+ * This is published progressively as questions are generated via streaming
  */
 export interface QuizGenerationProcessingEvent extends QuizGenerationBaseEvent {
   readonly type: `quiz.generation.processing`;
   readonly questionsGenerated: number;
   readonly totalQuestions: number;
-  readonly questions: QuestionPreview[];
+  /** The most recently generated question (for real-time UI updates) */
+  readonly lastQuestion: QuestionPreview | null;
 }
 
 /**
@@ -81,7 +82,7 @@ export const QuizGenerationEvents = {
     userId: string;
     questionsGenerated: number;
     totalQuestions: number;
-    questions: QuestionPreview[];
+    lastQuestion: QuestionPreview | null;
   }): QuizGenerationProcessingEvent {
     return {
       type: `quiz.generation.processing`,

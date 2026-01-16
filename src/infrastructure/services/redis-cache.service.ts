@@ -5,7 +5,7 @@ import type { ICacheService } from "@/application";
  * Redis Cache Service using Upstash Redis
  *
  * Implements the ICacheService port using Upstash Redis for caching.
- * Supports TTL-based expiration and pattern-based invalidation.
+ * Supports TTL-based expiration, pattern-based invalidation, and hash operations.
  */
 export class RedisCacheService implements ICacheService {
   private readonly redis: Redis;
@@ -110,5 +110,71 @@ export class RedisCacheService implements ICacheService {
    */
   async decrement(key: string): Promise<number> {
     return await this.redis.decr(key);
+  }
+
+  // ============================================================================
+  // Hash Operations
+  // ============================================================================
+
+  /**
+   * Sets a field in a hash
+   * @param key Hash key
+   * @param field Field name within the hash
+   * @param value Value to store
+   * @param ttl Time to live in seconds for the entire hash (optional, refreshes on each set)
+   */
+  async hset<T>(
+    key: string,
+    field: string,
+    value: T,
+    ttl?: number
+  ): Promise<void> {
+    await this.redis.hset(key, { [field]: value });
+    if (ttl) {
+      await this.redis.expire(key, ttl);
+    }
+  }
+
+  /**
+   * Gets a field from a hash
+   * @param key Hash key
+   * @param field Field name within the hash
+   * @returns Field value or null if not found
+   */
+  async hget<T>(key: string, field: string): Promise<T | null> {
+    const value = await this.redis.hget<T>(key, field);
+    return value ?? null;
+  }
+
+  /**
+   * Gets all fields and values from a hash
+   * @param key Hash key
+   * @returns Object with all field-value pairs, or null if key doesn't exist
+   */
+  async hgetall<T>(key: string): Promise<Record<string, T> | null> {
+    const result = await this.redis.hgetall<Record<string, T>>(key);
+    // Upstash returns empty object {} if key doesn't exist
+    if (!result || Object.keys(result).length === 0) {
+      return null;
+    }
+    return result;
+  }
+
+  /**
+   * Deletes a field from a hash
+   * @param key Hash key
+   * @param field Field name to delete
+   */
+  async hdel(key: string, field: string): Promise<void> {
+    await this.redis.hdel(key, field);
+  }
+
+  /**
+   * Sets the TTL (time to live) on a key
+   * @param key Cache key
+   * @param ttl Time to live in seconds
+   */
+  async expire(key: string, ttl: number): Promise<void> {
+    await this.redis.expire(key, ttl);
   }
 }

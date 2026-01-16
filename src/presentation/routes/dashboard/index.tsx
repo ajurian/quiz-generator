@@ -1,30 +1,31 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { QuizVisibility } from "@/domain";
 import {
-  useMutation,
-  useQueryClient,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
-import {
-  quizListQueryOptions,
-  quizKeys,
-  userAttemptHistoryQueryOptions,
-} from "@/presentation/queries";
-import {
-  DashboardSkeleton,
-  DashboardHeader,
-  DashboardStatsGrid,
-  QuizList,
   AttemptHistorySection,
   calculateDashboardStats,
+  DashboardHeader,
+  DashboardSkeleton,
+  DashboardStatsGrid,
+  QuizList,
 } from "@/presentation/components/dashboard";
-import { updateQuizVisibility } from "@/presentation/server-functions";
-import { QuizVisibility } from "@/domain";
-import { toast } from "sonner";
 import { useQuizEvents } from "@/presentation/hooks";
 import {
   getGenerationFailureMessage,
   getUserFriendlyMessage,
 } from "@/presentation/lib";
+import {
+  cachedQuizEventsQueryOptions,
+  quizKeys,
+  quizListQueryOptions,
+  userAttemptHistoryQueryOptions,
+} from "@/presentation/queries";
+import { updateQuizVisibility } from "@/presentation/server-functions";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/")({
   loader: async ({ context }) => {
@@ -37,6 +38,9 @@ export const Route = createFileRoute("/dashboard/")({
       context.queryClient.ensureQueryData(quizListQueryOptions(user.id)),
       context.queryClient.ensureQueryData(
         userAttemptHistoryQueryOptions(user.id)
+      ),
+      context.queryClient.ensureQueryData(
+        cachedQuizEventsQueryOptions(user.id)
       ),
     ]);
   },
@@ -52,12 +56,17 @@ function DashboardIndex() {
   const { data: attemptHistory } = useSuspenseQuery(
     userAttemptHistoryQueryOptions(user.id)
   );
+  const { data: cachedEvents } = useSuspenseQuery(
+    cachedQuizEventsQueryOptions(user.id)
+  );
   const quizzes = response.data;
   const stats = calculateDashboardStats(quizzes);
 
   // Subscribe to real-time quiz generation events
+  // Initialize with cached events from Redis for page refresh recovery
   const { generatingQuizzes } = useQuizEvents({
     userId: user.id,
+    initialEvents: cachedEvents,
     onCompleted: (event) => {
       toast.success(`Quiz "${event.quizSlug}" is ready!`, {
         description: "You can now take the quiz.",

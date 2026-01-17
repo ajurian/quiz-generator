@@ -1,0 +1,1 @@
+ALTER TABLE "accounts" ALTER COLUMN "account_id" SET DATA TYPE text;

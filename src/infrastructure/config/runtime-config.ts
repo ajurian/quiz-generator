@@ -118,8 +118,8 @@ export function getRuntimeConfig(forceReload = false): RuntimeConfig {
 
     oauth: {
       google: {
-        clientId: optionalEnv("GOOGLE_CLIENT_ID", ""),
-        clientSecret: optionalEnv("GOOGLE_CLIENT_SECRET", ""),
+        clientId: requireEnv("GOOGLE_CLIENT_ID"),
+        clientSecret: requireEnv("GOOGLE_CLIENT_SECRET"),
       },
       microsoft: {
         clientId: optionalEnv("MICROSOFT_CLIENT_ID", ""),

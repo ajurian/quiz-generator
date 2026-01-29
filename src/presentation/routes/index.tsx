@@ -264,7 +264,8 @@ function HomePage() {
               </span>
             </div>
             <p className="text-sm text-muted-foreground">
-              © 2025 Quiz Generator. Powered by Google Gemini AI.
+              © {new Date().getFullYear()} Quiz Generator. Powered by Google
+              Gemini AI.
             </p>
           </div>
         </div>

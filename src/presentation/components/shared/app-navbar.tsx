@@ -66,7 +66,7 @@ const NAV_LINK_BASE =
   "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors";
 
 const MOBILE_NAV_LINK_BASE =
-  "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors";
+  "flex items-center gap-3 px-3 py-3 text-sm font-medium transition-colors";
 
 export function AppNavbar({
   user,
@@ -420,7 +420,7 @@ export function AppNavbar({
 
                 {/* Actions */}
                 <div className="flex flex-col gap-2 pt-4 border-t">
-                  <Button asChild className="w-full glow-primary">
+                  <Button asChild className="w-full rounded-none glow-primary">
                     <Link to="/quiz/new" onClick={closeMobileMenu}>
                       <Sparkles className="mr-2 h-4 w-4" />
                       Create Quiz
@@ -428,7 +428,11 @@ export function AppNavbar({
                   </Button>
 
                   {!isAuthenticated && (
-                    <Button asChild variant="outline" className="w-full">
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="w-full rounded-none"
+                    >
                       <Link to="/auth/signin" onClick={closeMobileMenu}>
                         Sign In
                       </Link>

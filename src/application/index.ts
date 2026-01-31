@@ -10,8 +10,6 @@ export type {
   ISourceMaterialRepository,
   PaginationParams,
   PaginatedResult,
-  UserQuizFilterParams,
-  PublicQuizFilterParams,
   // Service Interfaces
   IAIQuizGenerator,
   GenerateQuizParams,

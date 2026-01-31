@@ -46,17 +46,17 @@ export function QuizForm({
   const [title, setTitle] = React.useState(initialData?.title || "");
   const [files, setFiles] = React.useState<UploadedFile[]>([]);
   const [totalQuestions, setTotalQuestions] = React.useState(
-    initialData?.totalQuestions || 20
+    initialData?.totalQuestions || 20,
   );
   const [distribution, setDistribution] = React.useState<QuizDistribution>(
     initialData?.distribution || {
       directQuestion: 10,
       twoStatementCompound: 5,
       contextual: 5,
-    }
+    },
   );
   const [visibility, setVisibility] = React.useState<QuizVisibility>(
-    initialData?.visibility || QuizVisibility.PRIVATE
+    initialData?.visibility || QuizVisibility.PRIVATE,
   );
 
   // Auto-balance distribution when total changes
@@ -74,7 +74,7 @@ export function QuizForm({
   // Update individual distribution while keeping total
   const handleDistributionChange = (
     type: keyof typeof distribution,
-    value: number
+    value: number,
   ) => {
     const newDistribution = { ...distribution, [type]: value };
     const newTotal =
@@ -88,18 +88,18 @@ export function QuizForm({
       // Adjust other values proportionally
       const diff = totalQuestions - newTotal;
       const others = Object.keys(distribution).filter(
-        (k) => k !== type
+        (k) => k !== type,
       ) as Array<keyof typeof distribution>;
       const adjustedDistribution = { ...newDistribution };
       adjustedDistribution[others[0]!] = Math.max(
         0,
-        newDistribution[others[0]!] + Math.floor(diff / 2)
+        newDistribution[others[0]!] + Math.floor(diff / 2),
       );
       adjustedDistribution[others[1]!] = Math.max(
         0,
         totalQuestions -
           adjustedDistribution[type] -
-          adjustedDistribution[others[0]!]
+          adjustedDistribution[others[0]!],
       );
       setDistribution(adjustedDistribution);
     }
@@ -175,12 +175,11 @@ export function QuizForm({
         <div className="space-y-2">
           <Label htmlFor="total">Total Questions</Label>
           <Select
-            value={totalQuestions.toString()}
             onValueChange={(v) => handleTotalChange(parseInt(v, 10))}
             disabled={isSubmitting}
           >
             <SelectTrigger id="total">
-              <SelectValue />
+              <SelectValue placeholder="Select total questions" />
             </SelectTrigger>
             <SelectContent>
               {QUESTION_PRESETS.map((preset) => (
@@ -207,7 +206,7 @@ export function QuizForm({
               onChange={(e) =>
                 handleDistributionChange(
                   "directQuestion",
-                  parseInt(e.target.value, 10) || 0
+                  parseInt(e.target.value, 10) || 0,
                 )
               }
               disabled={isSubmitting}
@@ -226,7 +225,7 @@ export function QuizForm({
               onChange={(e) =>
                 handleDistributionChange(
                   "twoStatementCompound",
-                  parseInt(e.target.value, 10) || 0
+                  parseInt(e.target.value, 10) || 0,
                 )
               }
               disabled={isSubmitting}
@@ -245,7 +244,7 @@ export function QuizForm({
               onChange={(e) =>
                 handleDistributionChange(
                   "contextual",
-                  parseInt(e.target.value, 10) || 0
+                  parseInt(e.target.value, 10) || 0,
                 )
               }
               disabled={isSubmitting}

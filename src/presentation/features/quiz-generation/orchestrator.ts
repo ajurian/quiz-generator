@@ -46,7 +46,7 @@ export type { QuizGenerationInput, QuizGenerationResult, QuizData };
  * so it appears in the user's dashboard immediately.
  */
 export async function createQuizRecord(
-  input: QuizGenerationInput
+  input: QuizGenerationInput,
 ): Promise<QuizData> {
   const container = getContainer();
   const { userId, title, distribution, visibility } = input;
@@ -96,7 +96,7 @@ export async function createQuizRecord(
  */
 export async function continueQuizGeneration(
   quizData: QuizData,
-  input: QuizGenerationInput
+  input: QuizGenerationInput,
 ): Promise<QuizGenerationResult> {
   const container = getContainer();
 
@@ -105,7 +105,7 @@ export async function continueQuizGeneration(
     console.log("[QuizGeneration] Step 2: Creating source materials...");
     const sourceMaterialsData = await createSourceMaterials(
       quizData,
-      input.files
+      input.files,
     );
 
     // Step 3: Fetch files from S3 and upload to Gemini
@@ -152,7 +152,7 @@ export async function continueQuizGeneration(
 
 async function createSourceMaterials(
   quizData: QuizData,
-  files: QuizGenerationInput["files"]
+  files: QuizGenerationInput["files"],
 ): Promise<SourceMaterialData[]> {
   const container = getContainer();
 
@@ -165,11 +165,11 @@ async function createSourceMaterials(
       mimeType: file.mimeType,
       sizeBytes: file.sizeBytes,
       quizReferenceIndex: index,
-    })
+    }),
   );
 
   await container.repositories.sourceMaterialRepository.createBulk(
-    sourceMaterials
+    sourceMaterials,
   );
 
   return sourceMaterials.map((sm) => ({
@@ -184,7 +184,7 @@ async function createSourceMaterials(
 }
 
 async function uploadFilesToGemini(
-  sourceMaterialsData: SourceMaterialData[]
+  sourceMaterialsData: SourceMaterialData[],
 ): Promise<UploadedFileMetadata[]> {
   const container = getContainer();
   const files: File[] = [];
@@ -197,7 +197,7 @@ async function uploadFilesToGemini(
     // Convert Uint8Array to File
     const arrayBuffer = content.buffer.slice(
       content.byteOffset,
-      content.byteOffset + content.byteLength
+      content.byteOffset + content.byteLength,
     ) as ArrayBuffer;
     const blob = new Blob([arrayBuffer], { type: contentType });
     const file = new File([blob], material.title, { type: contentType });
@@ -220,13 +220,13 @@ async function uploadFilesToGemini(
       mimeType: f.mimeType,
       uri: f.uri,
       sizeBytes: f.sizeBytes,
-    })
+    }),
   );
 }
 
 async function generateQuestions(
   quizData: QuizData,
-  uploadedFiles: UploadedFileMetadata[]
+  uploadedFiles: UploadedFileMetadata[],
 ): Promise<GeneratedQuestionData[]> {
   const container = getContainer();
   const policy = QuizGenerationPolicy.forStreaming();
@@ -255,7 +255,7 @@ async function generateQuestions(
         questionsGenerated: progress.questionsGenerated,
         totalQuestions,
         lastQuestion,
-      })
+      }),
     );
   };
 
@@ -266,7 +266,7 @@ async function generateQuestions(
         distribution: quizData.distribution,
         model,
         onProgress,
-      })
+      }),
     );
     return result.data as GeneratedQuestionData[];
   } catch (error) {
@@ -279,7 +279,7 @@ async function generateQuestions(
 
 async function persistQuestions(
   quizId: string,
-  generatedQuestions: GeneratedQuestionData[]
+  generatedQuestions: GeneratedQuestionData[],
 ): Promise<void> {
   const container = getContainer();
 
@@ -299,7 +299,7 @@ async function persistQuestions(
       correctExplanation: q.correctExplanation,
       sourceQuotes: q.sourceQuotes,
       reference: q.reference,
-    })
+    }),
   );
 
   await container.repositories.questionRepository.createBulk(questions);
@@ -323,19 +323,19 @@ async function publishCompletionEvent(quizData: QuizData): Promise<void> {
       quizId: quizData.id,
       quizSlug: quizData.slug,
       userId: quizData.userId,
-    })
+    }),
   );
 }
 
 async function cleanupGeminiFiles(
-  uploadedFiles: UploadedFileMetadata[]
+  uploadedFiles: UploadedFileMetadata[],
 ): Promise<void> {
   const container = getContainer();
 
   if (uploadedFiles.length > 0) {
     try {
       await container.services.fileStorage.deleteFiles(
-        uploadedFiles.map((f) => f.id)
+        uploadedFiles.map((f) => f.id),
       );
     } catch (error) {
       console.warn("Failed to cleanup Gemini files:", error);
@@ -345,7 +345,7 @@ async function cleanupGeminiFiles(
 
 async function handleGenerationFailure(
   quizData: QuizData,
-  error: unknown
+  error: unknown,
 ): Promise<void> {
   const container = getContainer();
   const errorMessage =
@@ -355,14 +355,14 @@ async function handleGenerationFailure(
     // 1. Delete S3 files associated with this quiz (if any source materials exist)
     const sourceMaterials =
       await container.repositories.sourceMaterialRepository.findByQuizId(
-        quizData.id
+        quizData.id,
       );
     if (sourceMaterials.length > 0) {
       const fileKeys = sourceMaterials.map((sm) => sm.fileKey);
       try {
         await container.services.s3Storage.deleteObjects(fileKeys);
         console.log(
-          `[QuizGeneration] Cleaned up ${fileKeys.length} S3 files for failed quiz`
+          `[QuizGeneration] Cleaned up ${fileKeys.length} S3 files for failed quiz`,
         );
       } catch (s3Error) {
         console.warn("[QuizGeneration] Failed to cleanup S3 files:", s3Error);
@@ -381,12 +381,12 @@ async function handleGenerationFailure(
         quizSlug: quizData.slug,
         userId: quizData.userId,
         errorMessage,
-      })
+      }),
     );
   } catch (failureError) {
     console.error(
       "[QuizGeneration] Failed to handle quiz generation failure:",
-      failureError
+      failureError,
     );
   }
 }

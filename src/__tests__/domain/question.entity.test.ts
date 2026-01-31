@@ -40,7 +40,7 @@ describe("Question Entity", () => {
 
   // Helper to create valid question props
   const createValidProps = (
-    overrides?: Partial<CreateQuestionProps>
+    overrides?: Partial<CreateQuestionProps>,
   ): CreateQuestionProps => ({
     id: "question-123",
     quizId: "quiz-456",
@@ -91,38 +91,40 @@ describe("Question Entity", () => {
     describe("validation errors", () => {
       it("should throw for missing id", () => {
         expect(() => Question.create(createValidProps({ id: "" }))).toThrow(
-          "Question ID is required"
+          "Question ID is required",
         );
       });
 
       it("should throw for missing quizId", () => {
         expect(() => Question.create(createValidProps({ quizId: "" }))).toThrow(
-          "Quiz ID is required"
+          "Quiz ID is required",
         );
       });
 
       it("should throw for empty stem", () => {
         expect(() => Question.create(createValidProps({ stem: "" }))).toThrow(
-          "Stem is required and cannot be empty"
+          "Stem is required and cannot be empty",
         );
       });
 
       it("should throw for whitespace-only stem", () => {
         expect(() =>
-          Question.create(createValidProps({ stem: "   " }))
+          Question.create(createValidProps({ stem: "   " })),
         ).toThrow("Stem is required and cannot be empty");
       });
 
       it("should throw for invalid type", () => {
         expect(() =>
-          Question.create(createValidProps({ type: "invalid" as QuestionType }))
+          Question.create(
+            createValidProps({ type: "invalid" as QuestionType }),
+          ),
         ).toThrow("Invalid question type");
       });
 
       it("should throw for less than 4 options", () => {
         const options = createValidOptions().slice(0, 3);
         expect(() => Question.create(createValidProps({ options }))).toThrow(
-          "Exactly 4 options are required"
+          "Exactly 4 options are required",
         );
       });
 
@@ -137,7 +139,7 @@ describe("Question Entity", () => {
           },
         ];
         expect(() => Question.create(createValidProps({ options }))).toThrow(
-          "Exactly 4 options are required"
+          "Exactly 4 options are required",
         );
       });
 
@@ -164,7 +166,7 @@ describe("Question Entity", () => {
           },
         ];
         expect(() => Question.create(createValidProps({ options }))).toThrow(
-          "Options must have indices A, B, C, and D"
+          "Options must have indices A, B, C, and D",
         );
       });
 
@@ -191,7 +193,7 @@ describe("Question Entity", () => {
           },
         ];
         expect(() => Question.create(createValidProps({ options }))).toThrow(
-          "Options must have indices A, B, C, and D"
+          "Options must have indices A, B, C, and D",
         );
       });
 
@@ -201,7 +203,7 @@ describe("Question Entity", () => {
           isCorrect: false,
         }));
         expect(() => Question.create(createValidProps({ options }))).toThrow(
-          "Exactly one option must be marked as correct"
+          "Exactly one option must be marked as correct",
         );
       });
 
@@ -211,13 +213,13 @@ describe("Question Entity", () => {
           isCorrect: true,
         }));
         expect(() => Question.create(createValidProps({ options }))).toThrow(
-          "Exactly one option must be marked as correct"
+          "Exactly one option must be marked as correct",
         );
       });
 
       it("should throw for negative orderIndex", () => {
         expect(() =>
-          Question.create(createValidProps({ orderIndex: -1 }))
+          Question.create(createValidProps({ orderIndex: -1 })),
         ).toThrow("Order index must be a non-negative integer");
       });
     });
@@ -226,7 +228,7 @@ describe("Question Entity", () => {
   describe("reconstitute", () => {
     it("should reconstitute a Question from persisted data", () => {
       const options = createValidOptions().map((opt) =>
-        QuestionOption.create(opt)
+        QuestionOption.create(opt),
       );
 
       const question = Question.reconstitute({
@@ -288,7 +290,7 @@ describe("Question Entity", () => {
       };
 
       expect(() => Question.fromPlain(plainData)).toThrow(
-        "Invalid question type"
+        "Invalid question type",
       );
     });
   });
@@ -415,7 +417,7 @@ describe("Question Entity", () => {
       const question = Question.create(createValidProps());
 
       expect(() => question.updateStem("")).toThrow(
-        "Stem is required and cannot be empty"
+        "Stem is required and cannot be empty",
       );
     });
   });
@@ -432,7 +434,7 @@ describe("Question Entity", () => {
       const question = Question.create(createValidProps());
 
       expect(() => question.updateOrderIndex(-1)).toThrow(
-        "Order index must be a non-negative integer"
+        "Order index must be a non-negative integer",
       );
     });
   });

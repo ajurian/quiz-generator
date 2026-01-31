@@ -42,7 +42,7 @@ describe("DrizzleQuestionRepository", () => {
       quizId: string;
       orderIndex: number;
       stem: string;
-    }> = {}
+    }> = {},
   ): Question => {
     return Question.create({
       id: overrides.id ?? "question-123",
@@ -97,7 +97,7 @@ describe("DrizzleQuestionRepository", () => {
         })),
       };
       mockDb.insert = mock(
-        () => mockChain as unknown
+        () => mockChain as unknown,
       ) as unknown as DrizzleDatabase["insert"];
 
       const result = await repository.createBulk(questions);
@@ -121,7 +121,7 @@ describe("DrizzleQuestionRepository", () => {
         }),
       };
       mockDb.insert = mock(
-        () => mockChain as unknown
+        () => mockChain as unknown,
       ) as unknown as DrizzleDatabase["insert"];
 
       await repository.createBulk([question]);
@@ -155,7 +155,7 @@ describe("DrizzleQuestionRepository", () => {
         })),
       };
       mockDb.select = mock(
-        () => mockChain as unknown
+        () => mockChain as unknown,
       ) as unknown as DrizzleDatabase["select"];
 
       const result = await repository.findByQuizId("quiz-456");
@@ -175,7 +175,7 @@ describe("DrizzleQuestionRepository", () => {
         })),
       };
       mockDb.select = mock(
-        () => mockChain as unknown
+        () => mockChain as unknown,
       ) as unknown as DrizzleDatabase["select"];
 
       const result = await repository.findByQuizId("empty-quiz");
@@ -195,7 +195,7 @@ describe("DrizzleQuestionRepository", () => {
         })),
       };
       mockDb.select = mock(
-        () => mockChain as unknown
+        () => mockChain as unknown,
       ) as unknown as DrizzleDatabase["select"];
 
       const result = await repository.findByQuizId("quiz-456");
@@ -213,7 +213,7 @@ describe("DrizzleQuestionRepository", () => {
         where: whereMock,
       };
       mockDb.delete = mock(
-        () => mockChain as unknown
+        () => mockChain as unknown,
       ) as unknown as DrizzleDatabase["delete"];
 
       await repository.deleteByQuizId("quiz-123");

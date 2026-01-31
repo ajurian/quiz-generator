@@ -105,7 +105,7 @@ export function QuestionCard(props: QuestionCardProps) {
   const { question, questionNumber, state, selectedAnswer } = props;
 
   const selectedOption = question.options.find(
-    (o) => o.index === selectedAnswer
+    (o) => o.index === selectedAnswer,
   );
   const correctOption = question.options.find((o) => o.isCorrect);
   const showFeedback = state === "checked" || state === "review";
@@ -225,7 +225,7 @@ function CorrectnessBadge({ isCorrect }: CorrectnessBadgeProps) {
       className={cn(
         isCorrect
           ? "bg-emerald-500/10 text-success-foreground dark:text-emerald-400"
-          : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+          : "bg-rose-500/10 text-rose-600 dark:text-rose-400",
       )}
     >
       {isCorrect ? (
@@ -312,14 +312,14 @@ function OptionItem({
       onClick={isInteractive ? onSelect : undefined}
       className={cn(
         "w-full text-left p-4 rounded-lg border transition-all",
-        getOptionClasses()
+        getOptionClasses(),
       )}
     >
       <div className="flex items-start gap-3">
         <span
           className={cn(
             "shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-sm font-medium",
-            getIndicatorClasses()
+            getIndicatorClasses(),
           )}
         >
           {option.index}
@@ -328,7 +328,7 @@ function OptionItem({
           <div className="flex items-start justify-between gap-2">
             <span
               className={cn(
-                showFeedback && (isCorrect || isSelected) && "font-medium"
+                showFeedback && (isCorrect || isSelected) && "font-medium",
               )}
             >
               <FormattedText text={option.text} />
@@ -440,7 +440,9 @@ function CorrectExplanation({
                     className="text-xs text-muted-foreground italic border-l-2 border-blue-500/30 pl-2 cursor-pointer hover:bg-blue-500/10 rounded-r transition-colors flex items-start justify-between gap-2"
                     title="Click to copy"
                   >
-                    <span>"<FormattedText text={quote} />"</span>
+                    <span>
+                      "<FormattedText text={quote} />"
+                    </span>
                     {copiedIndex === index && (
                       <span className="text-emerald-500 flex items-center gap-1 shrink-0">
                         <Check className="h-3 w-3" />

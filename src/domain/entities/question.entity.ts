@@ -114,7 +114,7 @@ export class Question {
     if (!Object.values(QuestionType).includes(data.type as QuestionType)) {
       throw new InvariantViolationError(
         `Invalid question type: ${data.type}`,
-        "type"
+        "type",
       );
     }
 
@@ -152,33 +152,33 @@ export class Question {
     ) {
       throw new InvariantViolationError(
         "Stem is required and cannot be empty",
-        "stem"
+        "stem",
       );
     }
 
     if (!Object.values(QuestionType).includes(props.type)) {
       throw new InvariantViolationError(
         `Invalid question type: ${props.type}`,
-        "type"
+        "type",
       );
     }
 
     if (!Array.isArray(props.options) || props.options.length !== 4) {
       throw new InvariantViolationError(
         "Exactly 4 options are required",
-        "options"
+        "options",
       );
     }
 
     // Validate options have correct indices (A, B, C, D each exactly once)
     const indices = props.options.map((opt) => opt.index);
     const hasAllIndices = VALID_OPTION_INDICES.every((idx) =>
-      indices.includes(idx)
+      indices.includes(idx),
     );
     if (!hasAllIndices) {
       throw new InvariantViolationError(
         "Options must have indices A, B, C, and D",
-        "options"
+        "options",
       );
     }
 
@@ -187,7 +187,7 @@ export class Question {
     if (correctCount !== 1) {
       throw new InvariantViolationError(
         "Exactly one option must be marked as correct",
-        "options"
+        "options",
       );
     }
 
@@ -198,21 +198,24 @@ export class Question {
     ) {
       throw new InvariantViolationError(
         "Order index must be a non-negative integer",
-        "orderIndex"
+        "orderIndex",
       );
     }
 
     if (typeof props.correctExplanation !== "string") {
       throw new InvariantViolationError(
         "Correct explanation must be a string",
-        "correctExplanation"
+        "correctExplanation",
       );
     }
 
-    if (!Array.isArray(props.sourceQuotes) || !props.sourceQuotes.every(q => typeof q === "string")) {
+    if (
+      !Array.isArray(props.sourceQuotes) ||
+      !props.sourceQuotes.every((q) => typeof q === "string")
+    ) {
       throw new InvariantViolationError(
         "Source quotes must be an array of strings",
-        "sourceQuotes"
+        "sourceQuotes",
       );
     }
 
@@ -223,7 +226,7 @@ export class Question {
     ) {
       throw new InvariantViolationError(
         "Reference must be a non-negative integer",
-        "reference"
+        "reference",
       );
     }
   }
@@ -248,21 +251,21 @@ export class Question {
     ) {
       throw new InvariantViolationError(
         "Stem is required and cannot be empty",
-        "stem"
+        "stem",
       );
     }
 
     if (!Object.values(QuestionType).includes(props.type)) {
       throw new InvariantViolationError(
         `Invalid question type: ${props.type}`,
-        "type"
+        "type",
       );
     }
 
     if (!Array.isArray(props.options) || props.options.length !== 4) {
       throw new InvariantViolationError(
         "Exactly 4 options are required",
-        "options"
+        "options",
       );
     }
 
@@ -270,12 +273,12 @@ export class Question {
     const indices = props.options.map((opt) => opt.index);
     const uniqueIndices = new Set(indices);
     const hasAllIndices = VALID_OPTION_INDICES.every((idx) =>
-      uniqueIndices.has(idx)
+      uniqueIndices.has(idx),
     );
     if (uniqueIndices.size !== 4 || !hasAllIndices) {
       throw new InvariantViolationError(
         "Options must have indices A, B, C, and D exactly once",
-        "options"
+        "options",
       );
     }
 
@@ -284,7 +287,7 @@ export class Question {
     if (correctCount !== 1) {
       throw new InvariantViolationError(
         "Exactly one option must be marked as correct",
-        "options"
+        "options",
       );
     }
 
@@ -295,21 +298,24 @@ export class Question {
     ) {
       throw new InvariantViolationError(
         "Order index must be a non-negative integer",
-        "orderIndex"
+        "orderIndex",
       );
     }
 
     if (typeof props.correctExplanation !== "string") {
       throw new InvariantViolationError(
         "Correct explanation must be a string",
-        "correctExplanation"
+        "correctExplanation",
       );
     }
 
-    if (!Array.isArray(props.sourceQuotes) || !props.sourceQuotes.every(q => typeof q === "string")) {
+    if (
+      !Array.isArray(props.sourceQuotes) ||
+      !props.sourceQuotes.every((q) => typeof q === "string")
+    ) {
       throw new InvariantViolationError(
         "Source quotes must be an array of strings",
-        "sourceQuotes"
+        "sourceQuotes",
       );
     }
 
@@ -320,7 +326,7 @@ export class Question {
     ) {
       throw new InvariantViolationError(
         "Reference must be a non-negative integer",
-        "reference"
+        "reference",
       );
     }
   }
@@ -404,7 +410,7 @@ export class Question {
     if (!text || typeof text !== "string" || text.trim().length === 0) {
       throw new InvariantViolationError(
         "Stem is required and cannot be empty",
-        "stem"
+        "stem",
       );
     }
     this._stem = text.trim();
@@ -417,7 +423,7 @@ export class Question {
     if (typeof index !== "number" || index < 0 || !Number.isInteger(index)) {
       throw new InvariantViolationError(
         "Order index must be a non-negative integer",
-        "orderIndex"
+        "orderIndex",
       );
     }
     this._orderIndex = index;

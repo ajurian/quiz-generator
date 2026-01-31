@@ -266,7 +266,7 @@ describe("CreateQuizUseCase", () => {
       const input = createValidInput();
 
       await expect(useCase.execute(input)).rejects.toThrow(
-        ExternalServiceError
+        ExternalServiceError,
       );
     });
   });
@@ -280,7 +280,7 @@ describe("CreateQuizUseCase", () => {
       const input = createValidInput();
 
       await expect(useCase.execute(input)).rejects.toThrow(
-        ExternalServiceError
+        ExternalServiceError,
       );
     });
 

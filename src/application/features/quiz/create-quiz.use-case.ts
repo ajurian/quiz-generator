@@ -83,7 +83,7 @@ export class CreateQuizUseCase {
     } catch (error) {
       throw new ExternalServiceError(
         "File Storage",
-        error instanceof Error ? error : undefined
+        error instanceof Error ? error : undefined,
       );
     }
 
@@ -92,7 +92,7 @@ export class CreateQuizUseCase {
     try {
       generatedQuestions = await this.generateQuestionsWithFallback(
         uploadedFiles,
-        input.distribution
+        input.distribution,
       );
     } catch (error) {
       // Clean up uploaded files on failure
@@ -128,7 +128,7 @@ export class CreateQuizUseCase {
         correctExplanation: q.correctExplanation,
         sourceQuotes: q.sourceQuotes,
         reference: q.reference,
-      })
+      }),
     );
 
     // 6. Persist to database
@@ -144,7 +144,7 @@ export class CreateQuizUseCase {
    */
   private async generateQuestionsWithFallback(
     files: FileMetadata[],
-    distribution: QuizDistribution
+    distribution: QuizDistribution,
   ): Promise<GeneratedQuestionData[]> {
     const policy = QuizGenerationPolicy.forSync();
 
@@ -154,7 +154,7 @@ export class CreateQuizUseCase {
           files,
           distribution,
           model,
-        })
+        }),
       );
       return result.data;
     } catch (error) {
@@ -163,7 +163,7 @@ export class CreateQuizUseCase {
       }
       throw new ExternalServiceError(
         "AI Quiz Generator",
-        error instanceof Error ? error : undefined
+        error instanceof Error ? error : undefined,
       );
     }
   }

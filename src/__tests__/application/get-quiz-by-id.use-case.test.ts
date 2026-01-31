@@ -36,7 +36,7 @@ describe("GetQuizByIdUseCase", () => {
 
   const createMockQuiz = (
     visibility = QuizVisibility.PRIVATE,
-    userId = OWNER_ID
+    userId = OWNER_ID,
   ): Quiz => {
     const quiz = Quiz.create({
       id: QUIZ_ID,
@@ -155,7 +155,7 @@ describe("GetQuizByIdUseCase", () => {
 
     it("should return public quiz without authentication", async () => {
       mockQuizRepository.findById = mock(async () =>
-        createMockQuiz(QuizVisibility.PUBLIC)
+        createMockQuiz(QuizVisibility.PUBLIC),
       );
 
       const input: GetQuizByIdInput = {
@@ -171,7 +171,7 @@ describe("GetQuizByIdUseCase", () => {
 
     it("should return public quiz to any user", async () => {
       mockQuizRepository.findById = mock(async () =>
-        createMockQuiz(QuizVisibility.PUBLIC)
+        createMockQuiz(QuizVisibility.PUBLIC),
       );
 
       const input: GetQuizByIdInput = {

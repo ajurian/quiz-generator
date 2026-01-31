@@ -61,9 +61,9 @@ const questionSchema = z.array(
             .optional()
             .describe(
               "**REQUIRED IF** this option is incorrect, otherwise **OMIT**. " +
-                "Feedback for this incorrect option. **Independent Clause/s**"
+                "Feedback for this incorrect option. **Independent Clause/s**",
             ),
-        })
+        }),
       )
       .length(4),
 
@@ -74,16 +74,16 @@ const questionSchema = z.array(
       .array(z.string())
       .describe(
         "**Verbatim** evidence from the source material; " +
-          "word-for-word copies of sentences in the source material that support the claim in 'correctExplanation'."
+          "word-for-word copies of sentences in the source material that support the claim in 'correctExplanation'.",
       ),
     reference: z
       .number()
       .int()
       .nonnegative()
       .describe(
-        "The exact source material reference where the 'sourceQuotes' originated."
+        "The exact source material reference where the 'sourceQuotes' originated.",
       ),
-  })
+  }),
 );
 
 /**
@@ -119,7 +119,7 @@ export class GeminiQuizGeneratorService implements IAIQuizGenerator {
    * Implements fallback logic: tries primary model first, falls back to lite on quota error
    */
   async generateQuestions(
-    params: GenerateQuizParams
+    params: GenerateQuizParams,
   ): Promise<GeneratedQuestionData[]> {
     const geminiModel = mapAIModelToGeminiModel(params.model);
     try {
@@ -127,7 +127,7 @@ export class GeminiQuizGeneratorService implements IAIQuizGenerator {
     } catch (error) {
       if (this.isQuotaError(error)) {
         console.warn(
-          `Quota exceeded for ${geminiModel}, falling back to ${this.fallbackGeminiModel}`
+          `Quota exceeded for ${geminiModel}, falling back to ${this.fallbackGeminiModel}`,
         );
         return await this.generateWithModel(this.fallbackGeminiModel, params);
       }
@@ -140,7 +140,7 @@ export class GeminiQuizGeneratorService implements IAIQuizGenerator {
    * Implements fallback logic: tries primary model first, falls back to lite on quota error
    */
   async generateQuestionsStream(
-    params: StreamGenerateQuizParams
+    params: StreamGenerateQuizParams,
   ): Promise<GeneratedQuestionData[]> {
     const geminiModel = mapAIModelToGeminiModel(params.model);
     try {
@@ -148,11 +148,11 @@ export class GeminiQuizGeneratorService implements IAIQuizGenerator {
     } catch (error) {
       if (this.isQuotaError(error)) {
         console.warn(
-          `Quota exceeded for ${geminiModel}, falling back to ${this.fallbackGeminiModel}`
+          `Quota exceeded for ${geminiModel}, falling back to ${this.fallbackGeminiModel}`,
         );
         return await this.generateWithModelStream(
           this.fallbackGeminiModel,
-          params
+          params,
         );
       }
       throw error;
@@ -187,7 +187,7 @@ export class GeminiQuizGeneratorService implements IAIQuizGenerator {
    */
   private async generateWithModel(
     model: GeminiModel,
-    params: GenerateQuizParams
+    params: GenerateQuizParams,
   ): Promise<GeneratedQuestionData[]> {
     const { files, distribution } = params;
 
@@ -239,7 +239,7 @@ export class GeminiQuizGeneratorService implements IAIQuizGenerator {
    */
   private async generateWithModelStream(
     model: GeminiModel,
-    params: StreamGenerateQuizParams
+    params: StreamGenerateQuizParams,
   ): Promise<GeneratedQuestionData[]> {
     const { files, distribution, onProgress } = params;
 
@@ -389,15 +389,15 @@ export class GeminiQuizGeneratorService implements IAIQuizGenerator {
 
     const directQuestionLazyNumber = lazyNumbering(
       1,
-      distribution.directQuestion
+      distribution.directQuestion,
     );
     const twoStatementCompoundLazyNumber = lazyNumbering(
       1 + distribution.directQuestion,
-      distribution.twoStatementCompound
+      distribution.twoStatementCompound,
     );
     const contextualLazyNumber = lazyNumbering(
       1 + distribution.directQuestion + distribution.twoStatementCompound,
-      distribution.contextual
+      distribution.contextual,
     );
 
     const prompt = `
@@ -468,7 +468,7 @@ D) Neither statement is true.
    * Validates and transforms the parsed response
    */
   private validateAndTransform(
-    data: GeneratedQuestionData[]
+    data: GeneratedQuestionData[],
   ): GeneratedQuestionData[] {
     return data.map((q: GeneratedQuestionData, index: number) => ({
       orderIndex: q.orderIndex ?? index,
@@ -480,7 +480,7 @@ D) Neither statement is true.
           text: opt.text,
           isCorrect: opt.isCorrect,
           errorRationale: opt.errorRationale,
-        })
+        }),
       ),
       correctExplanation: q.correctExplanation,
       sourceQuotes: q.sourceQuotes,

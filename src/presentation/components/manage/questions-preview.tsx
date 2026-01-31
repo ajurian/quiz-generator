@@ -136,7 +136,7 @@ function OptionPreview({ option }: OptionPreviewProps) {
         "p-4 rounded-lg border transition-all",
         option.isCorrect
           ? "border-emerald-500 bg-emerald-500/5"
-          : "border-border bg-muted/30"
+          : "border-border bg-muted/30",
       )}
     >
       <div className="flex items-start gap-3">
@@ -145,7 +145,7 @@ function OptionPreview({ option }: OptionPreviewProps) {
             "shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-sm font-medium",
             option.isCorrect
               ? "bg-emerald-500 text-white"
-              : "bg-muted text-muted-foreground"
+              : "bg-muted text-muted-foreground",
           )}
         >
           {option.index}
@@ -260,7 +260,9 @@ function CorrectExplanation({
                     className="text-xs text-muted-foreground italic border-l-2 border-blue-500/30 pl-2 cursor-pointer hover:bg-blue-500/10 rounded-r transition-colors flex items-start justify-between gap-2"
                     title="Click to copy"
                   >
-                    <span>"<FormattedText text={quote} />"</span>
+                    <span>
+                      "<FormattedText text={quote} />"
+                    </span>
                     {copiedIndex === index && (
                       <span className="text-emerald-500 flex items-center gap-1 shrink-0">
                         <Check className="h-3 w-3" />

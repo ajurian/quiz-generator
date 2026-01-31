@@ -88,14 +88,14 @@ describe("GeminiQuizGeneratorService", () => {
       // Mock the private method by spying on the client
       const generateWithModelSpy = spyOn(
         service as unknown as { generateWithModel: () => Promise<unknown> },
-        "generateWithModel" as never
+        "generateWithModel" as never,
       ).mockResolvedValue(mockQuestions);
 
       const result = await service.generateQuestions(params);
 
       expect(result).toHaveLength(1);
       expect(result[0]!.stem).toBe(
-        "What is the primary function of mitochondria?"
+        "What is the primary function of mitochondria?",
       );
       expect(result[0]!.type).toBe(QuestionType.DIRECT_QUESTION);
       expect(result[0]!.options).toHaveLength(4);
@@ -134,7 +134,7 @@ describe("GeminiQuizGeneratorService", () => {
       };
 
       await expect(service.generateQuestions(params)).rejects.toThrow(
-        "Network error"
+        "Network error",
       );
     });
   });
@@ -169,7 +169,7 @@ describe("GeminiQuizGeneratorService", () => {
       ).client = {
         models: {
           generateContent: mock(() =>
-            Promise.reject(new Error("Quota exceeded"))
+            Promise.reject(new Error("Quota exceeded")),
           ),
         },
       } as unknown as typeof service extends { client: infer C } ? C : never;
@@ -189,13 +189,13 @@ describe("GeminiQuizGeneratorService", () => {
       ).client = {
         models: {
           generateContent: mock(() =>
-            Promise.reject(new Error("Invalid API key"))
+            Promise.reject(new Error("Invalid API key")),
           ),
         },
       } as unknown as typeof service extends { client: infer C } ? C : never;
 
       await expect(service.validateQuota(AIModel.PRIMARY)).rejects.toThrow(
-        "Invalid API key"
+        "Invalid API key",
       );
     });
   });
@@ -208,16 +208,16 @@ describe("GeminiQuizGeneratorService", () => {
       ).isQuotaError;
 
       expect(isQuotaError.call(service, new Error("Quota exceeded"))).toBe(
-        true
+        true,
       );
       expect(isQuotaError.call(service, new Error("Rate limit reached"))).toBe(
-        true
+        true,
       );
       expect(isQuotaError.call(service, new Error("Resource exhausted"))).toBe(
-        true
+        true,
       );
       expect(
-        isQuotaError.call(service, new Error("Error 429: Too many requests"))
+        isQuotaError.call(service, new Error("Error 429: Too many requests")),
       ).toBe(true);
     });
 
@@ -228,10 +228,10 @@ describe("GeminiQuizGeneratorService", () => {
       ).isQuotaError;
 
       expect(isQuotaError.call(service, new Error("Network error"))).toBe(
-        false
+        false,
       );
       expect(isQuotaError.call(service, new Error("Invalid API key"))).toBe(
-        false
+        false,
       );
       expect(isQuotaError.call(service, new Error("Server error"))).toBe(false);
     });

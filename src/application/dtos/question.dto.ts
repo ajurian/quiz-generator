@@ -55,7 +55,7 @@ export function toQuestionResponseDTO(
     sourceQuotes: readonly string[];
     reference: number;
   },
-  sourceTitle?: string
+  sourceTitle?: string,
 ): QuestionResponseDTO {
   return {
     id: question.id,

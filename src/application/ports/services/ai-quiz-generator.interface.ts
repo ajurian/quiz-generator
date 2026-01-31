@@ -73,7 +73,7 @@ export interface IAIQuizGenerator {
    * @returns Array of generated question data (plain objects, not entities)
    */
   generateQuestions(
-    params: GenerateQuizParams
+    params: GenerateQuizParams,
   ): Promise<GeneratedQuestionData[]>;
 
   /**
@@ -82,7 +82,7 @@ export interface IAIQuizGenerator {
    * @returns Array of generated question data (plain objects, not entities)
    */
   generateQuestionsStream(
-    params: StreamGenerateQuizParams
+    params: StreamGenerateQuizParams,
   ): Promise<GeneratedQuestionData[]>;
 
   /**

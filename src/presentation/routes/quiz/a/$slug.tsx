@@ -32,7 +32,7 @@ export const Route = createFileRoute("/quiz/a/$slug")({
 
     // Use cached quiz details
     const quizDetails = await context.queryClient.ensureQueryData(
-      quizBySlugQueryOptions(params.slug, userId)
+      quizBySlugQueryOptions(params.slug, userId),
     );
 
     return { attemptResult: result, quizDetails, userId };
@@ -61,7 +61,7 @@ function AttemptQuizPage() {
 
   // Show dialog only if in-progress with existing answers
   const [showResumeDialog, setShowResumeDialog] = React.useState(
-    isInProgressAttempt && hasAnswers && !resume
+    isInProgressAttempt && hasAnswers && !resume,
   );
 
   const forceStartMutation = useMutation({
@@ -81,11 +81,7 @@ function AttemptQuizPage() {
           queryKey: attemptKeys.list(slug, userId),
         });
       }
-      router.navigate({
-        to: "/quiz/a/$slug",
-        params: { slug },
-        replace: true,
-      });
+      router.invalidate();
     },
     onError: (error) => {
       toast.error("Failed to start attempt", {
@@ -105,7 +101,7 @@ function AttemptQuizPage() {
     },
     onSuccess: async () => {
       toast.success("Starting fresh!");
-      setShowResumeDialog(false);
+      router.invalidate();
     },
     onError: (error) => {
       toast.error("Failed to reset attempt", {

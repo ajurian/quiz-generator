@@ -3,6 +3,7 @@
 
 export {
   getUserQuizzes,
+  getPublicQuizzes,
   getQuizById,
   createQuiz,
   shareQuiz,

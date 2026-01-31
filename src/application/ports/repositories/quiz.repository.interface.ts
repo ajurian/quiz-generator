@@ -1,4 +1,4 @@
-import type { Quiz } from "@/domain";
+import type { Quiz, QuizVisibility } from "@/domain";
 
 /**
  * Pagination parameters for list queries
@@ -6,6 +6,20 @@ import type { Quiz } from "@/domain";
 export interface PaginationParams {
   page: number;
   limit: number;
+}
+
+/**
+ * Filter parameters for user quiz queries
+ */
+export interface UserQuizFilterParams {
+  visibility?: QuizVisibility;
+}
+
+/**
+ * Filter parameters for public quiz queries
+ */
+export interface PublicQuizFilterParams {
+  search?: string;
 }
 
 /**
@@ -48,17 +62,21 @@ export interface IQuizRepository {
   findByIds(ids: string[]): Promise<Quiz[]>;
 
   /**
-   * Finds all quizzes owned by a specific user with pagination
+   * Finds all quizzes owned by a specific user with pagination and optional filters
    */
   findByUserId(
     userId: string,
-    pagination: PaginationParams
+    pagination: PaginationParams,
+    filters?: UserQuizFilterParams,
   ): Promise<PaginatedResult<Quiz>>;
 
   /**
-   * Finds all public quizzes with pagination (for discovery)
+   * Finds all public quizzes with pagination and optional search (for discovery)
    */
-  findPublic(pagination: PaginationParams): Promise<PaginatedResult<Quiz>>;
+  findPublic(
+    pagination: PaginationParams,
+    filters?: PublicQuizFilterParams,
+  ): Promise<PaginatedResult<Quiz>>;
 
   /**
    * Updates an existing quiz

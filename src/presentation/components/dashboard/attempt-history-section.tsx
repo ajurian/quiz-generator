@@ -1,5 +1,4 @@
 import { Card, CardContent } from "@/presentation/components/ui/card";
-import { Badge } from "@/presentation/components/ui/badge";
 import { History } from "lucide-react";
 import { AttemptHistoryCard } from "./attempt-history-card";
 import type { AttemptHistoryItemDTO } from "@/application";
@@ -11,22 +10,6 @@ interface AttemptHistorySectionProps {
 export function AttemptHistorySection({ items }: AttemptHistorySectionProps) {
   return (
     <div>
-      <div className="mb-6">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-xl font-display font-semibold tracking-tight">
-              Attempt History
-            </h2>
-            <Badge variant="secondary" className="text-sm">
-              {items.length} {items.length === 1 ? "quiz" : "quizzes"}
-            </Badge>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Quizzes you've attempted recently
-          </p>
-        </div>
-      </div>
-
       {items.length === 0 ? (
         <EmptyAttemptHistory />
       ) : (

@@ -16,6 +16,7 @@ import {
   Zap,
   Shield,
   ArrowRight,
+  Compass,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -38,6 +39,12 @@ function HomePage() {
               </span>
             </div>
             <div className="flex items-center gap-3">
+              <Link to="/explore">
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <Compass className="h-4 w-4" />
+                  Explore
+                </Button>
+              </Link>
               <Link to="/dashboard">
                 <Button variant="ghost" size="sm">
                   Dashboard

@@ -20,19 +20,40 @@ const paginationSchema = z.object({
   limit: z.number().int().min(1).max(100).default(10),
 });
 
+const visibilitySchema = z.enum(QuizVisibility).optional();
+
 // GET User's Quizzes
 export const getUserQuizzes = createServerFn({ method: "GET" })
   .inputValidator(
     z.object({
       userId: z.uuidv7(),
       pagination: paginationSchema.optional(),
-    })
+      visibility: visibilitySchema,
+    }),
   )
   .handler(async ({ data }) => {
     const container = getContainer();
     const result = await container.useCases.getUserQuizzes.execute({
       userId: data.userId,
       pagination: data.pagination,
+      visibility: data.visibility,
+    });
+    return result;
+  });
+
+// GET Public Quizzes (for explore page - no auth required)
+export const getPublicQuizzes = createServerFn({ method: "GET" })
+  .inputValidator(
+    z.object({
+      pagination: paginationSchema.optional(),
+      search: z.string().max(200).optional(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const container = getContainer();
+    const result = await container.useCases.getPublicQuizzes.execute({
+      pagination: data.pagination,
+      search: data.search,
     });
     return result;
   });
@@ -43,7 +64,7 @@ export const getQuizById = createServerFn({ method: "GET" })
     z.object({
       quizId: z.uuidv7(),
       userId: z.uuidv7().nullable().optional(),
-    })
+    }),
   )
   .handler(async ({ data }) => {
     const container = getContainer();
@@ -88,7 +109,7 @@ export const createQuiz = createServerFn({ method: "POST" })
         .optional()
         .default(QuizVisibility.PRIVATE),
       files: z.array(serializableFileSchema),
-    })
+    }),
   )
   .handler(async ({ data }) => {
     const container = getContainer();
@@ -112,7 +133,7 @@ export const shareQuiz = createServerFn({ method: "POST" })
     z.object({
       quizId: z.uuidv7(),
       userId: z.uuidv7(),
-    })
+    }),
   )
   .handler(async ({ data }) => {
     const container = getContainer();
@@ -129,7 +150,7 @@ export const deleteQuiz = createServerFn({ method: "POST" })
     z.object({
       quizId: z.uuidv7(),
       userId: z.uuidv7(),
-    })
+    }),
   )
   .handler(async ({ data }) => {
     const container = getContainer();
@@ -156,7 +177,7 @@ export const getPresignedUploadUrls = createServerFn({ method: "POST" })
       userId: z.uuidv7(),
       quizSlug: z.string().min(1).max(255),
       files: z.array(fileInfoSchema).min(1).max(10),
-    })
+    }),
   )
   .handler(async ({ data }) => {
     const container = getContainer();
@@ -186,9 +207,9 @@ export const startQuizGeneration = createServerFn({ method: "POST" })
           key: z.string().min(1),
           mimeType: z.string().min(1),
           sizeBytes: z.number().int().positive(),
-        })
+        }),
       ),
-    })
+    }),
   )
   .handler(async ({ data }) => {
     console.log("[Development] Creating quiz record...");
@@ -210,7 +231,7 @@ export const startQuizGeneration = createServerFn({ method: "POST" })
         distribution: data.distribution,
         visibility: data.visibility,
         files: data.files,
-      })
+      }),
     );
 
     // Return immediately so client can redirect to dashboard
@@ -225,7 +246,7 @@ export const getCachedQuizEvents = createServerFn({ method: "GET" })
   .inputValidator(
     z.object({
       userId: z.uuidv7(),
-    })
+    }),
   )
   .handler(async ({ data }) => {
     const container = getContainer();

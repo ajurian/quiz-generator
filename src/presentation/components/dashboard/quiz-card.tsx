@@ -16,10 +16,12 @@ import {
   Play,
   Loader2,
   AlertCircle,
+  Share2,
 } from "lucide-react";
 import { QuizVisibility, QuizStatus } from "@/domain";
 import { ShareQuizDialog } from "../quiz/share-quiz-dialog";
 import { getGenerationFailureMessage } from "@/presentation/lib";
+import { toast } from "sonner";
 
 interface QuizCardProps {
   quiz: {
@@ -37,15 +39,22 @@ interface QuizCardProps {
     questionsGenerated: number;
     totalQuestions: number;
   };
-  onVisibilityChange: (quizId: string, visibility: QuizVisibility) => void;
-  isPendingVisibility: boolean;
+  /**
+   * Mode determines which actions are available:
+   * - "owner": Full control (visibility change, edit, delete) - default
+   * - "explore": Limited actions (take, share only) for public quiz discovery
+   */
+  mode?: "owner" | "explore";
+  onVisibilityChange?: (quizId: string, visibility: QuizVisibility) => void;
+  isPendingVisibility?: boolean;
 }
 
 export function QuizCard({
   quiz,
   generatingProgress,
+  mode = "owner",
   onVisibilityChange,
-  isPendingVisibility,
+  isPendingVisibility = false,
 }: QuizCardProps) {
   const navigate = useNavigate();
 
@@ -63,8 +72,12 @@ export function QuizCard({
 
   const handleCardClick = () => {
     if (isGenerating || isFailed) return;
-    console.log("?");
-    navigate({ to: "/quiz/m/$slug", params: { slug: quiz.slug } });
+    // In explore mode, clicking card takes the quiz; in owner mode, it manages
+    if (mode === "explore") {
+      navigate({ to: "/quiz/a/$slug", params: { slug: quiz.slug } });
+    } else {
+      navigate({ to: "/quiz/m/$slug", params: { slug: quiz.slug } });
+    }
   };
 
   const handleTakeClick = (e: React.MouseEvent) => {
@@ -73,8 +86,15 @@ export function QuizCard({
     navigate({ to: "/quiz/a/$slug", params: { slug: quiz.slug } });
   };
 
+  const handleShareClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const quizUrl = `${window.location.origin}/quiz/a/${quiz.slug}`;
+    navigator.clipboard.writeText(quizUrl);
+    toast.success("Link copied to clipboard!");
+  };
+
   const handleVisibilityChange = (visibility: QuizVisibility) => {
-    onVisibilityChange(quiz.id, visibility);
+    onVisibilityChange?.(quiz.id, visibility);
   };
 
   return (
@@ -190,16 +210,44 @@ export function QuizCard({
           {/* Actions - only show for ready quizzes */}
           {isReady && (
             <div className="flex items-center gap-1">
-              <ShareQuizDialog
-                quizSlug={quiz.slug}
-                currentVisibility={quiz.visibility}
-                onVisibilityChange={handleVisibilityChange}
-                isPending={isPendingVisibility}
-              />
-              <Button size="sm" onClick={handleTakeClick} className="gap-1.5">
-                <Play className="h-4 w-4" />
-                Take
-              </Button>
+              {mode === "owner" ? (
+                <>
+                  <ShareQuizDialog
+                    quizSlug={quiz.slug}
+                    currentVisibility={quiz.visibility}
+                    onVisibilityChange={handleVisibilityChange}
+                    isPending={isPendingVisibility}
+                  />
+                  <Button
+                    size="sm"
+                    onClick={handleTakeClick}
+                    className="gap-1.5"
+                  >
+                    <Play className="h-4 w-4" />
+                    Take
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleShareClick}
+                    className="gap-1.5"
+                  >
+                    <Share2 className="h-4 w-4" />
+                    Share
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleTakeClick}
+                    className="gap-1.5"
+                  >
+                    <Play className="h-4 w-4" />
+                    Take
+                  </Button>
+                </>
+              )}
             </div>
           )}
         </div>

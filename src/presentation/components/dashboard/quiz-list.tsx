@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/presentation/components/ui/button";
 import { Card, CardContent } from "@/presentation/components/ui/card";
-import { Badge } from "@/presentation/components/ui/badge";
 import { QuizCard } from "@/presentation/components/dashboard/quiz-card";
 import { FileText, Sparkles } from "lucide-react";
 import type { QuizResponseDTO } from "@/application";
@@ -23,22 +22,6 @@ export function QuizList({
 }: QuizListProps) {
   return (
     <div>
-      <div className="mb-6">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-xl font-display font-semibold tracking-tight">
-              Created
-            </h2>
-            <Badge variant="secondary" className="text-sm">
-              {quizzes.length} {quizzes.length === 1 ? "quiz" : "quizzes"}
-            </Badge>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            View and manage all your created quizzes
-          </p>
-        </div>
-      </div>
-
       {quizzes.length === 0 ? (
         <EmptyQuizList />
       ) : (

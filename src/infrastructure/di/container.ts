@@ -19,6 +19,7 @@ import { createAuth, type Auth } from "../auth";
 import {
   CreateQuizUseCase,
   GetUserQuizzesUseCase,
+  GetPublicQuizzesUseCase,
   GetQuizByIdUseCase,
   ShareQuizUseCase,
   DeleteQuizUseCase,
@@ -78,6 +79,7 @@ export interface Services {
 export interface UseCases {
   createQuiz: CreateQuizUseCase;
   getUserQuizzes: GetUserQuizzesUseCase;
+  getPublicQuizzes: GetPublicQuizzesUseCase;
   getQuizById: GetQuizByIdUseCase;
   shareQuiz: ShareQuizUseCase;
   deleteQuiz: DeleteQuizUseCase;
@@ -143,7 +145,7 @@ export function createAppContainer(config: RuntimeConfig): AppContainer {
   const questionRepository = new DrizzleQuestionRepository(database);
   const attemptRepository = new DrizzleAttemptRepository(database);
   const sourceMaterialRepository = new DrizzleSourceMaterialRepository(
-    database
+    database,
   );
 
   // Services (implementing ports)
@@ -157,7 +159,7 @@ export function createAppContainer(config: RuntimeConfig): AppContainer {
       secretAccessKey: config.s3.secretAccessKey,
       bucketName: config.s3.bucketName,
     },
-    idGenerator
+    idGenerator,
   );
   const cache = new RedisCacheService({
     url: config.redis.url,
@@ -190,6 +192,8 @@ export function createAppContainer(config: RuntimeConfig): AppContainer {
   });
 
   const getUserQuizzes = new GetUserQuizzesUseCase({ quizRepository });
+
+  const getPublicQuizzes = new GetPublicQuizzesUseCase({ quizRepository });
 
   const getQuizById = new GetQuizByIdUseCase({
     quizRepository,
@@ -278,6 +282,7 @@ export function createAppContainer(config: RuntimeConfig): AppContainer {
     useCases: {
       createQuiz,
       getUserQuizzes,
+      getPublicQuizzes,
       getQuizById,
       shareQuiz,
       deleteQuiz,

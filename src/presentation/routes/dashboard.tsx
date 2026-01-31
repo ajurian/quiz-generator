@@ -18,7 +18,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/presentation/components/ui/dropdown-menu";
-import { Brain, Home, LogOut, Settings, User, Sparkles } from "lucide-react";
+import {
+  Brain,
+  Home,
+  LogOut,
+  Settings,
+  User,
+  Sparkles,
+  FileText,
+  History,
+  Compass,
+} from "lucide-react";
 import { signOut } from "@/presentation/lib/auth-client";
 import { ThemeToggle } from "@/presentation/components/shared/theme-toggle";
 
@@ -63,9 +73,10 @@ function DashboardLayout() {
                 Quiz Generator
               </span>
             </Link>
-            <nav className="hidden md:flex items-center">
+            <nav className="hidden md:flex items-center gap-1">
               <Link
                 to="/dashboard"
+                activeOptions={{ exact: true }}
                 activeProps={{ className: "text-foreground bg-muted" }}
                 inactiveProps={{
                   className:
@@ -74,7 +85,43 @@ function DashboardLayout() {
                 className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
               >
                 <Home className="h-4 w-4" />
-                Dashboard
+                Overview
+              </Link>
+              <Link
+                to="/dashboard/created"
+                activeProps={{ className: "text-foreground bg-muted" }}
+                inactiveProps={{
+                  className:
+                    "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                }}
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+              >
+                <FileText className="h-4 w-4" />
+                Created
+              </Link>
+              <Link
+                to="/dashboard/taken"
+                activeProps={{ className: "text-foreground bg-muted" }}
+                inactiveProps={{
+                  className:
+                    "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                }}
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+              >
+                <History className="h-4 w-4" />
+                Taken
+              </Link>
+              <Link
+                to="/explore"
+                activeProps={{ className: "text-foreground bg-muted" }}
+                inactiveProps={{
+                  className:
+                    "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                }}
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+              >
+                <Compass className="h-4 w-4" />
+                Explore
               </Link>
             </nav>
           </div>

@@ -12,6 +12,12 @@ export {
 } from "./get-user-quizzes.use-case";
 
 export {
+  GetPublicQuizzesUseCase,
+  type GetPublicQuizzesInput,
+  type GetPublicQuizzesUseCaseDeps,
+} from "./get-public-quizzes.use-case";
+
+export {
   GetQuizByIdUseCase,
   type GetQuizByIdInput,
   type GetQuizByIdOutput,

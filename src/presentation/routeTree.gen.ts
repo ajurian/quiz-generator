@@ -10,10 +10,13 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as QuizRouteImport } from './routes/quiz'
+import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as QuizNewRouteImport } from './routes/quiz/new'
+import { Route as DashboardTakenRouteImport } from './routes/dashboard/taken'
+import { Route as DashboardCreatedRouteImport } from './routes/dashboard/created'
 import { Route as AuthSignupRouteImport } from './routes/auth/signup'
 import { Route as AuthSigninRouteImport } from './routes/auth/signin'
 import { Route as ApiQuizEventsIndexRouteImport } from './routes/api/quiz-events/index'
@@ -26,6 +29,11 @@ import { Route as QuizHSlugAttemptSlugRouteImport } from './routes/quiz/h/$slug/
 const QuizRoute = QuizRouteImport.update({
   id: '/quiz',
   path: '/quiz',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExploreRoute = ExploreRouteImport.update({
+  id: '/explore',
+  path: '/explore',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -47,6 +55,16 @@ const QuizNewRoute = QuizNewRouteImport.update({
   id: '/new',
   path: '/new',
   getParentRoute: () => QuizRoute,
+} as any)
+const DashboardTakenRoute = DashboardTakenRouteImport.update({
+  id: '/taken',
+  path: '/taken',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardCreatedRoute = DashboardCreatedRouteImport.update({
+  id: '/created',
+  path: '/created',
+  getParentRoute: () => DashboardRoute,
 } as any)
 const AuthSignupRoute = AuthSignupRouteImport.update({
   id: '/auth/signup',
@@ -92,9 +110,12 @@ const QuizHSlugAttemptSlugRoute = QuizHSlugAttemptSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/explore': typeof ExploreRoute
   '/quiz': typeof QuizRouteWithChildren
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
+  '/dashboard/created': typeof DashboardCreatedRoute
+  '/dashboard/taken': typeof DashboardTakenRoute
   '/quiz/new': typeof QuizNewRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -106,9 +127,12 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/explore': typeof ExploreRoute
   '/quiz': typeof QuizRouteWithChildren
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
+  '/dashboard/created': typeof DashboardCreatedRoute
+  '/dashboard/taken': typeof DashboardTakenRoute
   '/quiz/new': typeof QuizNewRoute
   '/dashboard': typeof DashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -122,9 +146,12 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/explore': typeof ExploreRoute
   '/quiz': typeof QuizRouteWithChildren
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
+  '/dashboard/created': typeof DashboardCreatedRoute
+  '/dashboard/taken': typeof DashboardTakenRoute
   '/quiz/new': typeof QuizNewRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -139,9 +166,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
+    | '/explore'
     | '/quiz'
     | '/auth/signin'
     | '/auth/signup'
+    | '/dashboard/created'
+    | '/dashboard/taken'
     | '/quiz/new'
     | '/dashboard/'
     | '/api/auth/$'
@@ -153,9 +183,12 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/explore'
     | '/quiz'
     | '/auth/signin'
     | '/auth/signup'
+    | '/dashboard/created'
+    | '/dashboard/taken'
     | '/quiz/new'
     | '/dashboard'
     | '/api/auth/$'
@@ -168,9 +201,12 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/dashboard'
+    | '/explore'
     | '/quiz'
     | '/auth/signin'
     | '/auth/signup'
+    | '/dashboard/created'
+    | '/dashboard/taken'
     | '/quiz/new'
     | '/dashboard/'
     | '/api/auth/$'
@@ -184,6 +220,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRouteWithChildren
+  ExploreRoute: typeof ExploreRoute
   QuizRoute: typeof QuizRouteWithChildren
   AuthSigninRoute: typeof AuthSigninRoute
   AuthSignupRoute: typeof AuthSignupRoute
@@ -198,6 +235,13 @@ declare module '@tanstack/react-router' {
       path: '/quiz'
       fullPath: '/quiz'
       preLoaderRoute: typeof QuizRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/explore': {
+      id: '/explore'
+      path: '/explore'
+      fullPath: '/explore'
+      preLoaderRoute: typeof ExploreRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -227,6 +271,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/quiz/new'
       preLoaderRoute: typeof QuizNewRouteImport
       parentRoute: typeof QuizRoute
+    }
+    '/dashboard/taken': {
+      id: '/dashboard/taken'
+      path: '/taken'
+      fullPath: '/dashboard/taken'
+      preLoaderRoute: typeof DashboardTakenRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/created': {
+      id: '/dashboard/created'
+      path: '/created'
+      fullPath: '/dashboard/created'
+      preLoaderRoute: typeof DashboardCreatedRouteImport
+      parentRoute: typeof DashboardRoute
     }
     '/auth/signup': {
       id: '/auth/signup'
@@ -288,10 +346,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface DashboardRouteChildren {
+  DashboardCreatedRoute: typeof DashboardCreatedRoute
+  DashboardTakenRoute: typeof DashboardTakenRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardCreatedRoute: DashboardCreatedRoute,
+  DashboardTakenRoute: DashboardTakenRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
 
@@ -320,6 +382,7 @@ const QuizRouteWithChildren = QuizRoute._addFileChildren(QuizRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRouteWithChildren,
+  ExploreRoute: ExploreRoute,
   QuizRoute: QuizRouteWithChildren,
   AuthSigninRoute: AuthSigninRoute,
   AuthSignupRoute: AuthSignupRoute,

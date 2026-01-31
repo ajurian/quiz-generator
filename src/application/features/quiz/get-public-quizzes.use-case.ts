@@ -7,53 +7,37 @@ import {
   type PaginatedResponseDTO,
 } from "../../dtos";
 import { ValidationError } from "../../errors";
-import { QuizVisibility, isQuizVisibility } from "@/domain";
 
 /**
- * Input for GetUserQuizzesUseCase
+ * Input for GetPublicQuizzesUseCase
  */
-export interface GetUserQuizzesInput {
-  userId: string;
+export interface GetPublicQuizzesInput {
   pagination?: Partial<PaginationInput>;
-  visibility?: QuizVisibility;
+  search?: string;
 }
 
 /**
- * Dependencies for GetUserQuizzesUseCase
+ * Dependencies for GetPublicQuizzesUseCase
  */
-export interface GetUserQuizzesUseCaseDeps {
+export interface GetPublicQuizzesUseCaseDeps {
   quizRepository: IQuizRepository;
 }
 
 /**
- * Use case for getting all quizzes owned by a user
+ * Use case for getting all public quizzes for discovery
  *
  * Flow:
  * 1. Validate input
- * 2. Query repository with pagination and optional visibility filter
+ * 2. Query repository with pagination and optional search filter
  * 3. Transform to response DTOs
  */
-export class GetUserQuizzesUseCase {
-  constructor(private readonly deps: GetUserQuizzesUseCaseDeps) {}
+export class GetPublicQuizzesUseCase {
+  constructor(private readonly deps: GetPublicQuizzesUseCaseDeps) {}
 
   async execute(
-    input: GetUserQuizzesInput,
+    input: GetPublicQuizzesInput,
   ): Promise<PaginatedResponseDTO<QuizResponseDTO>> {
-    // 1. Validate input
-    if (!input.userId || typeof input.userId !== "string") {
-      throw new ValidationError("User ID is required", {
-        userId: ["User ID is required"],
-      });
-    }
-
-    // Validate visibility if provided
-    if (input.visibility !== undefined && !isQuizVisibility(input.visibility)) {
-      throw new ValidationError("Invalid visibility value", {
-        visibility: ["Visibility must be one of: private, unlisted, public"],
-      });
-    }
-
-    // Validate and apply default pagination
+    // 1. Validate and apply default pagination
     const paginationResult = paginationInputSchema.safeParse(
       input.pagination ?? {},
     );
@@ -71,14 +55,21 @@ export class GetUserQuizzesUseCase {
 
     const pagination = paginationResult.data;
 
-    // 2. Query repository with optional visibility filter
-    const result = await this.deps.quizRepository.findByUserId(
-      input.userId,
+    // Validate search if provided
+    const search = input.search?.trim();
+    if (search !== undefined && search.length > 200) {
+      throw new ValidationError("Search query is too long", {
+        search: ["Search query must be 200 characters or less"],
+      });
+    }
+
+    // 2. Query repository with optional search filter
+    const result = await this.deps.quizRepository.findPublic(
       {
         page: pagination.page,
         limit: pagination.limit,
       },
-      input.visibility ? { visibility: input.visibility } : undefined,
+      search ? { search } : undefined,
     );
 
     // 3. Transform to response DTOs

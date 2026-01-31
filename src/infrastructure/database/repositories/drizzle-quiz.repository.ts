@@ -1,8 +1,10 @@
-import { eq, desc, count, inArray } from "drizzle-orm";
+import { eq, desc, count, inArray, and, ilike } from "drizzle-orm";
 import type {
   IQuizRepository,
   PaginationParams,
   PaginatedResult,
+  UserQuizFilterParams,
+  PublicQuizFilterParams,
 } from "@/application";
 import { Quiz, QuizVisibility, QuizStatus } from "@/domain";
 import type { DrizzleDatabase } from "../connection";
@@ -95,20 +97,28 @@ export class DrizzleQuizRepository implements IQuizRepository {
   }
 
   /**
-   * Finds all quizzes owned by a specific user with pagination
+   * Finds all quizzes owned by a specific user with pagination and optional filters
    */
   async findByUserId(
     userId: string,
-    pagination: PaginationParams
+    pagination: PaginationParams,
+    filters?: UserQuizFilterParams,
   ): Promise<PaginatedResult<Quiz>> {
     const { page, limit } = pagination;
     const offset = (page - 1) * limit;
+
+    // Build where conditions
+    const conditions = [eq(quizzes.userId, userId)];
+    if (filters?.visibility) {
+      conditions.push(eq(quizzes.visibility, filters.visibility));
+    }
+    const whereClause = and(...conditions);
 
     // Get total count
     const [countResult] = await this.db
       .select({ total: count() })
       .from(quizzes)
-      .where(eq(quizzes.userId, userId));
+      .where(whereClause);
 
     const total = countResult?.total ?? 0;
 
@@ -116,7 +126,7 @@ export class DrizzleQuizRepository implements IQuizRepository {
     const results = await this.db
       .select()
       .from(quizzes)
-      .where(eq(quizzes.userId, userId))
+      .where(whereClause)
       .orderBy(desc(quizzes.createdAt))
       .limit(limit)
       .offset(offset);
@@ -133,19 +143,30 @@ export class DrizzleQuizRepository implements IQuizRepository {
   }
 
   /**
-   * Finds all public quizzes with pagination (for discovery)
+   * Finds all public quizzes with pagination and optional search (for discovery)
    */
   async findPublic(
-    pagination: PaginationParams
+    pagination: PaginationParams,
+    filters?: PublicQuizFilterParams,
   ): Promise<PaginatedResult<Quiz>> {
     const { page, limit } = pagination;
     const offset = (page - 1) * limit;
+
+    // Build where conditions - only public and ready quizzes
+    const conditions = [
+      eq(quizzes.visibility, QuizVisibility.PUBLIC),
+      eq(quizzes.status, QuizStatus.READY),
+    ];
+    if (filters?.search) {
+      conditions.push(ilike(quizzes.title, `%${filters.search}%`));
+    }
+    const whereClause = and(...conditions);
 
     // Get total count of public quizzes
     const [countResult] = await this.db
       .select({ total: count() })
       .from(quizzes)
-      .where(eq(quizzes.visibility, QuizVisibility.PUBLIC));
+      .where(whereClause);
 
     const total = countResult?.total ?? 0;
 
@@ -153,7 +174,7 @@ export class DrizzleQuizRepository implements IQuizRepository {
     const results = await this.db
       .select()
       .from(quizzes)
-      .where(eq(quizzes.visibility, QuizVisibility.PUBLIC))
+      .where(whereClause)
       .orderBy(desc(quizzes.createdAt))
       .limit(limit)
       .offset(offset);

@@ -15,6 +15,13 @@
       "when": 1768624994909,
       "tag": "0001_short_diamondback",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1769852735197,
+      "tag": "0002_tough_nicolaos",
+      "breakpoints": true
     }
   ]
 }

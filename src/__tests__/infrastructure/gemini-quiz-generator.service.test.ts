@@ -70,7 +70,7 @@ describe("GeminiQuizGeneratorService", () => {
         },
       ],
       correctExplanation: "Mitochondria are responsible for ATP synthesis",
-      sourceQuote: "The mitochondria is the powerhouse of the cell.",
+      sourceQuotes: ["The mitochondria is the powerhouse of the cell."],
       reference: 0,
     },
   ];

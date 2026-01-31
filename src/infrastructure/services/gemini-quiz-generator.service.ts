@@ -70,18 +70,18 @@ const questionSchema = z.array(
     correctExplanation: z
       .string()
       .describe("Why the correct answer is correct."),
-    sourceQuote: z
-      .string()
+    sourceQuotes: z
+      .array(z.string())
       .describe(
         "**Verbatim** evidence from the source material; " +
-          "word-for-word copy of the sentence in the source material that supports the claim in 'correctExplanation'."
+          "word-for-word copies of sentences in the source material that support the claim in 'correctExplanation'."
       ),
     reference: z
       .number()
       .int()
       .nonnegative()
       .describe(
-        "The exact source material reference where the 'sourceQuote' originated."
+        "The exact source material reference where the 'sourceQuotes' originated."
       ),
   })
 );
@@ -210,13 +210,13 @@ export class GeminiQuizGeneratorService implements IAIQuizGenerator {
           "Your generic goal is to create high-quality multiple-choice questions strictly based on the provided source materials.",
           "**Strict Rules**:",
           "1. **No Hallucinations**: You must ONLY use facts present in the provided source materials. If a fact is not in the text, do not use it.",
-          "2. **Verbatim Quotes**: The 'sourceQuote' field must be an EXACT copy-paste of a sentence from the material. Do not paraphrase.",
+          "2. **Verbatim Quotes**: The 'sourceQuotes' field must contain EXACT copy-paste sentences from the material. Do not paraphrase.",
           '3. **Tricky Distractors**: Wrong options (distractors) should be plausible to a novice but clearly wrong to an expert. Avoid "silly" options.',
           "4. **Reference Integrity**: When citing the 'reference', use the exact filename provided in the '[Source Material Ref: ...]' labels.",
           "5. **Balanced Answer Key**: Distribute correct answers evenly among options A, B, C, and D across the entire set of questions.",
-          "6. **Original Wording**: Use original wording faithful to the source materials. Do not copy large chunks verbatim except for 'sourceQuote'.",
+          "6. **Original Wording**: Use original wording faithful to the source materials. Do not copy large chunks verbatim except for 'sourceQuotes'.",
           "7. **No Source Mentions**: You must not mention/cite/refer to source materials in the question stems, options, or feedbacks. e.g., do not say '... according to the text ...', '... according to the material ...', '... according to the document ...', '... based on the text ...', '... based on the material ...', '... based on the document ...', etc. ",
-          "8. **Single Line Source Quote**: The 'sourceQuote' must only have one line and can have multiple sentences.",
+          "8. **Source Quotes Array**: Each entry in 'sourceQuotes' must be a single verbatim sentence from the source material.",
           "9. **Consistent Phrasing**: Use identical transition phrases across ALL feedbacks. Choose ONE phrase pattern and use it everywhere.",
           '10. **No Cross-References**: No cross-references between options ("Unlike B...", "Option C...")',
           "11. **Emphasis**: You MAY add emphasis for key terms using **bold**, *italics*, and `code` formatting, but use sparingly. Do NOT use bold emphasis in question stems and option texts.",
@@ -254,13 +254,13 @@ export class GeminiQuizGeneratorService implements IAIQuizGenerator {
       "Your generic goal is to create high-quality multiple-choice questions strictly based on the provided source materials.",
       "**Strict Rules**:",
       "1. **No Hallucinations**: You must ONLY use facts present in the provided source materials. If a fact is not in the text, do not use it.",
-      "2. **Verbatim Quotes**: The 'sourceQuote' field must be an EXACT copy-paste of a sentence from the material. Do not paraphrase.",
+      "2. **Verbatim Quotes**: The 'sourceQuotes' field must contain EXACT copy-paste sentences from the material. Do not paraphrase.",
       '3. **Tricky Distractors**: Wrong options (distractors) should be plausible to a novice but clearly wrong to an expert. Avoid "silly" options.',
       "4. **Reference Integrity**: When citing the 'reference', use the exact filename provided in the '[Source Material Ref: ...]' labels.",
       "5. **Balanced Answer Key**: Distribute correct answers evenly among options A, B, C, and D across the entire set of questions.",
-      "6. **Original Wording**: Use original wording faithful to the source materials. Do not copy large chunks verbatim except for 'sourceQuote'.",
+      "6. **Original Wording**: Use original wording faithful to the source materials. Do not copy large chunks verbatim except for 'sourceQuotes'.",
       "7. **No Source Mentions**: You must not mention/cite/refer to source materials in the question stems, options, or feedbacks. e.g., do not say '... according to the text ...', '... according to the material ...', '... according to the document ...', '... based on the text ...', '... based on the material ...', '... based on the document ...', etc. ",
-      "8. **Single Line Source Quote**: The 'sourceQuote' must only have one line and can have multiple sentences.",
+      "8. **Source Quotes Array**: Each entry in 'sourceQuotes' must be a single verbatim sentence from the source material.",
       "9. **Consistent Phrasing**: Use identical transition phrases across ALL feedbacks. Choose ONE phrase pattern and use it everywhere.",
       '10. **No Cross-References**: No cross-references between options ("Unlike B...", "Option C...")',
       "11. **Emphasis**: You MAY add emphasis for key terms using **bold**, *italics*, and `code` formatting, but use sparingly. Do NOT use bold emphasis in question stems and option texts.",
@@ -361,7 +361,7 @@ export class GeminiQuizGeneratorService implements IAIQuizGenerator {
       Array.isArray(obj.options) &&
       obj.options.length === 4 &&
       typeof obj.correctExplanation === "string" &&
-      typeof obj.sourceQuote === "string" &&
+      Array.isArray(obj.sourceQuotes) &&
       typeof obj.reference === "number"
     );
   }
@@ -483,7 +483,7 @@ D) Neither statement is true.
         })
       ),
       correctExplanation: q.correctExplanation,
-      sourceQuote: q.sourceQuote,
+      sourceQuotes: q.sourceQuotes,
       reference: q.reference,
     }));
   }

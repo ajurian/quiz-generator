@@ -38,7 +38,7 @@ export interface Question {
   stem: string;
   options: QuestionOption[];
   correctExplanation: string;
-  sourceQuote: string;
+  sourceQuotes: string[];
   reference: number;
   /** Title of the source material this question references */
   sourceTitle?: string;
@@ -155,7 +155,7 @@ export function QuestionCard(props: QuestionCardProps) {
           <CorrectExplanation
             correctOption={correctOption!}
             correctExplanation={question.correctExplanation}
-            sourceQuote={question.sourceQuote}
+            sourceQuotes={question.sourceQuotes}
             sourceTitle={question.sourceTitle}
           />
         )}
@@ -358,18 +358,18 @@ function OptionItem({
 interface CorrectExplanationProps {
   correctOption: QuestionOption;
   correctExplanation: string;
-  sourceQuote: string;
+  sourceQuotes: string[];
   sourceTitle?: string;
 }
 
 function CorrectExplanation({
   correctOption,
   correctExplanation,
-  sourceQuote,
+  sourceQuotes,
   sourceTitle,
 }: CorrectExplanationProps) {
   const [isExpanded, setIsExpanded] = React.useState(false);
-  const [isCopied, setIsCopied] = React.useState(false);
+  const [copiedIndex, setCopiedIndex] = React.useState<number | null>(null);
   const isLong =
     correctExplanation && correctExplanation.length > RATIONALE_TRUNCATE_LENGTH;
 
@@ -378,21 +378,21 @@ function CorrectExplanation({
       ? `${correctExplanation.slice(0, RATIONALE_TRUNCATE_LENGTH)}...`
       : correctExplanation;
 
-  const handleCopyQuote = async () => {
+  const handleCopyQuote = async (quote: string, index: number) => {
     try {
-      await navigator.clipboard.writeText(sourceQuote);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
+      await navigator.clipboard.writeText(quote);
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex(null), 2000);
     } catch {
       // Fallback for older browsers
       const textArea = document.createElement("textarea");
-      textArea.value = sourceQuote;
+      textArea.value = quote;
       document.body.appendChild(textArea);
       textArea.select();
       document.execCommand("copy");
       document.body.removeChild(textArea);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex(null), 2000);
     }
   };
 
@@ -427,24 +427,29 @@ function CorrectExplanation({
               )}
             </Button>
           )}
-          {sourceQuote && (
+          {sourceQuotes.length > 0 && (
             <div className="mt-3 pt-3 border-t border-blue-500/20">
-              <div className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1 flex items-center justify-between">
+              <div className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">
                 <span>{sourceTitle ? `Source: ${sourceTitle}` : "Source"}</span>
-                {isCopied && (
-                  <span className="text-emerald-500 flex items-center gap-1">
-                    <Check className="h-3 w-3" />
-                    Copied!
-                  </span>
-                )}
               </div>
-              <blockquote
-                onClick={handleCopyQuote}
-                className="text-xs text-muted-foreground italic border-l-2 border-blue-500/30 pl-2 cursor-pointer hover:bg-blue-500/10 rounded-r transition-colors"
-                title="Click to copy"
-              >
-                "<FormattedText text={sourceQuote} />"
-              </blockquote>
+              <div className="space-y-2">
+                {sourceQuotes.map((quote, index) => (
+                  <blockquote
+                    key={index}
+                    onClick={() => handleCopyQuote(quote, index)}
+                    className="text-xs text-muted-foreground italic border-l-2 border-blue-500/30 pl-2 cursor-pointer hover:bg-blue-500/10 rounded-r transition-colors flex items-start justify-between gap-2"
+                    title="Click to copy"
+                  >
+                    <span>"<FormattedText text={quote} />"</span>
+                    {copiedIndex === index && (
+                      <span className="text-emerald-500 flex items-center gap-1 shrink-0">
+                        <Check className="h-3 w-3" />
+                        Copied!
+                      </span>
+                    )}
+                  </blockquote>
+                ))}
+              </div>
             </div>
           )}
         </div>

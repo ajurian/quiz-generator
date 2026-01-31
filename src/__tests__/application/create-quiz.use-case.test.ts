@@ -85,7 +85,7 @@ describe("CreateQuizUseCase", () => {
         },
       ],
       correctExplanation: "Paris is the capital of France",
-      sourceQuote: "Paris is the capital city of France.",
+      sourceQuotes: ["Paris is the capital city of France."],
       reference: 0,
     },
   ];

@@ -17,7 +17,7 @@ export interface QuestionProps {
   stem: string;
   options: QuestionOption[];
   correctExplanation: string;
-  sourceQuote: string;
+  sourceQuotes: string[];
   reference: number;
 }
 
@@ -32,7 +32,7 @@ export interface CreateQuestionProps {
   stem: string;
   options: QuestionOptionProps[];
   correctExplanation: string;
-  sourceQuote: string;
+  sourceQuotes: string[];
   reference: number;
 }
 
@@ -50,7 +50,7 @@ export class Question {
   private _stem: string;
   private _options: QuestionOption[];
   private _correctExplanation: string;
-  private _sourceQuote: string;
+  private _sourceQuotes: string[];
   private _reference: number;
 
   private constructor(props: QuestionProps) {
@@ -61,7 +61,7 @@ export class Question {
     this._stem = props.stem;
     this._options = props.options;
     this._correctExplanation = props.correctExplanation;
-    this._sourceQuote = props.sourceQuote;
+    this._sourceQuotes = props.sourceQuotes;
     this._reference = props.reference;
   }
 
@@ -82,7 +82,7 @@ export class Question {
       stem: props.stem,
       options,
       correctExplanation: props.correctExplanation,
-      sourceQuote: props.sourceQuote,
+      sourceQuotes: props.sourceQuotes,
       reference: props.reference,
     });
   }
@@ -108,7 +108,7 @@ export class Question {
     stem: string;
     options: unknown[];
     correctExplanation: string;
-    sourceQuote: string;
+    sourceQuotes: string[];
     reference: number;
   }): Question {
     if (!Object.values(QuestionType).includes(data.type as QuestionType)) {
@@ -128,7 +128,7 @@ export class Question {
       stem: data.stem,
       options,
       correctExplanation: data.correctExplanation,
-      sourceQuote: data.sourceQuote,
+      sourceQuotes: data.sourceQuotes,
       reference: data.reference,
     });
   }
@@ -209,10 +209,10 @@ export class Question {
       );
     }
 
-    if (typeof props.sourceQuote !== "string") {
+    if (!Array.isArray(props.sourceQuotes) || !props.sourceQuotes.every(q => typeof q === "string")) {
       throw new InvariantViolationError(
-        "Source quote must be a string",
-        "sourceQuote"
+        "Source quotes must be an array of strings",
+        "sourceQuotes"
       );
     }
 
@@ -306,10 +306,10 @@ export class Question {
       );
     }
 
-    if (typeof props.sourceQuote !== "string") {
+    if (!Array.isArray(props.sourceQuotes) || !props.sourceQuotes.every(q => typeof q === "string")) {
       throw new InvariantViolationError(
-        "Source quote must be a string",
-        "sourceQuote"
+        "Source quotes must be an array of strings",
+        "sourceQuotes"
       );
     }
 
@@ -354,8 +354,8 @@ export class Question {
     return this._correctExplanation;
   }
 
-  get sourceQuote(): string {
-    return this._sourceQuote;
+  get sourceQuotes(): readonly string[] {
+    return this._sourceQuotes;
   }
 
   get reference(): number {
@@ -434,7 +434,7 @@ export class Question {
     stem: string;
     options: QuestionOptionProps[];
     correctExplanation: string;
-    sourceQuote: string;
+    sourceQuotes: string[];
     reference: number;
   } {
     return {
@@ -445,7 +445,7 @@ export class Question {
       stem: this._stem,
       options: this._options.map((opt) => opt.toPlain()),
       correctExplanation: this._correctExplanation,
-      sourceQuote: this._sourceQuote,
+      sourceQuotes: [...this._sourceQuotes],
       reference: this._reference,
     };
   }

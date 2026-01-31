@@ -135,7 +135,7 @@ describe("cleanJson", () => {
 
     it("should handle quiz question streaming - between questions", () => {
       const incomplete =
-        '[{"orderIndex":0,"type":"direct_question","stem":"Q1","options":[{"index":"A","text":"A1","isCorrect":true},{"index":"B","text":"B1","isCorrect":false},{"index":"C","text":"C1","isCorrect":false},{"index":"D","text":"D1","isCorrect":false}],"correctExplanation":"Explanation","sourceQuote":"Source","reference":1},{"orderIndex":1,"type":"contextual","stem":"Q2","opt';
+        '[{"orderIndex":0,"type":"direct_question","stem":"Q1","options":[{"index":"A","text":"A1","isCorrect":true},{"index":"B","text":"B1","isCorrect":false},{"index":"C","text":"C1","isCorrect":false},{"index":"D","text":"D1","isCorrect":false}],"correctExplanation":"Explanation","sourceQuotes":["Source"],"reference":1},{"orderIndex":1,"type":"contextual","stem":"Q2","opt';
       const result = cleanJson(incomplete);
 
       expect(() => JSON.parse(result)).not.toThrow();
@@ -157,7 +157,7 @@ describe("cleanJson", () => {
           { index: "D", text: "D", isCorrect: false },
         ],
         correctExplanation: "Explanation",
-        sourceQuote: "Quote",
+        sourceQuotes: ["Quote"],
         reference: 1,
       };
 

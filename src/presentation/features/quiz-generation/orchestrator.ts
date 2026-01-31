@@ -297,7 +297,7 @@ async function persistQuestions(
         errorRationale: opt.errorRationale,
       })),
       correctExplanation: q.correctExplanation,
-      sourceQuote: q.sourceQuote,
+      sourceQuotes: q.sourceQuotes,
       reference: q.reference,
     })
   );

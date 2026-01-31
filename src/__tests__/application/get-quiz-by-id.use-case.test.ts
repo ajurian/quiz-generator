@@ -82,7 +82,7 @@ describe("GetQuizByIdUseCase", () => {
           },
         ],
         correctExplanation: "2+2 equals 4",
-        sourceQuote: "Basic arithmetic",
+        sourceQuotes: ["Basic arithmetic"],
         reference: 0,
       }),
     ];

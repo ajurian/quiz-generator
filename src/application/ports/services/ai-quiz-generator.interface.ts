@@ -58,7 +58,7 @@ export interface GeneratedQuestionData {
     errorRationale?: string;
   }[];
   correctExplanation: string;
-  sourceQuote: string;
+  sourceQuotes: string[];
   reference: number;
 }
 

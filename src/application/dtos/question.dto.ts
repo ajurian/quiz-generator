@@ -22,7 +22,7 @@ export const questionResponseSchema = z.object({
   stem: z.string(),
   options: z.array(questionOptionSchema).length(4),
   correctExplanation: z.string(),
-  sourceQuote: z.string(),
+  sourceQuotes: z.array(z.string()),
   reference: z.number().int().min(0),
   /** Title of the source material this question references */
   sourceTitle: z.string().optional(),
@@ -52,7 +52,7 @@ export function toQuestionResponseDTO(
       errorRationale?: string;
     }[];
     correctExplanation: string;
-    sourceQuote: string;
+    sourceQuotes: readonly string[];
     reference: number;
   },
   sourceTitle?: string
@@ -70,7 +70,7 @@ export function toQuestionResponseDTO(
       errorRationale: opt.errorRationale,
     })),
     correctExplanation: question.correctExplanation,
-    sourceQuote: question.sourceQuote,
+    sourceQuotes: [...question.sourceQuotes],
     reference: question.reference,
     sourceTitle,
   };

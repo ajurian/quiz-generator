@@ -37,7 +37,7 @@ describe("Question DTOs", () => {
           },
         ],
         correctExplanation: "Paris is the capital of France",
-        sourceQuote: "Paris is the capital city of France.",
+        sourceQuotes: ["Paris is the capital city of France."],
         reference: 0,
       });
     };
@@ -116,7 +116,7 @@ describe("Question DTOs", () => {
             },
           ],
           correctExplanation: "Correct explanation",
-          sourceQuote: "Source quote",
+          sourceQuotes: ["Source quote"],
           reference: 0,
         });
 

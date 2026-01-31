@@ -15,6 +15,13 @@
       "when": 1768624984273,
       "tag": "0001_clever_agent_zero",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1769852071860,
+      "tag": "0002_wise_ares",
+      "breakpoints": true
     }
   ]
 }

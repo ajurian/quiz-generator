@@ -47,7 +47,7 @@ export const questions = pgTable("questions", {
   correctExplanation: text("correct_explanation").notNull(),
 
   /** Verbatim evidence from the source material */
-  sourceQuote: text("source_quote").notNull(),
+  sourceQuotes: text("source_quotes").array().notNull(),
 
   /** Exact source material reference */
   reference: integer("reference").notNull(),

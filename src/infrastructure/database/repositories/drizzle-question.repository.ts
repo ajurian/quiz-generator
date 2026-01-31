@@ -30,7 +30,7 @@ export class DrizzleQuestionRepository implements IQuestionRepository {
       stem: q.stem,
       options: q.options.map((opt) => opt.toPlain()),
       correctExplanation: q.correctExplanation,
-      sourceQuote: q.sourceQuote,
+      sourceQuotes: [...q.sourceQuotes],
       reference: q.reference,
     }));
 
@@ -73,7 +73,7 @@ export class DrizzleQuestionRepository implements IQuestionRepository {
       stem: row.stem,
       options: row.options,
       correctExplanation: row.correctExplanation,
-      sourceQuote: row.sourceQuote,
+      sourceQuotes: row.sourceQuotes,
       reference: row.reference,
     });
   }

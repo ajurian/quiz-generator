@@ -52,7 +52,7 @@ describe("DrizzleQuestionRepository", () => {
       options: createValidOptions(),
       orderIndex: overrides.orderIndex ?? 0,
       correctExplanation: "Correct explanation",
-      sourceQuote: "Source quote",
+      sourceQuotes: ["Source quote"],
       reference: 0,
     });
   };
@@ -66,7 +66,7 @@ describe("DrizzleQuestionRepository", () => {
     stem: question.stem,
     options: question.options.map((opt) => opt.toPlain()),
     correctExplanation: question.correctExplanation,
-    sourceQuote: question.sourceQuote,
+    sourceQuotes: [...question.sourceQuotes],
     reference: question.reference,
   });
 

@@ -49,7 +49,7 @@ describe("Question Entity", () => {
     stem: "What is the correct answer?",
     options: createValidOptions(),
     correctExplanation: "This is the correct explanation.",
-    sourceQuote: "Source quote from the material.",
+    sourceQuotes: ["Source quote from the material."],
     reference: 0,
     ...overrides,
   });
@@ -237,7 +237,7 @@ describe("Question Entity", () => {
         stem: "Reconstituted question",
         options,
         correctExplanation: "Correct explanation",
-        sourceQuote: "Source quote",
+        sourceQuotes: ["Source quote"],
         reference: 0,
       });
 
@@ -245,7 +245,7 @@ describe("Question Entity", () => {
       expect(question.type).toBe(QuestionType.TWO_STATEMENT_COMPOUND);
       expect(question.orderIndex).toBe(5);
       expect(question.correctExplanation).toBe("Correct explanation");
-      expect(question.sourceQuote).toBe("Source quote");
+      expect(question.sourceQuotes).toEqual(["Source quote"]);
       expect(question.reference).toBe(0);
     });
   });
@@ -260,7 +260,7 @@ describe("Question Entity", () => {
         stem: "Plain question",
         options: createValidOptions(),
         correctExplanation: "Correct explanation",
-        sourceQuote: "Source quote",
+        sourceQuotes: ["Source quote"],
         reference: 0,
       };
 
@@ -270,7 +270,7 @@ describe("Question Entity", () => {
       expect(question.type).toBe(QuestionType.DIRECT_QUESTION);
       expect(question.orderIndex).toBe(2);
       expect(question.correctExplanation).toBe("Correct explanation");
-      expect(question.sourceQuote).toBe("Source quote");
+      expect(question.sourceQuotes).toEqual(["Source quote"]);
       expect(question.reference).toBe(0);
     });
 
@@ -283,7 +283,7 @@ describe("Question Entity", () => {
         stem: "Plain question",
         options: createValidOptions(),
         correctExplanation: "Correct explanation",
-        sourceQuote: "Source quote",
+        sourceQuotes: ["Source quote"],
         reference: 0,
       };
 
@@ -449,7 +449,7 @@ describe("Question Entity", () => {
       expect(plain.orderIndex).toBe(0);
       expect(plain.options).toHaveLength(4);
       expect(plain.correctExplanation).toBe("This is the correct explanation.");
-      expect(plain.sourceQuote).toBe("Source quote from the material.");
+      expect(plain.sourceQuotes).toEqual(["Source quote from the material."]);
       expect(plain.reference).toBe(0);
 
       // Options should be plain objects

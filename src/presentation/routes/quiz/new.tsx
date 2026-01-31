@@ -78,8 +78,8 @@ function NewQuizPage() {
       // 2. Upload files to R2 in parallel
       await Promise.all(
         formData.files.map((file, index) =>
-          uploadToS3(file, presignedUrls[index]!.presignedUrl)
-        )
+          uploadToS3(file, presignedUrls[index]!.presignedUrl),
+        ),
       );
 
       // 3. Start quiz generation
@@ -107,8 +107,8 @@ function NewQuizPage() {
         duration: 5000,
       });
       queryClient.invalidateQueries({ queryKey: quizKeys.list(user.id) });
-      // Redirect to dashboard after quiz is created
-      navigate({ to: "/dashboard" });
+      // Redirect to created route after quiz is created
+      navigate({ to: "/dashboard/created" });
     },
     onError: (error) => {
       toast.error(getUserFriendlyMessage(error, "quiz"));

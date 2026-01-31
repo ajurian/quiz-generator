@@ -16,50 +16,20 @@ import {
   Zap,
   Shield,
   ArrowRight,
-  Compass,
 } from "lucide-react";
+import { AppNavbar } from "@/presentation/components/shared";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
 function HomePage() {
+  const { session } = Route.useRouteContext();
+
   return (
     <div className="min-h-screen bg-hero-gradient">
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
-        <div className="container mx-auto">
-          <nav className="flex h-16 items-center justify-between px-4">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <Brain className="h-5 w-5" />
-              </div>
-              <span className="text-lg font-display font-semibold tracking-tight">
-                Quiz Generator
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Link to="/explore">
-                <Button variant="ghost" size="sm" className="gap-2">
-                  <Compass className="h-4 w-4" />
-                  Explore
-                </Button>
-              </Link>
-              <Link to="/dashboard">
-                <Button variant="ghost" size="sm">
-                  Dashboard
-                </Button>
-              </Link>
-              <Button asChild size="sm" className="glow-primary">
-                <Link to="/quiz/new">
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Create Quiz
-                </Link>
-              </Button>
-            </div>
-          </nav>
-        </div>
-      </header>
+      <AppNavbar user={session?.user} variant="default" />
 
       {/* Hero Section */}
       <main>

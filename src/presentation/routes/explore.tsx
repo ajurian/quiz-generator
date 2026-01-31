@@ -23,7 +23,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { ThemeToggle } from "@/presentation/components/shared/theme-toggle";
+import { AppNavbar } from "@/presentation/components/shared";
 
 const searchSchema = z.object({
   q: z.string().optional(),
@@ -44,22 +44,7 @@ export const Route = createFileRoute("/explore")({
 function ExploreSkeleton() {
   return (
     <div className="min-h-screen bg-muted/20">
-      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
-        <div className="flex h-16 w-full items-center justify-between px-4 md:px-6 lg:px-8">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Brain className="h-4 w-4" />
-            </div>
-            <span className="font-display font-semibold tracking-tight">
-              Quiz Generator
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Skeleton className="h-9 w-24" />
-            <Skeleton className="h-9 w-28" />
-          </div>
-        </div>
-      </header>
+      <AppNavbar variant="default" />
       <main className="w-full px-4 py-8 md:px-6 lg:px-8">
         <div className="space-y-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -143,39 +128,7 @@ function ExplorePage() {
   return (
     <div className="min-h-screen bg-muted/20">
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
-        <div className="flex h-16 w-full items-center justify-between px-4 md:px-6 lg:px-8">
-          <div className="flex items-center gap-8">
-            <Link to="/" className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <Brain className="h-4 w-4" />
-              </div>
-              <span className="font-display font-semibold tracking-tight">
-                Quiz Generator
-              </span>
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {session?.user ? (
-              <Button asChild variant="outline" size="sm">
-                <Link to="/dashboard">Dashboard</Link>
-              </Button>
-            ) : (
-              <Button asChild variant="outline" size="sm">
-                <Link to="/auth/signin">Sign In</Link>
-              </Button>
-            )}
-            <Button asChild size="sm" className="glow-primary">
-              <Link to="/quiz/new">
-                <Sparkles className="mr-2 h-4 w-4" />
-                Create Quiz
-              </Link>
-            </Button>
-            <ThemeToggle />
-          </div>
-        </div>
-      </header>
+      <AppNavbar user={session?.user} variant="default" />
 
       {/* Main Content */}
       <main className="w-full px-4 py-8 md:px-6 lg:px-8">

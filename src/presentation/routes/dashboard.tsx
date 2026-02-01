@@ -2,9 +2,12 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { AppNavbar } from "@/presentation/components/shared";
 
 export const Route = createFileRoute("/dashboard")({
-  beforeLoad: ({ context }) => {
+  beforeLoad: ({ context, location }) => {
     if (!context.session?.user) {
-      throw redirect({ to: "/auth/signin" });
+      throw redirect({
+        to: "/auth/signin",
+        search: { redirect: location.pathname },
+      });
     }
   },
   component: DashboardLayout,

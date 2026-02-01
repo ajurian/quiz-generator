@@ -9,10 +9,13 @@ import { Badge } from "@/presentation/components/ui/badge";
 import { History } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard/taken")({
-  loader: async ({ context }) => {
+  loader: async ({ context, location }) => {
     const user = context.session?.user;
     if (!user) {
-      throw redirect({ to: "/auth/signin" });
+      throw redirect({
+        to: "/auth/signin",
+        search: { redirect: location.pathname },
+      });
     }
 
     await context.queryClient.ensureQueryData(

@@ -38,9 +38,12 @@ async function uploadToS3(file: File, presignedUrl: string): Promise<void> {
 }
 
 export const Route = createFileRoute("/quiz/new")({
-  beforeLoad: ({ context }) => {
+  beforeLoad: ({ context, location }) => {
     if (!context.session?.user) {
-      throw redirect({ to: "/auth/signin" });
+      throw redirect({
+        to: "/auth/signin",
+        search: { redirect: location.pathname },
+      });
     }
   },
   component: NewQuizPage,

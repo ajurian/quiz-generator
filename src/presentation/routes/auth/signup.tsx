@@ -1,5 +1,6 @@
 import React from "react";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { z } from "zod";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
@@ -14,9 +15,15 @@ import {
 import { Separator } from "@/presentation/components/ui/separator";
 import { Brain, Loader2, Mail } from "lucide-react";
 import { signIn, signUp } from "@/presentation/lib/auth-client";
+import { getSafeRedirectUrl } from "@/presentation/lib/redirect-utils";
 import { toast } from "sonner";
 
+const searchSchema = z.object({
+  redirect: z.string().optional(),
+});
+
 export const Route = createFileRoute("/auth/signup")({
+  validateSearch: searchSchema,
   beforeLoad: ({ context }) => {
     // Redirect to dashboard if already authenticated
     if (context.session?.user) {
@@ -27,6 +34,9 @@ export const Route = createFileRoute("/auth/signup")({
 });
 
 function SignUpPage() {
+  const { redirect: redirectParam } = Route.useSearch();
+  const redirectUrl = getSafeRedirectUrl(redirectParam);
+
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -55,7 +65,7 @@ function SignUpPage() {
         toast.error(result.error.message || "Failed to create account");
       } else {
         toast.success("Account created successfully!");
-        window.location.href = "/dashboard";
+        window.location.href = redirectUrl;
       }
     } catch (error) {
       toast.error("Failed to create account");
@@ -67,7 +77,7 @@ function SignUpPage() {
   const handleGoogleSignUp = async () => {
     setIsGoogleLoading(true);
     try {
-      await signIn.social({ provider: "google", callbackURL: "/dashboard" });
+      await signIn.social({ provider: "google", callbackURL: redirectUrl });
     } catch (error) {
       toast.error("Failed to sign up with Google");
       setIsGoogleLoading(false);
@@ -222,6 +232,7 @@ function SignUpPage() {
               Already have an account?{" "}
               <Link
                 to="/auth/signin"
+                search={{ redirect: redirectParam }}
                 className="font-medium text-primary hover:underline"
               >
                 Sign in

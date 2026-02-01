@@ -1,5 +1,6 @@
 import React from "react";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { z } from "zod";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
@@ -14,9 +15,15 @@ import {
 import { Separator } from "@/presentation/components/ui/separator";
 import { Brain, Loader2, Mail } from "lucide-react";
 import { signIn } from "@/presentation/lib/auth-client";
+import { getSafeRedirectUrl } from "@/presentation/lib/redirect-utils";
 import { toast } from "sonner";
 
+const searchSchema = z.object({
+  redirect: z.string().optional(),
+});
+
 export const Route = createFileRoute("/auth/signin")({
+  validateSearch: searchSchema,
   beforeLoad: ({ context }) => {
     // Redirect to dashboard if already authenticated
     if (context.session?.user) {
@@ -27,6 +34,9 @@ export const Route = createFileRoute("/auth/signin")({
 });
 
 function SignInPage() {
+  const { redirect: redirectParam } = Route.useSearch();
+  const redirectUrl = getSafeRedirectUrl(redirectParam);
+
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
@@ -42,7 +52,7 @@ function SignInPage() {
       if (result.error) {
         toast.error(result.error.message || "Invalid credentials");
       } else {
-        window.location.href = "/dashboard";
+        window.location.href = redirectUrl;
       }
     } catch (error) {
       toast.error("Failed to sign in");
@@ -54,7 +64,7 @@ function SignInPage() {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     try {
-      await signIn.social({ provider: "google", callbackURL: "/dashboard" });
+      await signIn.social({ provider: "google", callbackURL: redirectUrl });
     } catch (error) {
       toast.error("Failed to sign in with Google");
       setIsGoogleLoading(false);
@@ -176,6 +186,7 @@ function SignInPage() {
               Don't have an account?{" "}
               <Link
                 to="/auth/signup"
+                search={{ redirect: redirectParam }}
                 className="font-medium text-primary hover:underline"
               >
                 Sign up

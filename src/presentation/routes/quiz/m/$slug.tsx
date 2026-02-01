@@ -19,15 +19,18 @@ import {
 } from "@/presentation/components/manage";
 
 export const Route = createFileRoute("/quiz/m/$slug")({
-  beforeLoad: ({ context }) => {
+  beforeLoad: ({ context, location }) => {
     if (!context.session?.user) {
-      throw redirect({ to: "/auth/signin" });
+      throw redirect({
+        to: "/auth/signin",
+        search: { redirect: location.pathname },
+      });
     }
   },
   loader: async ({ params, context }) => {
     const userId = context.session!.user.id;
     const result = await context.queryClient.ensureQueryData(
-      quizBySlugQueryOptions(params.slug, userId)
+      quizBySlugQueryOptions(params.slug, userId),
     );
 
     if (!result.isOwner) {

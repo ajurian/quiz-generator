@@ -175,11 +175,28 @@ export function QuizForm({
         <div className="space-y-2">
           <Label htmlFor="total">Total Questions</Label>
           <Select
+            value={totalQuestions.toString()}
             onValueChange={(v) => handleTotalChange(parseInt(v, 10))}
             disabled={isSubmitting}
           >
             <SelectTrigger id="total">
-              <SelectValue placeholder="Select total questions" />
+              {(() => {
+                const preset = QUESTION_PRESETS.find(
+                  (p) => p.value === totalQuestions,
+                );
+
+                // Fix the SSR issue below by immediately returning the correct label if found
+                if (preset) {
+                  return (
+                    <SelectValue placeholder="Select total questions">
+                      {preset.label}
+                    </SelectValue>
+                  );
+                }
+
+                // SSR not working - label is not showing on initial render
+                return <SelectValue placeholder="Select total questions" />;
+              })()}
             </SelectTrigger>
             <SelectContent>
               {QUESTION_PRESETS.map((preset) => (

@@ -5,7 +5,7 @@ import { Redis } from "@upstash/redis";
 export const auth = createAuth({
   idGenerator: new UuidIdGenerator(),
   secret: process.env.BETTER_AUTH_SECRET!,
-  baseURL: "http://localhost:3000",
+  baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
   db: createDatabaseConnection(process.env.DATABASE_URL!),
   redis: new Redis({
     url: process.env.UPSTASH_REDIS_REST_URL!,

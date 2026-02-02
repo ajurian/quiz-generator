@@ -94,7 +94,7 @@ export function getRuntimeConfig(forceReload = false): RuntimeConfig {
   }
 
   cachedConfig = {
-    baseUrl: `${process.env.NODE_ENV === "development" ? "http" : "https"}://${requireEnv("VERCEL_URL")}`,
+    baseUrl: process.env.BETTER_AUTH_URL ?? `${process.env.NODE_ENV === "development" ? "http" : "https"}://${requireEnv("VERCEL_URL")}`,
 
     database: {
       url: requireEnv("DATABASE_URL"),

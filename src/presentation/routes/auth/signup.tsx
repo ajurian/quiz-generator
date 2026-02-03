@@ -218,11 +218,11 @@ function SignUpPage() {
 
             <p className="text-xs text-center text-muted-foreground">
               By creating an account, you agree to our{" "}
-              <Link to="/" className="underline hover:text-primary">
+              <Link to="/terms" className="underline hover:text-primary">
                 Terms of Service
               </Link>{" "}
               and{" "}
-              <Link to="/" className="underline hover:text-primary">
+              <Link to="/privacy" className="underline hover:text-primary">
                 Privacy Policy
               </Link>
             </p>

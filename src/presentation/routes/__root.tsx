@@ -14,6 +14,8 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import { ThemeProvider } from "next-themes";
 import React from "react";
 
@@ -92,6 +94,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         </ThemeProvider>
         <TanStackRouterDevtools position="bottom-right" />
         <ReactQueryDevtools buttonPosition="bottom-left" />
+        <Analytics />
+        <SpeedInsights />
         <Scripts />
       </body>
     </html>

@@ -90,6 +90,7 @@ let cachedConfig: RuntimeConfig | null = null;
  */
 export function getRuntimeConfig(forceReload = false): RuntimeConfig {
   if (cachedConfig && !forceReload) {
+    console.log("BETTER AUTH URL: ", cachedConfig.baseUrl);
     return cachedConfig;
   }
 
@@ -137,6 +138,7 @@ export function getRuntimeConfig(forceReload = false): RuntimeConfig {
       secret: requireEnv("BETTER_AUTH_SECRET"),
     },
   };
+  console.log("BETTER AUTH URL: ", cachedConfig.baseUrl);
 
   return cachedConfig;
 }

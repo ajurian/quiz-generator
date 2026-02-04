@@ -273,7 +273,30 @@ describe("GeminiQuizGeneratorService", () => {
       ).toBe("timeout");
     });
 
-    it("should return unknown for non-quota/timeout errors", () => {
+    it("should detect unavailable-related error messages", () => {
+      const service = new GeminiQuizGeneratorService(testApiKey);
+      const detectErrorReason = (
+        service as unknown as { detectErrorReason: (error: unknown) => string }
+      ).detectErrorReason;
+
+      expect(
+        detectErrorReason.call(
+          service,
+          new Error("Error 503: Service Unavailable"),
+        ),
+      ).toBe("unavailable");
+      expect(
+        detectErrorReason.call(service, new Error("Service unavailable")),
+      ).toBe("unavailable");
+      expect(
+        detectErrorReason.call(
+          service,
+          new Error("The server is currently unavailable"),
+        ),
+      ).toBe("unavailable");
+    });
+
+    it("should return unknown for non-quota/timeout/unavailable errors", () => {
       const service = new GeminiQuizGeneratorService(testApiKey);
       const detectErrorReason = (
         service as unknown as { detectErrorReason: (error: unknown) => string }
@@ -310,6 +333,17 @@ describe("AIGenerationError", () => {
     expect(error.model).toBe("gemini-2.5-flash");
     expect(error.message).toBe(
       "Request timed out (DEADLINE_EXCEEDED) for model: gemini-2.5-flash",
+    );
+  });
+
+  it("should have correct name and message for unavailable errors", () => {
+    const error = new AIGenerationError("gemini-2.5-flash", "unavailable");
+
+    expect(error.name).toBe("AIGenerationError");
+    expect(error.reason).toBe("unavailable");
+    expect(error.model).toBe("gemini-2.5-flash");
+    expect(error.message).toBe(
+      "Service unavailable (503) for model: gemini-2.5-flash",
     );
   });
 

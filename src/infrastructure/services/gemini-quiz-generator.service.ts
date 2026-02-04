@@ -89,7 +89,11 @@ const questionSchema = z.array(
 /**
  * Reason for AI generation failure
  */
-export type AIGenerationErrorReason = "quota" | "timeout" | "unknown";
+export type AIGenerationErrorReason =
+  | "quota"
+  | "timeout"
+  | "unavailable"
+  | "unknown";
 
 /**
  * Error class for AI generation failures
@@ -107,6 +111,7 @@ export class AIGenerationError extends Error {
     const reasonMessages: Record<AIGenerationErrorReason, string> = {
       quota: "Quota exceeded",
       timeout: "Request timed out (DEADLINE_EXCEEDED)",
+      unavailable: "Service unavailable (503)",
       unknown: "Generation failed",
     };
     const message = `${reasonMessages[reason]} for model: ${model}${originalMessage ? ` - ${originalMessage}` : ""}`;
@@ -530,6 +535,15 @@ D) Neither statement is true.
       return "timeout";
     }
 
+    // Check for service unavailable errors (503)
+    if (
+      message.includes("503") ||
+      message.includes("unavailable") ||
+      message.includes("service unavailable")
+    ) {
+      return "unavailable";
+    }
+
     return "unknown";
   }
 
@@ -542,7 +556,11 @@ D) Neither statement is true.
     const reason = this.detectErrorReason(error);
     const originalMessage = error instanceof Error ? error.message : undefined;
 
-    if (reason === "quota" || reason === "timeout") {
+    if (
+      reason === "quota" ||
+      reason === "timeout" ||
+      reason === "unavailable"
+    ) {
       throw new AIGenerationError(model, reason, originalMessage);
     }
 

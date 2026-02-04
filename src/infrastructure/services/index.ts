@@ -3,7 +3,8 @@
 
 export {
   GeminiQuizGeneratorService,
-  QuotaExceededError,
+  AIGenerationError,
+  type AIGenerationErrorReason,
 } from "./gemini-quiz-generator.service";
 export { FileStorageService } from "./file-storage.service";
 export {

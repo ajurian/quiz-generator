@@ -87,12 +87,33 @@ const questionSchema = z.array(
 );
 
 /**
- * Error class for quota exceeded errors
+ * Reason for AI generation failure
  */
-export class QuotaExceededError extends Error {
-  constructor(model: string) {
-    super(`Quota exceeded for model: ${model}`);
-    this.name = "QuotaExceededError";
+export type AIGenerationErrorReason = "quota" | "timeout" | "unknown";
+
+/**
+ * Error class for AI generation failures
+ * Includes a reason field to distinguish between quota, timeout, and other errors
+ */
+export class AIGenerationError extends Error {
+  public readonly reason: AIGenerationErrorReason;
+  public readonly model: string;
+
+  constructor(
+    model: string,
+    reason: AIGenerationErrorReason,
+    originalMessage?: string,
+  ) {
+    const reasonMessages: Record<AIGenerationErrorReason, string> = {
+      quota: "Quota exceeded",
+      timeout: "Request timed out (DEADLINE_EXCEEDED)",
+      unknown: "Generation failed",
+    };
+    const message = `${reasonMessages[reason]} for model: ${model}${originalMessage ? ` - ${originalMessage}` : ""}`;
+    super(message);
+    this.name = "AIGenerationError";
+    this.reason = reason;
+    this.model = model;
   }
 }
 
@@ -100,12 +121,10 @@ export class QuotaExceededError extends Error {
  * Gemini AI Quiz Generator Service
  *
  * Implements the IAIQuizGenerator port using Google Gemini API.
- * Features automatic fallback from primary model to lite model on quota errors.
+ * Throws AIGenerationError on quota or timeout errors for application-layer handling.
  */
 export class GeminiQuizGeneratorService implements IAIQuizGenerator {
   private readonly client: GoogleGenAI;
-  private readonly primaryGeminiModel = GeminiModel.FLASH_3_0;
-  private readonly fallbackGeminiModel = GeminiModel.FLASH_2_5;
 
   constructor(apiKey: string) {
     if (!apiKey) {
@@ -116,47 +135,24 @@ export class GeminiQuizGeneratorService implements IAIQuizGenerator {
 
   /**
    * Generates quiz questions from uploaded files using AI
-   * Implements fallback logic: tries primary model first, falls back to lite on quota error
+   * Throws AIGenerationError on quota or timeout errors
    */
   async generateQuestions(
     params: GenerateQuizParams,
   ): Promise<GeneratedQuestionData[]> {
     const geminiModel = mapAIModelToGeminiModel(params.model);
-    try {
-      return await this.generateWithModel(geminiModel, params);
-    } catch (error) {
-      if (this.isQuotaError(error)) {
-        console.warn(
-          `Quota exceeded for ${geminiModel}, falling back to ${this.fallbackGeminiModel}`,
-        );
-        return await this.generateWithModel(this.fallbackGeminiModel, params);
-      }
-      throw error;
-    }
+    return await this.generateWithModel(geminiModel, params);
   }
 
   /**
    * Generates quiz questions with streaming progress updates
-   * Implements fallback logic: tries primary model first, falls back to lite on quota error
+   * Throws AIGenerationError on quota or timeout errors
    */
   async generateQuestionsStream(
     params: StreamGenerateQuizParams,
   ): Promise<GeneratedQuestionData[]> {
     const geminiModel = mapAIModelToGeminiModel(params.model);
-    try {
-      return await this.generateWithModelStream(geminiModel, params);
-    } catch (error) {
-      if (this.isQuotaError(error)) {
-        console.warn(
-          `Quota exceeded for ${geminiModel}, falling back to ${this.fallbackGeminiModel}`,
-        );
-        return await this.generateWithModelStream(
-          this.fallbackGeminiModel,
-          params,
-        );
-      }
-      throw error;
-    }
+    return await this.generateWithModelStream(geminiModel, params);
   }
 
   /**
@@ -175,7 +171,8 @@ export class GeminiQuizGeneratorService implements IAIQuizGenerator {
       });
       return !!response;
     } catch (error) {
-      if (this.isQuotaError(error)) {
+      const errorReason = this.detectErrorReason(error);
+      if (errorReason === "quota" || errorReason === "timeout") {
         return false;
       }
       throw error;
@@ -184,6 +181,7 @@ export class GeminiQuizGeneratorService implements IAIQuizGenerator {
 
   /**
    * Generates questions using a specific model
+   * Throws AIGenerationError on quota or timeout errors
    */
   private async generateWithModel(
     model: GeminiModel,
@@ -197,32 +195,35 @@ export class GeminiQuizGeneratorService implements IAIQuizGenerator {
       createPartFromUri(file.uri!, file.mimeType!),
     ]);
 
-    console.log(await this.client.models.list());
-
-    const response = await this.client.models.generateContent({
-      model,
-      contents: [{ text: prompt }, ...fileContents],
-      config: {
-        responseMimeType: "application/json",
-        responseJsonSchema: zodToJsonSchema(questionSchema),
-        systemInstruction: [
-          "You are an expert source-grounded MCQ item writer.",
-          "Your generic goal is to create high-quality multiple-choice questions strictly based on the provided source materials.",
-          "**Strict Rules**:",
-          "1. **No Hallucinations**: You must ONLY use facts present in the provided source materials. If a fact is not in the text, do not use it.",
-          "2. **Verbatim Quotes**: The 'sourceQuotes' field must contain EXACT copy-paste sentences from the material. Do not paraphrase.",
-          '3. **Tricky Distractors**: Wrong options (distractors) should be plausible to a novice but clearly wrong to an expert. Avoid "silly" options.',
-          "4. **Reference Integrity**: When citing the 'reference', use the exact filename provided in the '[Source Material Ref: ...]' labels.",
-          "5. **Balanced Answer Key**: Distribute correct answers evenly among options A, B, C, and D across the entire set of questions.",
-          "6. **Original Wording**: Use original wording faithful to the source materials. Do not copy large chunks verbatim except for 'sourceQuotes'.",
-          "7. **No Source Mentions**: You must not mention/cite/refer to source materials in the question stems, options, or feedbacks. e.g., do not say '... according to the text ...', '... according to the material ...', '... according to the document ...', '... based on the text ...', '... based on the material ...', '... based on the document ...', etc. ",
-          "8. **Source Quotes Array**: Each entry in 'sourceQuotes' must be a single verbatim sentence from the source material.",
-          "9. **Consistent Phrasing**: Use identical transition phrases across ALL feedbacks. Choose ONE phrase pattern and use it everywhere.",
-          '10. **No Cross-References**: No cross-references between options ("Unlike B...", "Option C...")',
-          "11. **Emphasis**: You MAY add emphasis for key terms using **bold**, *italics*, and `code` formatting, but use sparingly. Do NOT use bold emphasis in question stems and option texts.",
-        ].join("\n"),
-      },
-    });
+    let response;
+    try {
+      response = await this.client.models.generateContent({
+        model,
+        contents: [{ text: prompt }, ...fileContents],
+        config: {
+          responseMimeType: "application/json",
+          responseJsonSchema: zodToJsonSchema(questionSchema),
+          systemInstruction: [
+            "You are an expert source-grounded MCQ item writer.",
+            "Your generic goal is to create high-quality multiple-choice questions strictly based on the provided source materials.",
+            "**Strict Rules**:",
+            "1. **No Hallucinations**: You must ONLY use facts present in the provided source materials. If a fact is not in the text, do not use it.",
+            "2. **Verbatim Quotes**: The 'sourceQuotes' field must contain EXACT copy-paste sentences from the material. Do not paraphrase.",
+            '3. **Tricky Distractors**: Wrong options (distractors) should be plausible to a novice but clearly wrong to an expert. Avoid "silly" options.',
+            "4. **Reference Integrity**: When citing the 'reference', use the exact filename provided in the '[Source Material Ref: ...]' labels.",
+            "5. **Balanced Answer Key**: Distribute correct answers evenly among options A, B, C, and D across the entire set of questions.",
+            "6. **Original Wording**: Use original wording faithful to the source materials. Do not copy large chunks verbatim except for 'sourceQuotes'.",
+            "7. **No Source Mentions**: You must not mention/cite/refer to source materials in the question stems, options, or feedbacks. e.g., do not say '... according to the text ...', '... according to the material ...', '... according to the document ...', '... based on the text ...', '... based on the material ...', '... based on the document ...', etc. ",
+            "8. **Source Quotes Array**: Each entry in 'sourceQuotes' must be a single verbatim sentence from the source material.",
+            "9. **Consistent Phrasing**: Use identical transition phrases across ALL feedbacks. Choose ONE phrase pattern and use it everywhere.",
+            '10. **No Cross-References**: No cross-references between options ("Unlike B...", "Option C...")',
+            "11. **Emphasis**: You MAY add emphasis for key terms using **bold**, *italics*, and `code` formatting, but use sparingly. Do NOT use bold emphasis in question stems and option texts.",
+          ].join("\n"),
+        },
+      });
+    } catch (error) {
+      this.handleGenerationError(error, model);
+    }
 
     const text = response.text;
     if (!text) {
@@ -269,40 +270,49 @@ export class GeminiQuizGeneratorService implements IAIQuizGenerator {
     console.log("Generating...");
 
     // Use streaming API
-    const stream = await this.client.models.generateContentStream({
-      model,
-      contents: [{ text: prompt }, ...fileContents],
-      config: {
-        responseMimeType: "application/json",
-        responseJsonSchema: zodToJsonSchema(questionSchema),
-        systemInstruction,
-      },
-    });
+    let stream;
+    try {
+      stream = await this.client.models.generateContentStream({
+        model,
+        contents: [{ text: prompt }, ...fileContents],
+        config: {
+          responseMimeType: "application/json",
+          responseJsonSchema: zodToJsonSchema(questionSchema),
+          systemInstruction,
+        },
+      });
+    } catch (error) {
+      this.handleGenerationError(error, model);
+    }
 
     let fullText = "";
     let lastParsedCount = 0;
 
     // Process the stream
-    for await (const chunk of stream) {
-      const chunkText = chunk.text ?? "";
-      fullText += chunkText;
+    try {
+      for await (const chunk of stream) {
+        const chunkText = chunk.text ?? "";
+        fullText += chunkText;
 
-      // Try to parse complete questions from the accumulated text
-      if (onProgress) {
-        const parsedQuestions = this.tryParsePartialQuestions(fullText);
-        if (parsedQuestions.length > lastParsedCount) {
-          lastParsedCount = parsedQuestions.length;
-          const previews: QuestionPreview[] = parsedQuestions.map((q) => ({
-            orderIndex: q.orderIndex,
-            type: q.type,
-            stem: q.stem,
-          }));
-          onProgress({
-            questionsGenerated: parsedQuestions.length,
-            questions: previews,
-          });
+        // Try to parse complete questions from the accumulated text
+        if (onProgress) {
+          const parsedQuestions = this.tryParsePartialQuestions(fullText);
+          if (parsedQuestions.length > lastParsedCount) {
+            lastParsedCount = parsedQuestions.length;
+            const previews: QuestionPreview[] = parsedQuestions.map((q) => ({
+              orderIndex: q.orderIndex,
+              type: q.type,
+              stem: q.stem,
+            }));
+            onProgress({
+              questionsGenerated: parsedQuestions.length,
+              questions: previews,
+            });
+          }
         }
       }
+    } catch (error) {
+      this.handleGenerationError(error, model);
     }
 
     if (!fullText) {
@@ -489,18 +499,54 @@ D) Neither statement is true.
   }
 
   /**
-   * Checks if an error is a quota exceeded error
+   * Detects the type of error from the Gemini API response
+   * @returns The error reason: 'quota', 'timeout', or 'unknown'
    */
-  private isQuotaError(error: unknown): boolean {
-    if (error instanceof Error) {
-      const message = error.message.toLowerCase();
-      return (
-        message.includes("quota") ||
-        message.includes("rate limit") ||
-        message.includes("resource exhausted") ||
-        message.includes("429")
-      );
+  private detectErrorReason(error: unknown): AIGenerationErrorReason {
+    if (!(error instanceof Error)) {
+      return "unknown";
     }
-    return false;
+
+    const message = error.message.toLowerCase();
+
+    // Check for quota/rate limit errors
+    if (
+      message.includes("quota") ||
+      message.includes("rate limit") ||
+      message.includes("resource exhausted") ||
+      message.includes("429")
+    ) {
+      return "quota";
+    }
+
+    // Check for timeout/deadline exceeded errors (504)
+    if (
+      message.includes("deadline_exceeded") ||
+      message.includes("deadline exceeded") ||
+      message.includes("504") ||
+      message.includes("timeout") ||
+      message.includes("timed out")
+    ) {
+      return "timeout";
+    }
+
+    return "unknown";
+  }
+
+  /**
+   * Handles generation errors by throwing AIGenerationError for known error types
+   * @throws AIGenerationError for quota or timeout errors
+   * @throws The original error for unknown error types
+   */
+  private handleGenerationError(error: unknown, model: GeminiModel): never {
+    const reason = this.detectErrorReason(error);
+    const originalMessage = error instanceof Error ? error.message : undefined;
+
+    if (reason === "quota" || reason === "timeout") {
+      throw new AIGenerationError(model, reason, originalMessage);
+    }
+
+    // Re-throw unknown errors as-is
+    throw error;
   }
 }

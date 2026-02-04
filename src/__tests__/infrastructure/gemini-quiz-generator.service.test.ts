@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach, mock, spyOn } from "bun:test";
 import {
   GeminiQuizGeneratorService,
-  QuotaExceededError,
+  AIGenerationError,
 } from "../../infrastructure/services/gemini-quiz-generator.service";
 import { QuestionType } from "@/domain";
 import { AIModel } from "@/application";
@@ -101,27 +101,50 @@ describe("GeminiQuizGeneratorService", () => {
       expect(result[0]!.options).toHaveLength(4);
     });
 
-    it("should fallback to lite model on quota error", async () => {
+    it("should throw AIGenerationError with quota reason on quota error", async () => {
       const service = new GeminiQuizGeneratorService(testApiKey);
       const params = createValidParams();
-      const mockQuestions = createMockGeneratedQuestions();
 
-      let callCount = 0;
-      // @ts-expect-error - accessing private method for testing
-      const originalMethod = service.generateWithModel.bind(service);
-      // @ts-expect-error - mocking private method
-      service.generateWithModel = async (...args: unknown[]) => {
-        callCount++;
-        if (callCount === 1) {
-          throw new Error("Quota exceeded for gemini-2.5-flash");
+      // Mock the client to throw quota error
+      (
+        service as unknown as {
+          client: { models: { generateContent: () => Promise<unknown> } };
         }
-        return mockQuestions;
+      ).client.models.generateContent = () => {
+        throw new Error("Quota exceeded for gemini-2.5-flash");
       };
 
-      const result = await service.generateQuestions(params);
+      try {
+        await service.generateQuestions(params);
+        expect(true).toBe(false); // Should not reach here
+      } catch (error) {
+        expect(error).toBeInstanceOf(AIGenerationError);
+        expect((error as AIGenerationError).reason).toBe("quota");
+        expect((error as AIGenerationError).model).toBe("gemini-2.5-flash");
+      }
+    });
 
-      expect(callCount).toBe(2);
-      expect(result).toHaveLength(1);
+    it("should throw AIGenerationError with timeout reason on deadline exceeded", async () => {
+      const service = new GeminiQuizGeneratorService(testApiKey);
+      const params = createValidParams();
+
+      // Mock the client to throw deadline exceeded error
+      (
+        service as unknown as {
+          client: { models: { generateContent: () => Promise<unknown> } };
+        }
+      ).client.models.generateContent = () => {
+        throw new Error("DEADLINE_EXCEEDED: Request timed out");
+      };
+
+      try {
+        await service.generateQuestions(params);
+        expect(true).toBe(false); // Should not reach here
+      } catch (error) {
+        expect(error).toBeInstanceOf(AIGenerationError);
+        expect((error as AIGenerationError).reason).toBe("timeout");
+        expect((error as AIGenerationError).model).toBe("gemini-2.5-flash");
+      }
     });
 
     it("should throw non-quota errors", async () => {
@@ -200,49 +223,105 @@ describe("GeminiQuizGeneratorService", () => {
     });
   });
 
-  describe("isQuotaError", () => {
+  describe("detectErrorReason", () => {
     it("should detect quota-related error messages", () => {
       const service = new GeminiQuizGeneratorService(testApiKey);
-      const isQuotaError = (
-        service as unknown as { isQuotaError: (error: unknown) => boolean }
-      ).isQuotaError;
+      const detectErrorReason = (
+        service as unknown as { detectErrorReason: (error: unknown) => string }
+      ).detectErrorReason;
 
-      expect(isQuotaError.call(service, new Error("Quota exceeded"))).toBe(
-        true,
-      );
-      expect(isQuotaError.call(service, new Error("Rate limit reached"))).toBe(
-        true,
-      );
-      expect(isQuotaError.call(service, new Error("Resource exhausted"))).toBe(
-        true,
+      expect(detectErrorReason.call(service, new Error("Quota exceeded"))).toBe(
+        "quota",
       );
       expect(
-        isQuotaError.call(service, new Error("Error 429: Too many requests")),
-      ).toBe(true);
+        detectErrorReason.call(service, new Error("Rate limit reached")),
+      ).toBe("quota");
+      expect(
+        detectErrorReason.call(service, new Error("Resource exhausted")),
+      ).toBe("quota");
+      expect(
+        detectErrorReason.call(
+          service,
+          new Error("Error 429: Too many requests"),
+        ),
+      ).toBe("quota");
     });
 
-    it("should not detect non-quota errors", () => {
+    it("should detect timeout-related error messages", () => {
       const service = new GeminiQuizGeneratorService(testApiKey);
-      const isQuotaError = (
-        service as unknown as { isQuotaError: (error: unknown) => boolean }
-      ).isQuotaError;
+      const detectErrorReason = (
+        service as unknown as { detectErrorReason: (error: unknown) => string }
+      ).detectErrorReason;
 
-      expect(isQuotaError.call(service, new Error("Network error"))).toBe(
-        false,
+      expect(
+        detectErrorReason.call(service, new Error("DEADLINE_EXCEEDED")),
+      ).toBe("timeout");
+      expect(
+        detectErrorReason.call(service, new Error("Deadline exceeded")),
+      ).toBe("timeout");
+      expect(
+        detectErrorReason.call(
+          service,
+          new Error("Error 504: Gateway timeout"),
+        ),
+      ).toBe("timeout");
+      expect(
+        detectErrorReason.call(service, new Error("Request timeout")),
+      ).toBe("timeout");
+      expect(
+        detectErrorReason.call(service, new Error("Connection timed out")),
+      ).toBe("timeout");
+    });
+
+    it("should return unknown for non-quota/timeout errors", () => {
+      const service = new GeminiQuizGeneratorService(testApiKey);
+      const detectErrorReason = (
+        service as unknown as { detectErrorReason: (error: unknown) => string }
+      ).detectErrorReason;
+
+      expect(detectErrorReason.call(service, new Error("Network error"))).toBe(
+        "unknown",
       );
-      expect(isQuotaError.call(service, new Error("Invalid API key"))).toBe(
-        false,
+      expect(
+        detectErrorReason.call(service, new Error("Invalid API key")),
+      ).toBe("unknown");
+      expect(detectErrorReason.call(service, new Error("Server error"))).toBe(
+        "unknown",
       );
-      expect(isQuotaError.call(service, new Error("Server error"))).toBe(false);
     });
   });
 });
 
-describe("QuotaExceededError", () => {
-  it("should have correct name and message", () => {
-    const error = new QuotaExceededError("gemini-2.5-flash");
+describe("AIGenerationError", () => {
+  it("should have correct name and message for quota errors", () => {
+    const error = new AIGenerationError("gemini-2.5-flash", "quota");
 
-    expect(error.name).toBe("QuotaExceededError");
+    expect(error.name).toBe("AIGenerationError");
+    expect(error.reason).toBe("quota");
+    expect(error.model).toBe("gemini-2.5-flash");
     expect(error.message).toBe("Quota exceeded for model: gemini-2.5-flash");
+  });
+
+  it("should have correct name and message for timeout errors", () => {
+    const error = new AIGenerationError("gemini-2.5-flash", "timeout");
+
+    expect(error.name).toBe("AIGenerationError");
+    expect(error.reason).toBe("timeout");
+    expect(error.model).toBe("gemini-2.5-flash");
+    expect(error.message).toBe(
+      "Request timed out (DEADLINE_EXCEEDED) for model: gemini-2.5-flash",
+    );
+  });
+
+  it("should include original message when provided", () => {
+    const error = new AIGenerationError(
+      "gemini-2.5-flash",
+      "quota",
+      "Original error details",
+    );
+
+    expect(error.message).toBe(
+      "Quota exceeded for model: gemini-2.5-flash - Original error details",
+    );
   });
 });

@@ -59,3 +59,9 @@ export {
 
 // Auth schema (for migrations tooling)
 export { authSchema, users, sessions, accounts, verifications } from "./auth";
+
+// Service errors (for application-layer error handling)
+export {
+  AIGenerationError,
+  type AIGenerationErrorReason,
+} from "./services/gemini-quiz-generator.service";

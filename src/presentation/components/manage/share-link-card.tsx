@@ -41,7 +41,7 @@ export function ShareLinkCard({ slug, visibility }: ShareLinkCardProps) {
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-2">
-          <code className="flex-1 px-3 py-2 bg-muted rounded-md text-sm truncate">
+          <code className="flex-1 w-0 px-3 py-2 bg-muted rounded-md text-sm truncate">
             {shareUrl}
           </code>
           <Button variant="outline" size="icon" onClick={handleCopyLink}>

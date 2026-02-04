@@ -505,42 +505,68 @@ D) Neither statement is true.
 
   /**
    * Detects the type of error from the Gemini API response
-   * @returns The error reason: 'quota', 'timeout', or 'unknown'
+   * Uses HTTP status codes from ApiError when available for reliable detection
+   * @returns The error reason: 'quota', 'timeout', 'unavailable', or 'unknown'
    */
   private detectErrorReason(error: unknown): AIGenerationErrorReason {
     if (!(error instanceof Error)) {
       return "unknown";
     }
 
+    // Check for status code on ApiError (from @google/genai SDK)
+    // The SDK throws ApiError with a 'status' property containing HTTP status code
+    const status = (error as { status?: number }).status;
+
+    if (status !== undefined) {
+      // 429: RESOURCE_EXHAUSTED - Rate limit/quota exceeded
+      if (status === 429) {
+        return "quota";
+      }
+
+      // 504: DEADLINE_EXCEEDED - Request timed out
+      if (status === 504) {
+        return "timeout";
+      }
+
+      // 503: UNAVAILABLE - Service temporarily overloaded or down
+      if (status === 503) {
+        return "unavailable";
+      }
+    }
+
+    // Check error name for SDK-specific error types
+    // APIConnectionTimeoutError is thrown for client-side timeouts
+    if (error.name === "APIConnectionTimeoutError") {
+      return "timeout";
+    }
+
+    // RateLimitError is thrown for 429 responses
+    if (error.name === "RateLimitError") {
+      return "quota";
+    }
+
+    // Fallback: check message for common patterns (legacy/edge cases)
     const message = error.message.toLowerCase();
 
-    // Check for quota/rate limit errors
     if (
       message.includes("quota") ||
       message.includes("rate limit") ||
-      message.includes("resource exhausted") ||
-      message.includes("429")
+      message.includes("resource_exhausted") ||
+      message.includes("resource exhausted")
     ) {
       return "quota";
     }
 
-    // Check for timeout/deadline exceeded errors (504)
     if (
       message.includes("deadline_exceeded") ||
       message.includes("deadline exceeded") ||
-      message.includes("504") ||
       message.includes("timeout") ||
       message.includes("timed out")
     ) {
       return "timeout";
     }
 
-    // Check for service unavailable errors (503)
-    if (
-      message.includes("503") ||
-      message.includes("unavailable") ||
-      message.includes("service unavailable")
-    ) {
+    if (message.includes("unavailable")) {
       return "unavailable";
     }
 

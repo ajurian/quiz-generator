@@ -224,7 +224,74 @@ describe("GeminiQuizGeneratorService", () => {
   });
 
   describe("detectErrorReason", () => {
-    it("should detect quota-related error messages", () => {
+    // Helper to create mock ApiError with status code
+    const createApiError = (status: number, message: string) => {
+      const error = new Error(message) as Error & { status: number };
+      error.status = status;
+      return error;
+    };
+
+    // Helper to create error with specific name
+    const createNamedError = (name: string, message: string) => {
+      const error = new Error(message);
+      error.name = name;
+      return error;
+    };
+
+    it("should detect quota errors by HTTP status code 429", () => {
+      const service = new GeminiQuizGeneratorService(testApiKey);
+      const detectErrorReason = (
+        service as unknown as { detectErrorReason: (error: unknown) => string }
+      ).detectErrorReason;
+
+      const error = createApiError(429, "Resource exhausted");
+      expect(detectErrorReason.call(service, error)).toBe("quota");
+    });
+
+    it("should detect timeout errors by HTTP status code 504", () => {
+      const service = new GeminiQuizGeneratorService(testApiKey);
+      const detectErrorReason = (
+        service as unknown as { detectErrorReason: (error: unknown) => string }
+      ).detectErrorReason;
+
+      const error = createApiError(504, "Deadline exceeded");
+      expect(detectErrorReason.call(service, error)).toBe("timeout");
+    });
+
+    it("should detect unavailable errors by HTTP status code 503", () => {
+      const service = new GeminiQuizGeneratorService(testApiKey);
+      const detectErrorReason = (
+        service as unknown as { detectErrorReason: (error: unknown) => string }
+      ).detectErrorReason;
+
+      const error = createApiError(503, "Service unavailable");
+      expect(detectErrorReason.call(service, error)).toBe("unavailable");
+    });
+
+    it("should detect timeout errors by APIConnectionTimeoutError name", () => {
+      const service = new GeminiQuizGeneratorService(testApiKey);
+      const detectErrorReason = (
+        service as unknown as { detectErrorReason: (error: unknown) => string }
+      ).detectErrorReason;
+
+      const error = createNamedError(
+        "APIConnectionTimeoutError",
+        "Request timed out",
+      );
+      expect(detectErrorReason.call(service, error)).toBe("timeout");
+    });
+
+    it("should detect quota errors by RateLimitError name", () => {
+      const service = new GeminiQuizGeneratorService(testApiKey);
+      const detectErrorReason = (
+        service as unknown as { detectErrorReason: (error: unknown) => string }
+      ).detectErrorReason;
+
+      const error = createNamedError("RateLimitError", "Too many requests");
+      expect(detectErrorReason.call(service, error)).toBe("quota");
+    });
+
+    it("should fallback to message-based detection for quota errors", () => {
       const service = new GeminiQuizGeneratorService(testApiKey);
       const detectErrorReason = (
         service as unknown as { detectErrorReason: (error: unknown) => string }
@@ -237,17 +304,11 @@ describe("GeminiQuizGeneratorService", () => {
         detectErrorReason.call(service, new Error("Rate limit reached")),
       ).toBe("quota");
       expect(
-        detectErrorReason.call(service, new Error("Resource exhausted")),
-      ).toBe("quota");
-      expect(
-        detectErrorReason.call(
-          service,
-          new Error("Error 429: Too many requests"),
-        ),
+        detectErrorReason.call(service, new Error("RESOURCE_EXHAUSTED")),
       ).toBe("quota");
     });
 
-    it("should detect timeout-related error messages", () => {
+    it("should fallback to message-based detection for timeout errors", () => {
       const service = new GeminiQuizGeneratorService(testApiKey);
       const detectErrorReason = (
         service as unknown as { detectErrorReason: (error: unknown) => string }
@@ -257,42 +318,18 @@ describe("GeminiQuizGeneratorService", () => {
         detectErrorReason.call(service, new Error("DEADLINE_EXCEEDED")),
       ).toBe("timeout");
       expect(
-        detectErrorReason.call(service, new Error("Deadline exceeded")),
-      ).toBe("timeout");
-      expect(
-        detectErrorReason.call(
-          service,
-          new Error("Error 504: Gateway timeout"),
-        ),
-      ).toBe("timeout");
-      expect(
-        detectErrorReason.call(service, new Error("Request timeout")),
-      ).toBe("timeout");
-      expect(
-        detectErrorReason.call(service, new Error("Connection timed out")),
+        detectErrorReason.call(service, new Error("Request timed out")),
       ).toBe("timeout");
     });
 
-    it("should detect unavailable-related error messages", () => {
+    it("should fallback to message-based detection for unavailable errors", () => {
       const service = new GeminiQuizGeneratorService(testApiKey);
       const detectErrorReason = (
         service as unknown as { detectErrorReason: (error: unknown) => string }
       ).detectErrorReason;
 
       expect(
-        detectErrorReason.call(
-          service,
-          new Error("Error 503: Service Unavailable"),
-        ),
-      ).toBe("unavailable");
-      expect(
         detectErrorReason.call(service, new Error("Service unavailable")),
-      ).toBe("unavailable");
-      expect(
-        detectErrorReason.call(
-          service,
-          new Error("The server is currently unavailable"),
-        ),
       ).toBe("unavailable");
     });
 

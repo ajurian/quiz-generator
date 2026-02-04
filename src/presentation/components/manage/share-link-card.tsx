@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/presentation/components/ui/button";
 import {
   Card,
@@ -16,10 +17,13 @@ interface ShareLinkCardProps {
 }
 
 export function ShareLinkCard({ slug, visibility }: ShareLinkCardProps) {
-  const shareUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/quiz/a/${slug}`
-      : `/quiz/a/${slug}`;
+  // Use relative path initially to match server render, then update to full URL on client
+  const relativePath = `/quiz/a/${slug}`;
+  const [shareUrl, setShareUrl] = useState(relativePath);
+
+  useEffect(() => {
+    setShareUrl(`${window.location.origin}${relativePath}`);
+  }, [relativePath]);
 
   const handleCopyLink = async () => {
     await navigator.clipboard.writeText(shareUrl);

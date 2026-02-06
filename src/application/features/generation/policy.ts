@@ -47,8 +47,11 @@ export class QuizGenerationPolicy {
    * Uses PREVIEW as primary since it's the latest/experimental model
    */
   static readonly STREAMING_CONFIG: ModelFallbackConfig = {
-    primaryModel: AIModel.PREVIEW,
-    fallbackModel: AIModel.PRIMARY,
+    // USE STABLE VERSION FOR NOW TO AVOID UNEXPECTED ISSUES
+    /* primaryModel: AIModel.PREVIEW,
+    fallbackModel: AIModel.PRIMARY, */
+    primaryModel: AIModel.PRIMARY,
+    fallbackModel: AIModel.LITE,
   };
 
   /**
@@ -88,7 +91,7 @@ export class QuizGenerationPolicy {
    * @throws The original error if not a quota error, or fallback error if both fail
    */
   async executeWithFallback<T>(
-    operation: AIGenerationOperation<T>
+    operation: AIGenerationOperation<T>,
   ): Promise<ModelFallbackResult<T>> {
     try {
       const data = await operation(this.config.primaryModel);

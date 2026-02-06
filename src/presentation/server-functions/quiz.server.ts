@@ -171,6 +171,8 @@ export const startQuizGeneration = createServerFn({ method: "POST" })
     });
 
     // Fire-and-forget: Continue generation in background
+    // Wrap in .catch() to prevent unhandled rejection from crashing the server
+    // Error handling (cleanup, failure event) is already done inside continueQuizGeneration
     waitUntil(
       continueQuizGeneration(quizData, {
         userId: data.userId,
@@ -178,6 +180,12 @@ export const startQuizGeneration = createServerFn({ method: "POST" })
         distribution: data.distribution,
         visibility: data.visibility,
         files: data.files,
+      }).catch((error) => {
+        // Error already handled in continueQuizGeneration, just log for visibility
+        console.error(
+          "[QuizGeneration] Background task failed:",
+          error.message,
+        );
       }),
     );
 

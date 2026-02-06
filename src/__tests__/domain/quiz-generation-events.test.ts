@@ -10,6 +10,7 @@ import {
 describe("QuizGenerationEvents", () => {
   const QUIZ_ID = "019b2194-72a0-7000-a712-5e5bc5c313c1";
   const QUIZ_SLUG = "AZshGnKgBwCnElXrxcMTwQ";
+  const QUIZ_TITLE = "Test Quiz Title";
   const USER_ID = "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10";
 
   describe("processing", () => {
@@ -23,6 +24,7 @@ describe("QuizGenerationEvents", () => {
       const event = QuizGenerationEvents.processing({
         quizId: QUIZ_ID,
         quizSlug: QUIZ_SLUG,
+        quizTitle: QUIZ_TITLE,
         userId: USER_ID,
         questionsGenerated: 1,
         lastQuestion,
@@ -32,6 +34,7 @@ describe("QuizGenerationEvents", () => {
       expect(event.type).toBe("quiz.generation.processing");
       expect(event.quizId).toBe(QUIZ_ID);
       expect(event.quizSlug).toBe(QUIZ_SLUG);
+      expect(event.quizTitle).toBe(QUIZ_TITLE);
       expect(event.userId).toBe(USER_ID);
       expect(event.questionsGenerated).toBe(1);
       expect(event.lastQuestion).toEqual(lastQuestion);
@@ -43,6 +46,7 @@ describe("QuizGenerationEvents", () => {
       const event = QuizGenerationEvents.processing({
         quizId: QUIZ_ID,
         quizSlug: QUIZ_SLUG,
+        quizTitle: QUIZ_TITLE,
         userId: USER_ID,
         questionsGenerated: 5,
         lastQuestion: null,
@@ -68,6 +72,7 @@ describe("QuizGenerationEvents", () => {
       const event = QuizGenerationEvents.processing({
         quizId: QUIZ_ID,
         quizSlug: QUIZ_SLUG,
+        quizTitle: QUIZ_TITLE,
         userId: USER_ID,
         questionsGenerated: 3,
         lastQuestion,
@@ -87,12 +92,14 @@ describe("QuizGenerationEvents", () => {
       const event = QuizGenerationEvents.completed({
         quizId: QUIZ_ID,
         quizSlug: QUIZ_SLUG,
+        quizTitle: QUIZ_TITLE,
         userId: USER_ID,
       });
 
       expect(event.type).toBe("quiz.generation.completed");
       expect(event.quizId).toBe(QUIZ_ID);
       expect(event.quizSlug).toBe(QUIZ_SLUG);
+      expect(event.quizTitle).toBe(QUIZ_TITLE);
       expect(event.userId).toBe(USER_ID);
     });
 
@@ -102,6 +109,7 @@ describe("QuizGenerationEvents", () => {
       const event = QuizGenerationEvents.completed({
         quizId: QUIZ_ID,
         quizSlug: QUIZ_SLUG,
+        quizTitle: QUIZ_TITLE,
         userId: USER_ID,
       });
 
@@ -122,6 +130,7 @@ describe("QuizGenerationEvents", () => {
       const event = QuizGenerationEvents.failed({
         quizId: QUIZ_ID,
         quizSlug: QUIZ_SLUG,
+        quizTitle: QUIZ_TITLE,
         userId: USER_ID,
         errorMessage,
       });
@@ -129,6 +138,7 @@ describe("QuizGenerationEvents", () => {
       expect(event.type).toBe("quiz.generation.failed");
       expect(event.quizId).toBe(QUIZ_ID);
       expect(event.quizSlug).toBe(QUIZ_SLUG);
+      expect(event.quizTitle).toBe(QUIZ_TITLE);
       expect(event.userId).toBe(USER_ID);
       expect(event.errorMessage).toBe(errorMessage);
     });
@@ -139,6 +149,7 @@ describe("QuizGenerationEvents", () => {
       const event = QuizGenerationEvents.failed({
         quizId: QUIZ_ID,
         quizSlug: QUIZ_SLUG,
+        quizTitle: QUIZ_TITLE,
         userId: USER_ID,
         errorMessage: "Error",
       });
@@ -158,6 +169,7 @@ describe("QuizGenerationEvents", () => {
       const event = QuizGenerationEvents.failed({
         quizId: QUIZ_ID,
         quizSlug: QUIZ_SLUG,
+        quizTitle: QUIZ_TITLE,
         userId: USER_ID,
         errorMessage: longErrorMessage,
       });
@@ -172,6 +184,7 @@ describe("QuizGenerationEvents", () => {
       const processingEvent = QuizGenerationEvents.processing({
         quizId: QUIZ_ID,
         quizSlug: QUIZ_SLUG,
+        quizTitle: QUIZ_TITLE,
         userId: USER_ID,
         questionsGenerated: 1,
         lastQuestion: null,
@@ -181,12 +194,14 @@ describe("QuizGenerationEvents", () => {
       const completedEvent = QuizGenerationEvents.completed({
         quizId: QUIZ_ID,
         quizSlug: QUIZ_SLUG,
+        quizTitle: QUIZ_TITLE,
         userId: USER_ID,
       });
 
       const failedEvent = QuizGenerationEvents.failed({
         quizId: QUIZ_ID,
         quizSlug: QUIZ_SLUG,
+        quizTitle: QUIZ_TITLE,
         userId: USER_ID,
         errorMessage: "Error",
       });

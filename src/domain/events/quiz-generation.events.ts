@@ -32,6 +32,7 @@ export interface QuizGenerationBaseEvent extends DomainEvent {
   readonly userId: string;
   readonly quizId: string;
   readonly quizSlug: string;
+  readonly quizTitle: string;
 }
 
 /**
@@ -79,6 +80,7 @@ export const QuizGenerationEvents = {
   processing(params: {
     quizId: string;
     quizSlug: string;
+    quizTitle: string;
     userId: string;
     questionsGenerated: number;
     totalQuestions: number;
@@ -97,6 +99,7 @@ export const QuizGenerationEvents = {
   completed(params: {
     quizId: string;
     quizSlug: string;
+    quizTitle: string;
     userId: string;
   }): QuizGenerationCompletedEvent {
     return {
@@ -112,6 +115,7 @@ export const QuizGenerationEvents = {
   failed(params: {
     quizId: string;
     quizSlug: string;
+    quizTitle: string;
     userId: string;
     errorMessage: string;
   }): QuizGenerationFailedEvent {

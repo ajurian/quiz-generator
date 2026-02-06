@@ -60,6 +60,11 @@ export interface UseQuizEventsState {
    * Map of quiz IDs to their generation progress
    */
   generatingQuizzes: Map<string, QuizGenerationEvent>;
+  /**
+   * Map of quiz IDs to their failed events (from Redis cache)
+   * These are displayed until the cache TTL expires
+   */
+  failedQuizzes: Map<string, QuizGenerationFailedEvent>;
 }
 
 /**
@@ -109,6 +114,19 @@ export function useQuizEvents(
       // Only include processing events in the generating state
       // Completed/failed events are kept in cache for toast notifications
       if (event.type === "quiz.generation.processing") {
+        map.set(event.quizId, event);
+      }
+    }
+    return map;
+  });
+
+  // Initialize failedQuizzes from cached events
+  const [failedQuizzes, setFailedQuizzes] = useState<
+    Map<string, QuizGenerationFailedEvent>
+  >(() => {
+    const map = new Map<string, QuizGenerationFailedEvent>();
+    for (const event of initialEvents) {
+      if (event.type === "quiz.generation.failed") {
         map.set(event.quizId, event);
       }
     }
@@ -168,10 +186,13 @@ export function useQuizEvents(
             next.delete(event.quizId);
             return next;
           });
-          // Invalidate quiz list to refresh data
-          queryClient.invalidateQueries({
-            queryKey: quizKeys.list(userId),
+          // Add to failed quizzes (displayed until Redis cache TTL expires)
+          setFailedQuizzes((prev) => {
+            const next = new Map(prev);
+            next.set(event.quizId, event);
+            return next;
           });
+          // Don't invalidate quiz list - the failed quiz is shown from cache
           callbacksRef.current.onFailed?.(event);
           break;
       }
@@ -292,6 +313,7 @@ export function useQuizEvents(
     isConnected,
     lastEvent,
     generatingQuizzes,
+    failedQuizzes,
   };
 }
 

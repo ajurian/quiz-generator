@@ -251,6 +251,7 @@ async function generateQuestions(
       QuizGenerationEvents.processing({
         quizId: quizData.id,
         quizSlug: quizData.slug,
+        quizTitle: quizData.title,
         userId: quizData.userId,
         questionsGenerated: progress.questionsGenerated,
         totalQuestions,
@@ -322,6 +323,7 @@ async function publishCompletionEvent(quizData: QuizData): Promise<void> {
     QuizGenerationEvents.completed({
       quizId: quizData.id,
       quizSlug: quizData.slug,
+      quizTitle: quizData.title,
       userId: quizData.userId,
     }),
   );
@@ -379,6 +381,7 @@ async function handleGenerationFailure(
       QuizGenerationEvents.failed({
         quizId: quizData.id,
         quizSlug: quizData.slug,
+        quizTitle: quizData.title,
         userId: quizData.userId,
         errorMessage,
       }),

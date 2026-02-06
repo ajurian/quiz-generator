@@ -78,11 +78,11 @@ function CreatedQuizzesPage() {
   const quizzes = response.data;
 
   // Subscribe to real-time quiz generation events
-  const { generatingQuizzes } = useQuizEvents({
+  const { generatingQuizzes, failedQuizzes } = useQuizEvents({
     userId: user.id,
     initialEvents: cachedEvents,
     onCompleted: (event) => {
-      toast.success(`Quiz "${event.quizSlug}" is ready!`, {
+      toast.success(`Quiz "${event.quizTitle}" is ready!`, {
         description: "You can now take the quiz.",
         action: {
           label: "View",
@@ -175,6 +175,7 @@ function CreatedQuizzesPage() {
       <QuizList
         quizzes={quizzes}
         generatingQuizzes={generatingQuizzes}
+        failedQuizzes={failedQuizzes}
         onVisibilityChange={handleVisibilityChange}
         isPendingVisibility={visibilityMutation.isPending}
       />

@@ -23,7 +23,7 @@ export class NotFoundError extends ApplicationError {
     super(
       identifier
         ? `${resource} with identifier '${identifier}' was not found`
-        : `${resource} was not found`
+        : `${resource} was not found`,
     );
   }
 }
@@ -89,7 +89,25 @@ export class ExternalServiceError extends ApplicationError {
     super(
       `External service '${service}' failed${
         originalError ? `: ${originalError.message}` : ""
-      }`
+      }`,
+    );
+  }
+}
+
+/**
+ * Error thrown when a service is temporarily unavailable
+ */
+export class ServiceUnavailableError extends ApplicationError {
+  readonly code = "SERVICE_UNAVAILABLE";
+  readonly statusCode = 503;
+
+  constructor(service: string, retryAfterSeconds?: number) {
+    super(
+      `Service '${service}' is temporarily unavailable${
+        retryAfterSeconds
+          ? `. Please retry after ${retryAfterSeconds} seconds`
+          : ""
+      }`,
     );
   }
 }

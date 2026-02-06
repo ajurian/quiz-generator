@@ -19,7 +19,10 @@ export function CopyLinkButton({ shareLink }: CopyLinkButtonProps) {
       toast.success("Link copied to clipboard!");
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error("Failed to copy link");
+      toast.error("Copy failed", {
+        description:
+          "Unable to copy link. Please try selecting and copying manually.",
+      });
     }
   };
 

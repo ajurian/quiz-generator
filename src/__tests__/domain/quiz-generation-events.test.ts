@@ -57,7 +57,7 @@ describe("QuizGenerationEvents", () => {
 
       expect(event.timestamp).toBeInstanceOf(Date);
       expect(event.timestamp.getTime()).toBeGreaterThanOrEqual(
-        before.getTime()
+        before.getTime(),
       );
       expect(event.timestamp.getTime()).toBeLessThanOrEqual(after.getTime());
     });
@@ -117,7 +117,7 @@ describe("QuizGenerationEvents", () => {
 
       expect(event.timestamp).toBeInstanceOf(Date);
       expect(event.timestamp.getTime()).toBeGreaterThanOrEqual(
-        before.getTime()
+        before.getTime(),
       );
       expect(event.timestamp.getTime()).toBeLessThanOrEqual(after.getTime());
     });
@@ -158,7 +158,7 @@ describe("QuizGenerationEvents", () => {
 
       expect(event.timestamp).toBeInstanceOf(Date);
       expect(event.timestamp.getTime()).toBeGreaterThanOrEqual(
-        before.getTime()
+        before.getTime(),
       );
       expect(event.timestamp.getTime()).toBeLessThanOrEqual(after.getTime());
     });

@@ -88,7 +88,7 @@ export interface UseQuizEventsState {
  * ```
  */
 export function useQuizEvents(
-  options: UseQuizEventsOptions
+  options: UseQuizEventsOptions,
 ): UseQuizEventsState {
   const {
     userId,
@@ -197,7 +197,7 @@ export function useQuizEvents(
           break;
       }
     },
-    [queryClient, userId]
+    [queryClient, userId],
   );
 
   useEffect(() => {
@@ -242,19 +242,19 @@ export function useQuizEvents(
       eventSource.addEventListener("quiz.generation.processing", (e) => {
         try {
           const event = JSON.parse(
-            (e as MessageEvent).data
+            (e as MessageEvent).data,
           ) as QuizGenerationProcessingEvent;
           console.log(
             `[useQuizEvents] Processing: ${event.questionsGenerated}/${event.totalQuestions}`,
             event.lastQuestion
               ? `Last: "${event.lastQuestion.stem.slice(0, 50)}..."`
-              : ""
+              : "",
           );
           handleEvent(event);
         } catch (error) {
           console.error(
             "[useQuizEvents] Failed to parse processing event:",
-            error
+            error,
           );
         }
       });
@@ -263,13 +263,13 @@ export function useQuizEvents(
       eventSource.addEventListener("quiz.generation.completed", (e) => {
         try {
           const event = JSON.parse(
-            (e as MessageEvent).data
+            (e as MessageEvent).data,
           ) as QuizGenerationEvent;
           handleEvent(event);
         } catch (error) {
           console.error(
             "[useQuizEvents] Failed to parse completed event:",
-            error
+            error,
           );
         }
       });
@@ -278,7 +278,7 @@ export function useQuizEvents(
       eventSource.addEventListener("quiz.generation.failed", (e) => {
         try {
           const event = JSON.parse(
-            (e as MessageEvent).data
+            (e as MessageEvent).data,
           ) as QuizGenerationEvent;
           handleEvent(event);
         } catch (error) {

@@ -144,6 +144,7 @@ export {
   ValidationError,
   QuotaExceededError,
   ExternalServiceError,
+  ServiceUnavailableError,
 } from "./errors";
 
 // Types

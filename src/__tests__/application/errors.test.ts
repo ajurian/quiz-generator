@@ -7,6 +7,7 @@ import {
   ValidationError,
   QuotaExceededError,
   ExternalServiceError,
+  ServiceUnavailableError,
 } from "@/application/errors";
 
 describe("Application Errors", () => {
@@ -15,7 +16,7 @@ describe("Application Errors", () => {
       const error = new NotFoundError("Quiz", "quiz-123");
 
       expect(error.message).toBe(
-        "Quiz with identifier 'quiz-123' was not found"
+        "Quiz with identifier 'quiz-123' was not found",
       );
       expect(error.code).toBe("NOT_FOUND");
       expect(error.statusCode).toBe(404);
@@ -63,7 +64,7 @@ describe("Application Errors", () => {
       const error = new ForbiddenError();
 
       expect(error.message).toBe(
-        "You do not have permission to access this resource"
+        "You do not have permission to access this resource",
       );
       expect(error.code).toBe("FORBIDDEN");
       expect(error.statusCode).toBe(403);
@@ -118,7 +119,7 @@ describe("Application Errors", () => {
       const error = new QuotaExceededError("AI API");
 
       expect(error.message).toBe(
-        "AI API quota exceeded. Please try again later."
+        "AI API quota exceeded. Please try again later.",
       );
       expect(error.code).toBe("QUOTA_EXCEEDED");
       expect(error.statusCode).toBe(429);
@@ -147,12 +148,39 @@ describe("Application Errors", () => {
       const error = new ExternalServiceError("Database", originalError);
 
       expect(error.message).toBe(
-        "External service 'Database' failed: Connection refused"
+        "External service 'Database' failed: Connection refused",
       );
     });
 
     it("should be instance of ApplicationError", () => {
       const error = new ExternalServiceError("Test");
+
+      expect(error).toBeInstanceOf(ApplicationError);
+    });
+  });
+
+  describe("ServiceUnavailableError", () => {
+    it("should create error with service name", () => {
+      const error = new ServiceUnavailableError("AI Service");
+
+      expect(error.message).toBe(
+        "Service 'AI Service' is temporarily unavailable",
+      );
+      expect(error.code).toBe("SERVICE_UNAVAILABLE");
+      expect(error.statusCode).toBe(503);
+      expect(error.name).toBe("ServiceUnavailableError");
+    });
+
+    it("should create error with retry-after seconds", () => {
+      const error = new ServiceUnavailableError("Database", 60);
+
+      expect(error.message).toBe(
+        "Service 'Database' is temporarily unavailable. Please retry after 60 seconds",
+      );
+    });
+
+    it("should be instance of ApplicationError", () => {
+      const error = new ServiceUnavailableError("Test");
 
       expect(error).toBeInstanceOf(ApplicationError);
     });
@@ -167,6 +195,7 @@ describe("Application Errors", () => {
         new ValidationError("Validation failed"),
         new QuotaExceededError("Service"),
         new ExternalServiceError("Service"),
+        new ServiceUnavailableError("Service"),
       ];
 
       errors.forEach((error) => {
@@ -183,6 +212,7 @@ describe("Application Errors", () => {
         new ValidationError("Validation failed").code,
         new QuotaExceededError("Service").code,
         new ExternalServiceError("Service").code,
+        new ServiceUnavailableError("Service").code,
       ];
 
       const uniqueCodes = new Set(codes);
@@ -196,6 +226,7 @@ describe("Application Errors", () => {
       expect(new ValidationError("Validation failed").statusCode).toBe(400);
       expect(new QuotaExceededError("Service").statusCode).toBe(429);
       expect(new ExternalServiceError("Service").statusCode).toBe(502);
+      expect(new ServiceUnavailableError("Service").statusCode).toBe(503);
     });
   });
 });

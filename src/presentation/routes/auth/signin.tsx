@@ -15,6 +15,7 @@ import {
 import { Separator } from "@/presentation/components/ui/separator";
 import { Brain, Loader2, Mail } from "lucide-react";
 import { signIn } from "@/presentation/lib/auth-client";
+import { getAuthErrorMessage } from "@/presentation/lib/error-messages";
 import { getSafeRedirectUrl } from "@/presentation/lib/redirect-utils";
 import { toast } from "sonner";
 
@@ -50,12 +51,22 @@ function SignInPage() {
     try {
       const result = await signIn.email({ email, password });
       if (result.error) {
-        toast.error(result.error.message || "Invalid credentials");
+        toast.error("Sign in failed", {
+          description: getAuthErrorMessage(
+            result.error.message,
+            "Invalid email or password.",
+          ),
+        });
       } else {
         window.location.href = redirectUrl;
       }
     } catch (error) {
-      toast.error("Failed to sign in");
+      toast.error("Sign in failed", {
+        description: getAuthErrorMessage(
+          error instanceof Error ? error.message : undefined,
+          "Something went wrong. Please try again.",
+        ),
+      });
     } finally {
       setIsLoading(false);
     }
@@ -66,7 +77,12 @@ function SignInPage() {
     try {
       await signIn.social({ provider: "google", callbackURL: redirectUrl });
     } catch (error) {
-      toast.error("Failed to sign in with Google");
+      toast.error("Google sign in failed", {
+        description: getAuthErrorMessage(
+          error instanceof Error ? error.message : undefined,
+          "Unable to sign in with Google. Please try again.",
+        ),
+      });
       setIsGoogleLoading(false);
     }
   };

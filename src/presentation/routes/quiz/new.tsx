@@ -114,7 +114,9 @@ function NewQuizPage() {
       navigate({ to: "/dashboard/created" });
     },
     onError: (error) => {
-      toast.error(getUserFriendlyMessage(error, "quiz"));
+      toast.error("Failed to create quiz", {
+        description: getUserFriendlyMessage(error, "quiz"),
+      });
     },
   });
 

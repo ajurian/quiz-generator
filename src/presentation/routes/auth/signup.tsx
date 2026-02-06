@@ -15,6 +15,7 @@ import {
 import { Separator } from "@/presentation/components/ui/separator";
 import { Brain, Loader2, Mail } from "lucide-react";
 import { signIn, signUp } from "@/presentation/lib/auth-client";
+import { getAuthErrorMessage } from "@/presentation/lib/error-messages";
 import { getSafeRedirectUrl } from "@/presentation/lib/redirect-utils";
 import { toast } from "sonner";
 
@@ -49,12 +50,16 @@ function SignUpPage() {
     if (!name || !email || !password) return;
 
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error("Validation error", {
+        description: "Passwords do not match.",
+      });
       return;
     }
 
     if (password.length < 8) {
-      toast.error("Password must be at least 8 characters");
+      toast.error("Validation error", {
+        description: "Password must be at least 8 characters.",
+      });
       return;
     }
 
@@ -62,13 +67,23 @@ function SignUpPage() {
     try {
       const result = await signUp.email({ name, email, password });
       if (result.error) {
-        toast.error(result.error.message || "Failed to create account");
+        toast.error("Sign up failed", {
+          description: getAuthErrorMessage(
+            result.error.message,
+            "Failed to create account.",
+          ),
+        });
       } else {
         toast.success("Account created successfully!");
         window.location.href = redirectUrl;
       }
     } catch (error) {
-      toast.error("Failed to create account");
+      toast.error("Sign up failed", {
+        description: getAuthErrorMessage(
+          error instanceof Error ? error.message : undefined,
+          "Something went wrong. Please try again.",
+        ),
+      });
     } finally {
       setIsLoading(false);
     }
@@ -79,7 +94,12 @@ function SignUpPage() {
     try {
       await signIn.social({ provider: "google", callbackURL: redirectUrl });
     } catch (error) {
-      toast.error("Failed to sign up with Google");
+      toast.error("Google sign up failed", {
+        description: getAuthErrorMessage(
+          error instanceof Error ? error.message : undefined,
+          "Unable to sign up with Google. Please try again.",
+        ),
+      });
       setIsGoogleLoading(false);
     }
   };

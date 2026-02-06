@@ -200,7 +200,7 @@ export function QuizCard({
                     : `${quiz.totalQuestions} questions`}
               </span>
               {isFailed && quiz.errorMessage && (
-                <span className="text-xs text-muted-foreground line-clamp-1 max-w-[180px]">
+                <span className="text-xs text-muted-foreground line-clamp-1">
                   {getGenerationFailureMessage(quiz.errorMessage)}
                 </span>
               )}

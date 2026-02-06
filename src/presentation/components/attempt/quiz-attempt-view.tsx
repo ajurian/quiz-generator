@@ -44,7 +44,7 @@ interface QuizAttemptViewProps {
  */
 function useStableKey(
   questions: Question[],
-  initialAnswers: Record<string, string>
+  initialAnswers: Record<string, string>,
 ): string {
   return React.useMemo(() => {
     const questionIds = questions.map((q) => q.id).join(",");
@@ -88,7 +88,7 @@ function useSaveAnswer(attemptId: string, userId: string | null) {
         throw error; // Re-throw to handle in the caller
       }
     },
-    [attemptId, userId]
+    [attemptId, userId],
   );
 
   return { saveStatus, saveAnswer };
@@ -117,7 +117,7 @@ export function QuizAttemptView({
       if (!question) return "selecting";
       return initialAnswers[question.id] ? "checked" : "selecting";
     },
-    [questions, initialAnswers]
+    [questions, initialAnswers],
   );
 
   const [currentIndex, setCurrentIndex] = React.useState(getStartingIndex);
@@ -125,11 +125,11 @@ export function QuizAttemptView({
     React.useState<Record<string, string>>(initialAnswers);
   // Track which questions have been checked (locked)
   const [checkedQuestions, setCheckedQuestions] = React.useState<Set<string>>(
-    () => new Set(Object.keys(initialAnswers))
+    () => new Set(Object.keys(initialAnswers)),
   );
   // Current question state: selecting or checked
   const [questionState, setQuestionState] = React.useState<QuestionState>(() =>
-    getInitialQuestionState(getStartingIndex())
+    getInitialQuestionState(getStartingIndex()),
   );
   // Temporary selection for current question (before checking)
   const [currentSelection, setCurrentSelection] = React.useState<
@@ -173,8 +173,10 @@ export function QuizAttemptView({
       }));
       setCheckedQuestions((prev) => new Set(prev).add(currentQuestion.id));
       setQuestionState("checked");
-    } catch {
-      toast.error("Failed to save answer. Please try again.");
+    } catch (error) {
+      toast.error("Failed to save answer", {
+        description: getUserFriendlyMessage(error, "attempt"),
+      });
     } finally {
       setIsChecking(false);
     }

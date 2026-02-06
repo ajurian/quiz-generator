@@ -57,7 +57,7 @@ export function QuizList({
     : [];
 
   // Combine: cached failed quizzes first (most recent failures), then database quizzes
-  const allQuizzes = [...cachedFailedQuizzes, ...quizzes];
+  const allQuizzes = [...quizzes, ...cachedFailedQuizzes];
 
   return (
     <div>

@@ -5,12 +5,10 @@ export {
   getUserQuizzes,
   getPublicQuizzes,
   getQuizById,
-  createQuiz,
   shareQuiz,
   deleteQuiz,
   getPresignedUploadUrls,
   startQuizGeneration,
-  type SerializableFile,
   type FileInfo,
 } from "./quiz.server";
 

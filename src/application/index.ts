@@ -74,9 +74,6 @@ export {
 
 // Use Cases (via feature modules)
 export {
-  CreateQuizUseCase,
-  type CreateQuizUseCaseInput,
-  type CreateQuizUseCaseDeps,
   GetUserQuizzesUseCase,
   type GetUserQuizzesInput,
   type GetUserQuizzesUseCaseDeps,

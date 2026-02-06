@@ -15,7 +15,6 @@ import {
   UuidIdGenerator,
 } from "../../infrastructure/services";
 import {
-  CreateQuizUseCase,
   GetUserQuizzesUseCase,
   GetQuizByIdUseCase,
   ShareQuizUseCase,
@@ -114,10 +113,10 @@ describe("DI Container", () => {
       const container = createAppContainer(testRuntimeConfig);
 
       expect(container.repositories.quizRepository).toBeInstanceOf(
-        DrizzleQuizRepository
+        DrizzleQuizRepository,
       );
       expect(container.repositories.questionRepository).toBeInstanceOf(
-        DrizzleQuestionRepository
+        DrizzleQuestionRepository,
       );
     });
 
@@ -125,7 +124,7 @@ describe("DI Container", () => {
       const container = createAppContainer(testRuntimeConfig);
 
       expect(container.services.aiGenerator).toBeInstanceOf(
-        GeminiQuizGeneratorService
+        GeminiQuizGeneratorService,
       );
       expect(container.services.fileStorage).toBeInstanceOf(FileStorageService);
       expect(container.services.cache).toBeInstanceOf(RedisCacheService);
@@ -135,9 +134,8 @@ describe("DI Container", () => {
     it("should create use case instances", () => {
       const container = createAppContainer(testRuntimeConfig);
 
-      expect(container.useCases.createQuiz).toBeInstanceOf(CreateQuizUseCase);
       expect(container.useCases.getUserQuizzes).toBeInstanceOf(
-        GetUserQuizzesUseCase
+        GetUserQuizzesUseCase,
       );
       expect(container.useCases.getQuizById).toBeInstanceOf(GetQuizByIdUseCase);
       expect(container.useCases.shareQuiz).toBeInstanceOf(ShareQuizUseCase);
@@ -210,12 +208,12 @@ describe("DI Container", () => {
     it("should inject correct dependencies into use cases", () => {
       const container = createAppContainer(testRuntimeConfig);
 
-      // CreateQuizUseCase should have all required dependencies
-      const createQuiz = container.useCases.createQuiz;
-      expect(createQuiz).toBeDefined();
+      // GetUserQuizzesUseCase should have all required dependencies
+      const getUserQuizzes = container.useCases.getUserQuizzes;
+      expect(getUserQuizzes).toBeDefined();
 
       // Verify the use case can be executed (would need proper mocking for full test)
-      expect(typeof createQuiz.execute).toBe("function");
+      expect(typeof getUserQuizzes.execute).toBe("function");
     });
 
     it("should share repository instances across use cases", () => {
@@ -250,7 +248,6 @@ describe("DI Container", () => {
       expect(container.services).toHaveProperty("idGenerator");
 
       // Verify use cases shape
-      expect(container.useCases).toHaveProperty("createQuiz");
       expect(container.useCases).toHaveProperty("getUserQuizzes");
       expect(container.useCases).toHaveProperty("getQuizById");
       expect(container.useCases).toHaveProperty("shareQuiz");

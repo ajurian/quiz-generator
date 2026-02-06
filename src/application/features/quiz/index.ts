@@ -1,11 +1,5 @@
 // Quiz feature - manages quiz CRUD operations
 export {
-  CreateQuizUseCase,
-  type CreateQuizUseCaseInput,
-  type CreateQuizUseCaseDeps,
-} from "./create-quiz.use-case";
-
-export {
   GetUserQuizzesUseCase,
   type GetUserQuizzesInput,
   type GetUserQuizzesUseCaseDeps,

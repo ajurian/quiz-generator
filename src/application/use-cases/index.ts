@@ -5,9 +5,6 @@
 
 // Quiz feature
 export {
-  CreateQuizUseCase,
-  type CreateQuizUseCaseInput,
-  type CreateQuizUseCaseDeps,
   GetUserQuizzesUseCase,
   type GetUserQuizzesInput,
   type GetUserQuizzesUseCaseDeps,

@@ -75,58 +75,6 @@ export const getQuizById = createServerFn({ method: "GET" })
     return result;
   });
 
-// Serializable file schema for RPC transport
-const serializableFileSchema = z.object({
-  name: z.string(),
-  type: z.string(),
-  size: z.number(),
-  base64: z.string(),
-});
-
-export type SerializableFile = z.infer<typeof serializableFileSchema>;
-
-/**
- * Converts a serializable file back to a File object on the server
- */
-function reconstructFile(serializable: SerializableFile): File {
-  const binaryString = atob(serializable.base64);
-  const bytes = new Uint8Array(binaryString.length);
-  for (let i = 0; i < binaryString.length; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
-  return new File([bytes], serializable.name, { type: serializable.type });
-}
-
-// POST Create Quiz
-export const createQuiz = createServerFn({ method: "POST" })
-  .inputValidator(
-    z.object({
-      userId: z.uuidv7(),
-      title: z.string().min(1).max(255),
-      distribution: quizDistributionSchema,
-      visibility: z
-        .enum(QuizVisibility)
-        .optional()
-        .default(QuizVisibility.PRIVATE),
-      files: z.array(serializableFileSchema),
-    }),
-  )
-  .handler(async ({ data }) => {
-    const container = getContainer();
-
-    // Reconstruct File objects from serializable data
-    const files = data.files.map(reconstructFile);
-
-    const result = await container.useCases.createQuiz.execute({
-      userId: data.userId,
-      title: data.title,
-      distribution: data.distribution,
-      visibility: data.visibility,
-      files,
-    });
-    return result;
-  });
-
 // POST Share Quiz (toggle public visibility)
 export const shareQuiz = createServerFn({ method: "POST" })
   .inputValidator(
@@ -189,8 +137,7 @@ export const getPresignedUploadUrls = createServerFn({ method: "POST" })
     return result;
   });
 
-// POST Start Quiz Generation (triggers Upstash Workflow for background generation in production,
-// or executes directly in development)
+// POST Start Quiz Generation (triggers background generation workflow)
 export const startQuizGeneration = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({

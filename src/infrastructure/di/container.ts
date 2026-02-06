@@ -17,7 +17,6 @@ import {
 } from "../services";
 import { createAuth, type Auth } from "../auth";
 import {
-  CreateQuizUseCase,
   GetUserQuizzesUseCase,
   GetPublicQuizzesUseCase,
   GetQuizByIdUseCase,
@@ -77,7 +76,6 @@ export interface Services {
  * Use cases available in the container
  */
 export interface UseCases {
-  createQuiz: CreateQuizUseCase;
   getUserQuizzes: GetUserQuizzesUseCase;
   getPublicQuizzes: GetPublicQuizzesUseCase;
   getQuizById: GetQuizByIdUseCase;
@@ -183,14 +181,6 @@ export function createAppContainer(config: RuntimeConfig): AppContainer {
   });
 
   // Use Cases (Application layer - orchestrating domain logic)
-  const createQuiz = new CreateQuizUseCase({
-    quizRepository,
-    questionRepository,
-    aiGenerator,
-    fileStorage,
-    idGenerator,
-  });
-
   const getUserQuizzes = new GetUserQuizzesUseCase({ quizRepository });
 
   const getPublicQuizzes = new GetPublicQuizzesUseCase({ quizRepository });
@@ -280,7 +270,6 @@ export function createAppContainer(config: RuntimeConfig): AppContainer {
       eventSubscriber,
     },
     useCases: {
-      createQuiz,
       getUserQuizzes,
       getPublicQuizzes,
       getQuizById,
@@ -303,14 +292,14 @@ export function createAppContainer(config: RuntimeConfig): AppContainer {
 /**
  * Singleton container instance
  *
- * For Node serverless (Lambda/Vercel), the container is cached as a singleton
+ * For Node serverless (Vercel), the container is cached as a singleton
  * across warm invocations. This is safe because:
  * - Upstash Redis uses HTTP (stateless, no TCP connection pooling issues)
  * - Neon uses HTTP driver in production (stateless)
  * - Config is immutable after process start
  *
  * The singleton pattern reduces cold start overhead by reusing initialized
- * clients across requests within the same Lambda/Vercel function instance.
+ * clients across requests within the same Vercel function instance.
  */
 let containerInstance: AppContainer | null = null;
 

@@ -15,7 +15,7 @@ export const quizDistributionSchema = z
       data.directQuestion + data.twoStatementCompound + data.contextual > 0,
     {
       message: "Total questions must be greater than 0",
-    }
+    },
   );
 
 /**
@@ -39,7 +39,7 @@ export const createQuizInputSchema = z.object({
 });
 
 /**
- * Input DTO for CreateQuizUseCase
+ * Input DTO for creating a quiz
  */
 export type CreateQuizInput = z.infer<typeof createQuizInputSchema>;
 
@@ -79,10 +79,10 @@ export function toQuizResponseDTO(quiz: {
   errorMessage?: string | null;
 }): QuizResponseDTO {
   const distribution = QuizDistributionService.decode(
-    quiz.questionDistribution
+    quiz.questionDistribution,
   );
   const totalQuestions = QuizDistributionService.getTotalQuestions(
-    quiz.questionDistribution
+    quiz.questionDistribution,
   );
 
   return {

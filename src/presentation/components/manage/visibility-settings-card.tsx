@@ -21,38 +21,36 @@ interface VisibilitySettingsCardProps {
   isPending: boolean;
 }
 
+const VISIBILITY_OPTIONS = {
+  [QuizVisibility.PRIVATE]: {
+    label: "Private",
+    description: "Only you can access this quiz",
+    icon: <Lock className="h-4 w-4" />,
+  },
+  [QuizVisibility.UNLISTED]: {
+    label: "Unlisted",
+    description: "Anyone with the link can access",
+    icon: <Link2 className="h-4 w-4" />,
+  },
+  [QuizVisibility.PUBLIC]: {
+    label: "Public",
+    description: "Discoverable by everyone",
+    icon: <Globe className="h-4 w-4" />,
+  },
+} as const;
+
 export function VisibilitySettingsCard({
   visibility,
   onVisibilityChange,
   isPending,
 }: VisibilitySettingsCardProps) {
-  const getVisibilityIcon = (v: QuizVisibility) => {
-    switch (v) {
-      case QuizVisibility.PRIVATE:
-        return <Lock className="h-4 w-4" />;
-      case QuizVisibility.UNLISTED:
-        return <Link2 className="h-4 w-4" />;
-      case QuizVisibility.PUBLIC:
-        return <Globe className="h-4 w-4" />;
-    }
-  };
-
-  const getVisibilityDescription = (v: QuizVisibility) => {
-    switch (v) {
-      case QuizVisibility.PRIVATE:
-        return "Only you can access this quiz";
-      case QuizVisibility.UNLISTED:
-        return "Anyone with the link can access";
-      case QuizVisibility.PUBLIC:
-        return "Discoverable by everyone";
-    }
-  };
+  const currentOption = VISIBILITY_OPTIONS[visibility];
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
-          {getVisibilityIcon(visibility)}
+          {currentOption.icon}
           Visibility
         </CardTitle>
         <CardDescription>Control who can access this quiz</CardDescription>
@@ -64,31 +62,26 @@ export function VisibilitySettingsCard({
           disabled={isPending}
         >
           <SelectTrigger>
-            <SelectValue />
+            <SelectValue>
+              <div className="flex items-center gap-2">
+                {currentOption.icon}
+                {currentOption.label}
+              </div>
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={QuizVisibility.PRIVATE}>
-              <div className="flex items-center gap-2">
-                <Lock className="h-4 w-4" />
-                Private
-              </div>
-            </SelectItem>
-            <SelectItem value={QuizVisibility.UNLISTED}>
-              <div className="flex items-center gap-2">
-                <Link2 className="h-4 w-4" />
-                Unlisted
-              </div>
-            </SelectItem>
-            <SelectItem value={QuizVisibility.PUBLIC}>
-              <div className="flex items-center gap-2">
-                <Globe className="h-4 w-4" />
-                Public
-              </div>
-            </SelectItem>
+            {Object.entries(VISIBILITY_OPTIONS).map(([value, option]) => (
+              <SelectItem key={value} value={value}>
+                <div className="flex items-center gap-2">
+                  {option.icon}
+                  {option.label}
+                </div>
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <p className="text-sm text-muted-foreground mt-2">
-          {getVisibilityDescription(visibility)}
+          {currentOption.description}
         </p>
       </CardContent>
     </Card>

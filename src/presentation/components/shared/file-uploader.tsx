@@ -32,7 +32,7 @@ const DEFAULT_ACCEPTED_TYPES = [
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ];
 
-const DEFAULT_MAX_SIZE = 4 * 1024 * 1024; // 4MB
+const DEFAULT_MAX_SIZE = 16 * 1024 * 1024; // 16MB
 
 export function FileUploader({
   files,
@@ -67,7 +67,7 @@ export function FileUploader({
 
       onFilesChange([...files, ...newFiles]);
     },
-    [files, maxFiles, onFilesChange]
+    [files, maxFiles, onFilesChange],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -104,7 +104,7 @@ export function FileUploader({
           isDragActive
             ? "border-primary bg-primary/5"
             : "border-muted-foreground/25 hover:border-primary/50",
-          disabled && "opacity-50 cursor-not-allowed"
+          disabled && "opacity-50 cursor-not-allowed",
         )}
       >
         <input {...getInputProps()} />

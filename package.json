@@ -78,5 +78,6 @@
     "vercel": "^50.1.6",
     "vite-tsconfig-paths": "^5.1.4",
     "wrangler": "^4.56.0"
-  }
+  },
+  "version": "1.0.0"
 }

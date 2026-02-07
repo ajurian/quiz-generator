@@ -102,7 +102,7 @@ function HomePage() {
                     Upload Materials
                   </CardTitle>
                   <CardDescription className="text-base">
-                    Drag and drop your PDFs, documents, or text files. Our AI
+                    Drag and drop your PDFs, documents, or text files. Gemini AI
                     analyzes content thoroughly.
                   </CardDescription>
                 </CardHeader>
@@ -214,8 +214,8 @@ function HomePage() {
                 Ready to Create Your First Quiz?
               </h2>
               <p className="mb-8 text-lg text-muted-foreground">
-                Join thousands of educators and teams using AI to create better
-                assessments.
+                Experience the AI-powered assessment tool built for modern
+                educators.
               </p>
               <Button size="lg" className="glow-primary px-8" asChild>
                 <Link to="/quiz/new">

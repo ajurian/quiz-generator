@@ -52,7 +52,7 @@ const USER_FRIENDLY_MESSAGES: Record<string, string> = {
   FORBIDDEN: "You don't have permission to do this.",
   VALIDATION_ERROR: "Please check your input and try again.",
   QUOTA_EXCEEDED:
-    "Our AI service is currently busy. Please try again in a few minutes.",
+    "Gemini AI service is currently busy. Please try again in a few minutes.",
   EXTERNAL_SERVICE_ERROR: "Something went wrong. Please try again later.",
   SERVICE_UNAVAILABLE:
     "The service is temporarily unavailable. Please try again in a few minutes.",

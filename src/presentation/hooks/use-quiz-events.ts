@@ -1,6 +1,4 @@
 import { useEffect, useCallback, useRef, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { quizKeys } from "@/presentation/queries";
 import {
   QuizGenerationCompletedEvent,
   QuizGenerationEvent,
@@ -100,7 +98,6 @@ export function useQuizEvents(
     onConnectionChange,
   } = options;
 
-  const queryClient = useQueryClient();
   const eventSourceRef = useRef<EventSource | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [lastEvent, setLastEvent] = useState<QuizGenerationEvent | null>(null);
@@ -172,10 +169,6 @@ export function useQuizEvents(
             next.delete(event.quizId);
             return next;
           });
-          // Invalidate quiz list to refresh data
-          queryClient.invalidateQueries({
-            queryKey: quizKeys.list(userId),
-          });
           callbacksRef.current.onCompleted?.(event);
           break;
 
@@ -197,7 +190,7 @@ export function useQuizEvents(
           break;
       }
     },
-    [queryClient, userId],
+    [userId],
   );
 
   useEffect(() => {

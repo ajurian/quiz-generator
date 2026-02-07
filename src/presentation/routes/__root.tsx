@@ -39,7 +39,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "Quiz Generator - AI-Powered Quiz Creation",
+        title: "QuizGem - AI-Powered Quiz Creation",
       },
       {
         name: "description",

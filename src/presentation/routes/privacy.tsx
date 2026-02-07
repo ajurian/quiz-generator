@@ -41,10 +41,10 @@ function PrivacyPolicyPage() {
               <section>
                 <h2 className="text-xl font-semibold mt-0">1. Introduction</h2>
                 <p>
-                  Quiz Generator ("we," "us," or "our") is committed to
-                  protecting your privacy. This Privacy Policy explains how we
-                  collect, use, disclose, and safeguard your information when
-                  you use our AI-powered quiz generation service.
+                  QuizGem ("we," "us," or "our") is committed to protecting your
+                  privacy. This Privacy Policy explains how we collect, use,
+                  disclose, and safeguard your information when you use our
+                  AI-powered quiz generation service.
                 </p>
               </section>
 

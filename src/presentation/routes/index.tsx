@@ -236,13 +236,10 @@ function HomePage() {
               <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
                 <Brain className="h-4 w-4" />
               </div>
-              <span className="text-sm font-display font-medium">
-                Quiz Generator
-              </span>
+              <span className="text-sm font-display font-medium">QuizGem</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} Quiz Generator. Powered by Google
-              Gemini AI.
+              © {new Date().getFullYear()} QuizGem. Powered by Google Gemini AI.
             </p>
           </div>
         </div>

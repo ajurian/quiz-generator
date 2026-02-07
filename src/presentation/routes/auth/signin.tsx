@@ -97,7 +97,7 @@ function SignInPage() {
               <Brain className="h-4 w-4" />
             </div>
             <span className="text-lg font-display font-semibold tracking-tight">
-              Quiz Generator
+              QuizGem
             </span>
           </Link>
         </div>

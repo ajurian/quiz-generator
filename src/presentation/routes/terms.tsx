@@ -43,10 +43,9 @@ function TermsOfServicePage() {
                   1. Acceptance of Terms
                 </h2>
                 <p>
-                  By accessing or using Quiz Generator (&quot;the
-                  Service&quot;), you agree to be bound by these Terms of
-                  Service. If you do not agree to these terms, please do not use
-                  the Service.
+                  By accessing or using QuizGem (&quot;the Service&quot;), you
+                  agree to be bound by these Terms of Service. If you do not
+                  agree to these terms, please do not use the Service.
                 </p>
               </section>
 
@@ -54,10 +53,7 @@ function TermsOfServicePage() {
                 <h2 className="text-xl font-semibold">
                   2. Description of Service
                 </h2>
-                <p>
-                  Quiz Generator is an AI-powered platform that enables users
-                  to:
-                </p>
+                <p>QuizGem is an AI-powered platform that enables users to:</p>
                 <ul className="list-disc pl-6 space-y-1">
                   <li>
                     Generate quizzes automatically using Google Gemini AI based

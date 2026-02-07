@@ -106,7 +106,7 @@ export function AppNavbar({
               <Brain className="h-4 w-4" />
             </div>
             <span className="font-display font-semibold tracking-tight">
-              Quiz Generator
+              QuizGem
             </span>
           </Link>
 
@@ -273,7 +273,7 @@ export function AppNavbar({
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                     <Brain className="h-4 w-4" />
                   </div>
-                  <span>Quiz Generator</span>
+                  <span>QuizGem</span>
                 </SheetTitle>
                 <ThemeToggle />
               </SheetHeader>

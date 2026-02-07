@@ -95,9 +95,6 @@ function CreatedQuizzesPage() {
     },
     onFailed: (event) => {
       queryClient.invalidateQueries({ queryKey: quizKeys.lists() });
-      queryClient.invalidateQueries({
-        queryKey: cachedQuizEventsQueryOptions(user.id).queryKey,
-      });
       toast.error("Quiz generation failed", {
         description: getGenerationFailureMessage(event.errorMessage),
       });

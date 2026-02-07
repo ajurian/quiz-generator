@@ -25,12 +25,7 @@ interface FileUploaderProps {
   disabled?: boolean;
 }
 
-const DEFAULT_ACCEPTED_TYPES = [
-  "application/pdf",
-  "text/plain",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-];
+const DEFAULT_ACCEPTED_TYPES = ["application/pdf", "text/plain"];
 
 const DEFAULT_MAX_SIZE = 16 * 1024 * 1024; // 16MB
 
@@ -117,7 +112,7 @@ export function FileUploader({
               Drag & drop files here, or click to select
             </p>
             <p className="text-sm text-muted-foreground">
-              PDF, DOC, DOCX, or TXT files up to {formatFileSize(maxSize)}
+              PDF or TXT files up to {formatFileSize(maxSize)}
             </p>
             <p className="text-xs text-muted-foreground mt-2">
               {files.length}/{maxFiles} files selected

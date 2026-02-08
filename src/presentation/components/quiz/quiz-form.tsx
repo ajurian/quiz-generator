@@ -14,7 +14,7 @@ import {
   FileUploader,
   type UploadedFile,
 } from "@/presentation/components/shared/file-uploader";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2, Lock, LockOpen } from "lucide-react";
 import { QuizDistribution, QuizVisibility } from "@/domain";
 
 export interface QuizFormData {
@@ -58,22 +58,70 @@ export function QuizForm({
   const [visibility, setVisibility] = React.useState<QuizVisibility>(
     initialData?.visibility || QuizVisibility.PRIVATE,
   );
+  const [lockedFields, setLockedFields] = React.useState<
+    Set<keyof QuizDistribution>
+  >(new Set());
+
+  const distributionKeys: Array<keyof QuizDistribution> = [
+    "directQuestion",
+    "twoStatementCompound",
+    "contextual",
+  ];
+
+  const toggleLock = (field: keyof QuizDistribution) => {
+    setLockedFields((prev) => {
+      const next = new Set(prev);
+      if (next.has(field)) {
+        next.delete(field);
+      } else {
+        // Prevent locking all three — at least one must stay unlocked
+        const unlockedCount = distributionKeys.filter(
+          (k) => !prev.has(k),
+        ).length;
+        if (unlockedCount <= 1) return prev;
+        next.add(field);
+      }
+      return next;
+    });
+  };
 
   // Auto-balance distribution when total changes
   const handleTotalChange = (total: number) => {
     setTotalQuestions(total);
-    const third = Math.floor(total / 3);
-    const remainder = total - third * 3;
-    setDistribution({
-      directQuestion: third + remainder,
-      twoStatementCompound: third,
-      contextual: third,
-    });
+
+    const unlocked = distributionKeys.filter((k) => !lockedFields.has(k));
+    const lockedSum = distributionKeys
+      .filter((k) => lockedFields.has(k))
+      .reduce((sum, k) => sum + distribution[k], 0);
+
+    // If locked values already exceed the new total, reset locks and balance evenly
+    if (lockedSum >= total || unlocked.length === 0) {
+      setLockedFields(new Set());
+      const third = Math.floor(total / 3);
+      const remainder = total - third * 3;
+      setDistribution({
+        directQuestion: third + remainder,
+        twoStatementCompound: third,
+        contextual: third,
+      });
+      return;
+    }
+
+    const budget = total - lockedSum;
+    const share = Math.floor(budget / unlocked.length);
+    let leftover = budget - share * unlocked.length;
+
+    const newDistribution = { ...distribution };
+    for (const key of unlocked) {
+      newDistribution[key] = share + (leftover > 0 ? 1 : 0);
+      if (leftover > 0) leftover--;
+    }
+    setDistribution(newDistribution);
   };
 
   // Update individual distribution while keeping total
   const handleDistributionChange = (
-    type: keyof typeof distribution,
+    type: keyof QuizDistribution,
     value: number,
   ) => {
     const newDistribution = { ...distribution, [type]: value };
@@ -84,25 +132,45 @@ export function QuizForm({
 
     if (newTotal === totalQuestions) {
       setDistribution(newDistribution);
-    } else {
-      // Adjust other values proportionally
-      const diff = totalQuestions - newTotal;
-      const others = Object.keys(distribution).filter(
-        (k) => k !== type,
-      ) as Array<keyof typeof distribution>;
-      const adjustedDistribution = { ...newDistribution };
-      adjustedDistribution[others[0]!] = Math.max(
+      return;
+    }
+
+    // Only adjust unlocked fields (excluding the one being changed)
+    const adjustable = distributionKeys.filter(
+      (k) => k !== type && !lockedFields.has(k),
+    );
+
+    if (adjustable.length === 0) {
+      // No fields to adjust — just set and let validation show the mismatch
+      setDistribution(newDistribution);
+      return;
+    }
+
+    const diff = totalQuestions - newTotal;
+
+    if (adjustable.length === 1) {
+      // Single adjustable field takes the entire difference
+      newDistribution[adjustable[0]!] = Math.max(
         0,
-        newDistribution[others[0]!] + Math.floor(diff / 2),
+        newDistribution[adjustable[0]!] + diff,
       );
-      adjustedDistribution[others[1]!] = Math.max(
+    } else {
+      // Distribute difference across adjustable fields
+      newDistribution[adjustable[0]!] = Math.max(
+        0,
+        newDistribution[adjustable[0]!] + Math.floor(diff / adjustable.length),
+      );
+      // Last adjustable field absorbs the remainder to guarantee the total
+      newDistribution[adjustable[1]!] = Math.max(
         0,
         totalQuestions -
-          adjustedDistribution[type] -
-          adjustedDistribution[others[0]!],
+          distributionKeys
+            .filter((k) => k !== adjustable[1])
+            .reduce((sum, k) => sum + newDistribution[k], 0),
       );
-      setDistribution(adjustedDistribution);
     }
+
+    setDistribution(newDistribution);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -210,63 +278,81 @@ export function QuizForm({
 
         {/* Distribution Grid */}
         <div className="grid grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="directQuestion" className="text-sm">
-              Direct Question
-            </Label>
-            <Input
-              id="directQuestion"
-              type="number"
-              min={0}
-              max={totalQuestions}
-              value={distribution.directQuestion}
-              onChange={(e) =>
-                handleDistributionChange(
-                  "directQuestion",
-                  parseInt(e.target.value, 10) || 0,
-                )
-              }
-              disabled={isSubmitting}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="ts" className="text-sm">
-              Two-Statement Compound
-            </Label>
-            <Input
-              id="ts"
-              type="number"
-              min={0}
-              max={totalQuestions}
-              value={distribution.twoStatementCompound}
-              onChange={(e) =>
-                handleDistributionChange(
-                  "twoStatementCompound",
-                  parseInt(e.target.value, 10) || 0,
-                )
-              }
-              disabled={isSubmitting}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="sit" className="text-sm">
-              Contextual
-            </Label>
-            <Input
-              id="sit"
-              type="number"
-              min={0}
-              max={totalQuestions}
-              value={distribution.contextual}
-              onChange={(e) =>
-                handleDistributionChange(
-                  "contextual",
-                  parseInt(e.target.value, 10) || 0,
-                )
-              }
-              disabled={isSubmitting}
-            />
-          </div>
+          {(
+            [
+              {
+                key: "directQuestion" as const,
+                label: "Direct Question",
+                id: "directQuestion",
+              },
+              {
+                key: "twoStatementCompound" as const,
+                label: "Two-Statement Compound",
+                id: "ts",
+              },
+              {
+                key: "contextual" as const,
+                label: "Contextual",
+                id: "sit",
+              },
+            ] as const
+          ).map(({ key, label, id }) => {
+            const isLocked = lockedFields.has(key);
+            const unlockedCount = distributionKeys.filter(
+              (k) => !lockedFields.has(k),
+            ).length;
+            // Disable locking if this is the last unlocked field
+            const canToggleLock = isLocked || unlockedCount > 1;
+            // The sole unlocked field is fully determined by the total minus locked values
+            const isSoleUnlocked = !isLocked && unlockedCount === 1;
+
+            return (
+              <div key={key} className="space-y-2">
+                <Label htmlFor={id} className="text-sm">
+                  {label}
+                </Label>
+                <div className="flex gap-1">
+                  <Input
+                    id={id}
+                    type="number"
+                    min={0}
+                    max={totalQuestions}
+                    value={distribution[key]}
+                    onChange={(e) =>
+                      handleDistributionChange(
+                        key,
+                        parseInt(e.target.value, 10) || 0,
+                      )
+                    }
+                    disabled={isSubmitting || isSoleUnlocked}
+                    className={
+                      isLocked || isSoleUnlocked ? "opacity-60 bg-muted" : ""
+                    }
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="shrink-0"
+                    disabled={isSubmitting || !canToggleLock}
+                    onClick={() => toggleLock(key)}
+                    aria-label={isLocked ? `Unlock ${label}` : `Lock ${label}`}
+                    title={
+                      isLocked
+                        ? "Unlock — allow auto-adjustment"
+                        : "Lock — prevent auto-adjustment"
+                    }
+                  >
+                    {isLocked ? (
+                      <Lock className="h-4 w-4" />
+                    ) : (
+                      <LockOpen className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {distributionSum !== totalQuestions && (

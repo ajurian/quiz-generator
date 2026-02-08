@@ -324,7 +324,7 @@ export function QuizForm({
                         parseInt(e.target.value, 10) || 0,
                       )
                     }
-                    disabled={isSubmitting || isSoleUnlocked}
+                    disabled={isSubmitting || isLocked || isSoleUnlocked}
                     className={
                       isLocked || isSoleUnlocked ? "opacity-60 bg-muted" : ""
                     }

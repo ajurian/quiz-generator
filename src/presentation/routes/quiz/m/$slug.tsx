@@ -91,7 +91,11 @@ function ManagePage() {
         </div>
 
         <QuizActionsCard slug={slug} />
-        <QuestionsPreview questions={data.questions} />
+        <QuestionsPreview
+          questions={data.questions}
+          quizId={data.quiz.id}
+          userId={userId}
+        />
       </div>
     </div>
   );

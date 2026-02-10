@@ -19,7 +19,7 @@ export const Route = createFileRoute("/quiz/h/$slug/$attemptSlug")({
   loader: async ({ params, context }) => {
     const userId = context.session?.user?.id ?? null;
     const result = await context.queryClient.ensureQueryData(
-      attemptDetailQueryOptions(params.slug, params.attemptSlug, userId)
+      attemptDetailQueryOptions(params.slug, params.attemptSlug, userId),
     );
 
     // Redirect in-progress attempts to the take quiz page
@@ -62,7 +62,7 @@ function AttemptDetailPage() {
   const { slug, attemptSlug } = Route.useParams();
   const { userId } = Route.useLoaderData();
   const { data } = useSuspenseQuery(
-    attemptDetailQueryOptions(slug, attemptSlug, userId)
+    attemptDetailQueryOptions(slug, attemptSlug, userId),
   );
   const { quiz, attempt, questions } = data;
 
@@ -150,6 +150,8 @@ function AttemptDetailPage() {
               questionNumber={index + 1}
               state="review"
               selectedAnswer={attempt.answers[question.id] ?? ""}
+              quizId={quiz.id}
+              userId={userId}
             />
           ))}
         </div>

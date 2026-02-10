@@ -11,7 +11,6 @@ import {
   QuestionCard,
   type Question,
 } from "@/presentation/components/quiz/question-card";
-import PdfViewer from "../shared/pdf-viewer";
 
 interface Quiz {
   id: string;
@@ -245,20 +244,6 @@ export function QuizAttemptView({
     }
   };
 
-  const [pdfUrl, setPdfUrl] = React.useState<string | null>(null);
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // 1. Create a temporary URL pointing to the file in memory
-    const objectUrl = URL.createObjectURL(file);
-    setPdfUrl(objectUrl);
-
-    // Note: If you upload a new file, you should strictly revoke the old one
-    // to avoid memory leaks (see "Cleanup" below)
-  };
-
   // Reset state when questions or initialAnswers actually change (content-based comparison)
   // Using stableKey prevents loops when props have new references but same content
   React.useEffect(() => {
@@ -313,6 +298,8 @@ export function QuizAttemptView({
             onCheckAnswer={handleCheckAnswer}
             isChecking={isChecking}
             isLastQuestion={isLastQuestion}
+            quizId={quiz.id}
+            userId={userId}
           />
         ) : (
           <QuestionCard
@@ -323,16 +310,11 @@ export function QuizAttemptView({
             isLastQuestion={isLastQuestion}
             onNext={handleNext}
             isSubmitting={isSubmitting}
+            quizId={quiz.id}
+            userId={userId}
           />
         )}
       </div>
-      {/* <input type="file" accept="application/pdf" onChange={handleFileChange} />
-      {pdfUrl && (
-        <PdfViewer
-          fileURL={pdfUrl}
-          searchQuery="import java.util.Collections;\\ni"
-        />
-      )} */}
     </div>
   );
 }

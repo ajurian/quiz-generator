@@ -77,4 +77,9 @@ export {
   type GetPresignedUploadUrlsInput,
   type GetPresignedUploadUrlsOutput,
   type GetPresignedUploadUrlsUseCaseDeps,
+  GetSourceMaterialUrlUseCase,
+  getSourceMaterialUrlInputSchema,
+  type GetSourceMaterialUrlInput,
+  type GetSourceMaterialUrlOutput,
+  type GetSourceMaterialUrlUseCaseDeps,
 } from "../features/files";

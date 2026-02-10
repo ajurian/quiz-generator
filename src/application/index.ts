@@ -130,6 +130,11 @@ export {
   type GetPresignedUploadUrlsInput,
   type GetPresignedUploadUrlsOutput,
   type GetPresignedUploadUrlsUseCaseDeps,
+  GetSourceMaterialUrlUseCase,
+  getSourceMaterialUrlInputSchema,
+  type GetSourceMaterialUrlInput,
+  type GetSourceMaterialUrlOutput,
+  type GetSourceMaterialUrlUseCaseDeps,
   // Policy (generation logic moved to Upstash Workflow)
   QuizGenerationPolicy,
   type ModelFallbackResult,

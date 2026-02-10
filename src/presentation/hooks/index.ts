@@ -7,3 +7,5 @@ export {
   type UseQuizEventsOptions,
   type UseQuizEventsState,
 } from "./use-quiz-events";
+
+export { useIsMobile } from "./use-mobile";

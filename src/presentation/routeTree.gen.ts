@@ -21,6 +21,7 @@ import { Route as DashboardTakenRouteImport } from './routes/dashboard/taken'
 import { Route as DashboardCreatedRouteImport } from './routes/dashboard/created'
 import { Route as AuthSignupRouteImport } from './routes/auth/signup'
 import { Route as AuthSigninRouteImport } from './routes/auth/signin'
+import { Route as ApiPdfRouteImport } from './routes/api/pdf'
 import { Route as ApiQuizEventsIndexRouteImport } from './routes/api/quiz-events/index'
 import { Route as QuizMSlugRouteImport } from './routes/quiz/m/$slug'
 import { Route as QuizASlugRouteImport } from './routes/quiz/a/$slug'
@@ -88,6 +89,11 @@ const AuthSigninRoute = AuthSigninRouteImport.update({
   path: '/auth/signin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPdfRoute = ApiPdfRouteImport.update({
+  id: '/api/pdf',
+  path: '/api/pdf',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiQuizEventsIndexRoute = ApiQuizEventsIndexRouteImport.update({
   id: '/api/quiz-events/',
   path: '/api/quiz-events/',
@@ -126,6 +132,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/quiz': typeof QuizRouteWithChildren
   '/terms': typeof TermsRoute
+  '/api/pdf': typeof ApiPdfRoute
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
   '/dashboard/created': typeof DashboardCreatedRoute
@@ -145,6 +152,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/quiz': typeof QuizRouteWithChildren
   '/terms': typeof TermsRoute
+  '/api/pdf': typeof ApiPdfRoute
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
   '/dashboard/created': typeof DashboardCreatedRoute
@@ -166,6 +174,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/quiz': typeof QuizRouteWithChildren
   '/terms': typeof TermsRoute
+  '/api/pdf': typeof ApiPdfRoute
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
   '/dashboard/created': typeof DashboardCreatedRoute
@@ -188,6 +197,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/quiz'
     | '/terms'
+    | '/api/pdf'
     | '/auth/signin'
     | '/auth/signup'
     | '/dashboard/created'
@@ -207,6 +217,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/quiz'
     | '/terms'
+    | '/api/pdf'
     | '/auth/signin'
     | '/auth/signup'
     | '/dashboard/created'
@@ -227,6 +238,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/quiz'
     | '/terms'
+    | '/api/pdf'
     | '/auth/signin'
     | '/auth/signup'
     | '/dashboard/created'
@@ -248,6 +260,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   QuizRoute: typeof QuizRouteWithChildren
   TermsRoute: typeof TermsRoute
+  ApiPdfRoute: typeof ApiPdfRoute
   AuthSigninRoute: typeof AuthSigninRoute
   AuthSignupRoute: typeof AuthSignupRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -340,6 +353,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSigninRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/pdf': {
+      id: '/api/pdf'
+      path: '/api/pdf'
+      fullPath: '/api/pdf'
+      preLoaderRoute: typeof ApiPdfRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/quiz-events/': {
       id: '/api/quiz-events/'
       path: '/api/quiz-events'
@@ -426,6 +446,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   QuizRoute: QuizRouteWithChildren,
   TermsRoute: TermsRoute,
+  ApiPdfRoute: ApiPdfRoute,
   AuthSigninRoute: AuthSigninRoute,
   AuthSignupRoute: AuthSignupRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

@@ -8,17 +8,9 @@ import {
 import { Badge } from "@/presentation/components/ui/badge";
 import { Button } from "@/presentation/components/ui/button";
 import { cn } from "@/lib/utils";
-import {
-  Check,
-  X,
-  ChevronRight,
-  ChevronDown,
-  ChevronUp,
-  Lightbulb,
-  Loader2,
-  ArrowRight,
-} from "lucide-react";
+import { Check, X, Lightbulb, Loader2, ArrowRight } from "lucide-react";
 import { FormattedText } from "@/presentation/lib";
+import { CorrectExplanation } from "@/presentation/components/shared/correct-explanation";
 
 // ============================================================================
 // Types
@@ -56,6 +48,10 @@ interface QuestionCardBaseProps {
   question: Question;
   /** 1-based question number */
   questionNumber: number;
+  /** Quiz ID — needed to fetch source material PDF URLs */
+  quizId: string;
+  /** User ID for access control when fetching source material URLs */
+  userId?: string | null;
 }
 
 interface QuestionCardSelectingProps extends QuestionCardBaseProps {
@@ -95,14 +91,13 @@ const QUESTION_TYPE_LABELS: Record<string, string> = {
   contextual: "Contextual",
 };
 
-const RATIONALE_TRUNCATE_LENGTH = 200;
-
 // ============================================================================
 // Main Component
 // ============================================================================
 
 export function QuestionCard(props: QuestionCardProps) {
-  const { question, questionNumber, state, selectedAnswer } = props;
+  const { question, questionNumber, state, selectedAnswer, quizId, userId } =
+    props;
 
   const selectedOption = question.options.find(
     (o) => o.index === selectedAnswer,
@@ -157,6 +152,9 @@ export function QuestionCard(props: QuestionCardProps) {
             correctExplanation={question.correctExplanation}
             sourceQuotes={question.sourceQuotes}
             sourceTitle={question.sourceTitle}
+            quizId={quizId}
+            reference={question.reference}
+            userId={userId}
           />
         )}
 
@@ -217,7 +215,6 @@ export function QuestionCard(props: QuestionCardProps) {
 interface CorrectnessBadgeProps {
   isCorrect: boolean;
 }
-
 function CorrectnessBadge({ isCorrect }: CorrectnessBadgeProps) {
   return (
     <Badge
@@ -352,110 +349,5 @@ function OptionItem({
         </div>
       </div>
     </Component>
-  );
-}
-
-interface CorrectExplanationProps {
-  correctOption: QuestionOption;
-  correctExplanation: string;
-  sourceQuotes: string[];
-  sourceTitle?: string;
-}
-
-function CorrectExplanation({
-  correctOption,
-  correctExplanation,
-  sourceQuotes,
-  sourceTitle,
-}: CorrectExplanationProps) {
-  const [isExpanded, setIsExpanded] = React.useState(false);
-  const [copiedIndex, setCopiedIndex] = React.useState<number | null>(null);
-  const isLong =
-    correctExplanation && correctExplanation.length > RATIONALE_TRUNCATE_LENGTH;
-
-  const displayText =
-    isLong && !isExpanded
-      ? `${correctExplanation.slice(0, RATIONALE_TRUNCATE_LENGTH)}...`
-      : correctExplanation;
-
-  const handleCopyQuote = async (quote: string, index: number) => {
-    try {
-      await navigator.clipboard.writeText(quote);
-      setCopiedIndex(index);
-      setTimeout(() => setCopiedIndex(null), 2000);
-    } catch {
-      // Fallback for older browsers
-      const textArea = document.createElement("textarea");
-      textArea.value = quote;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textArea);
-      setCopiedIndex(index);
-      setTimeout(() => setCopiedIndex(null), 2000);
-    }
-  };
-
-  return (
-    <div className="p-4 rounded-lg bg-blue-500/5 border border-blue-500/20">
-      <div className="flex items-start gap-2">
-        <Lightbulb className="h-4 w-4 mt-0.5 text-blue-500 shrink-0" />
-        <div className="flex-1">
-          <div className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-1">
-            Why is option {correctOption.index} correct?
-          </div>
-          <div className="text-sm text-muted-foreground">
-            <FormattedText text={displayText} />
-          </div>
-          {isLong && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="mt-2 h-auto p-0 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-              onClick={() => setIsExpanded(!isExpanded)}
-            >
-              {isExpanded ? (
-                <>
-                  Show less
-                  <ChevronUp className="h-3 w-3 ml-1" />
-                </>
-              ) : (
-                <>
-                  Show more
-                  <ChevronDown className="h-3 w-3 ml-1" />
-                </>
-              )}
-            </Button>
-          )}
-          {sourceQuotes.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-blue-500/20">
-              <div className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">
-                <span>{sourceTitle ? `Source: ${sourceTitle}` : "Source"}</span>
-              </div>
-              <div className="space-y-2">
-                {sourceQuotes.map((quote, index) => (
-                  <blockquote
-                    key={index}
-                    onClick={() => handleCopyQuote(quote, index)}
-                    className="text-xs text-muted-foreground italic border-l-2 border-blue-500/30 pl-2 cursor-pointer hover:bg-blue-500/10 rounded-r transition-colors flex items-start justify-between gap-2"
-                    title="Click to copy"
-                  >
-                    <span>
-                      "<FormattedText text={quote} />"
-                    </span>
-                    {copiedIndex === index && (
-                      <span className="text-emerald-500 flex items-center gap-1 shrink-0">
-                        <Check className="h-3 w-3" />
-                        Copied!
-                      </span>
-                    )}
-                  </blockquote>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
   );
 }

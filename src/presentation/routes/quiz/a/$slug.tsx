@@ -18,7 +18,7 @@ import {
   QuizAttemptView,
   ResumeAttemptDialog,
 } from "@/presentation/components/attempt";
-import PdfViewer from "@/presentation/components/attempt/pdf-viewer";
+import PdfViewer from "@/presentation/components/shared/pdf-viewer";
 import { getUserFriendlyMessage } from "@/presentation/lib";
 
 export const Route = createFileRoute("/quiz/a/$slug")({

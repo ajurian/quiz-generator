@@ -11,7 +11,7 @@ import {
   QuestionCard,
   type Question,
 } from "@/presentation/components/quiz/question-card";
-import PdfViewer from "./pdf-viewer";
+import PdfViewer from "../shared/pdf-viewer";
 
 interface Quiz {
   id: string;

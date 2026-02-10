@@ -75,6 +75,25 @@ export const getQuizById = createServerFn({ method: "GET" })
     return result;
   });
 
+// GET Source Material URL (presigned GET URL for viewing PDFs)
+export const getSourceMaterialUrl = createServerFn({ method: "GET" })
+  .inputValidator(
+    z.object({
+      quizId: z.uuidv7(),
+      reference: z.number().int().min(0),
+      userId: z.uuidv7().nullable().optional(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const container = getContainer();
+    const result = await container.useCases.getSourceMaterialUrl.execute({
+      quizId: data.quizId,
+      reference: data.reference,
+      userId: data.userId,
+    });
+    return result;
+  });
+
 // POST Share Quiz (toggle public visibility)
 export const shareQuiz = createServerFn({ method: "POST" })
   .inputValidator(

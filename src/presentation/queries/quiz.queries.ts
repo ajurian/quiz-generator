@@ -4,6 +4,7 @@ import {
   getPublicQuizzes,
   getQuizById,
   getCachedQuizEvents,
+  getSourceMaterialUrl,
 } from "@/presentation/server-functions/quiz.server";
 import { getQuizBySlug } from "@/presentation/server-functions/attempt.server";
 import type { QuizVisibility } from "@/domain";
@@ -28,6 +29,8 @@ export const quizKeys = {
   bySlug: (slug: string) => [...quizKeys.all, "slug", slug] as const,
   generatingEvents: (userId: string) =>
     [...quizKeys.all, "generating-events", userId] as const,
+  sourceMaterialUrl: (quizId: string, reference: number) =>
+    [...quizKeys.all, "source-material-url", quizId, reference] as const,
 } as const;
 
 /**
@@ -100,5 +103,25 @@ export function publicQuizzesQueryOptions(search?: string) {
     queryKey: quizKeys.public(search),
     queryFn: () => getPublicQuizzes({ data: { search } }),
     staleTime: 1000 * 60 * 2, // 2 minutes (public quizzes change more frequently)
+  });
+}
+
+/**
+ * Query options for fetching a source material presigned GET URL
+ * @param quizId - The quiz ID
+ * @param reference - The 0-based reference index of the source material
+ * @param userId - The user ID (optional, for access control)
+ */
+export function sourceMaterialUrlQueryOptions(
+  quizId: string,
+  reference: number,
+  userId?: string | null,
+) {
+  return queryOptions({
+    queryKey: quizKeys.sourceMaterialUrl(quizId, reference),
+    queryFn: () =>
+      getSourceMaterialUrl({ data: { quizId, reference, userId } }),
+    staleTime: 1000 * 60 * 30, // 30 minutes (presigned URLs expire after 1 hour)
+    gcTime: 1000 * 60 * 45, // 45 minutes
   });
 }

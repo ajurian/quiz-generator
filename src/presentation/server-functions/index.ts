@@ -8,6 +8,7 @@ export {
   shareQuiz,
   deleteQuiz,
   getPresignedUploadUrls,
+  getSourceMaterialUrl,
   startQuizGeneration,
   type FileInfo,
 } from "./quiz.server";

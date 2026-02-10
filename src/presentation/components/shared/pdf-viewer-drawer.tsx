@@ -66,7 +66,7 @@ export function PdfViewerDrawer({
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent className="max-h-[85vh]">
+        <DrawerContent className="max-h-[85vh] h-full">
           <DrawerHeader className="pb-2">
             <DrawerTitle className="flex items-center gap-2 text-sm">
               <FileText className="h-4 w-4 shrink-0" />

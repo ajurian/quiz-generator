@@ -19,6 +19,7 @@ import {
   ResumeAttemptDialog,
 } from "@/presentation/components/attempt";
 import { getUserFriendlyMessage } from "@/presentation/lib";
+import { getLocalAnswers } from "@/presentation/hooks";
 
 export const Route = createFileRoute("/quiz/a/$slug")({
   loader: async ({ params, context }) => {
@@ -47,10 +48,21 @@ function AttemptQuizPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
+  // For anonymous users, check localStorage for saved answers
+  const localData = React.useMemo(
+    () => (userId === null ? getLocalAnswers(slug) : null),
+    [userId, slug],
+  );
+  const localAnswers = localData?.answers ?? {};
+  const localCheckedQuestions = localData?.checkedQuestions ?? [];
+  const hasLocalAnswers = Object.keys(localAnswers).length > 0;
+
   // Track whether user has made a choice on resume dialog
   const isInProgressAttempt =
     !attemptResult.isNewAttempt && !attemptResult.existingAttemptSummary;
-  const hasAnswers = Object.keys(attemptResult.attempt.answers).length > 0;
+  const hasServerAnswers =
+    Object.keys(attemptResult.attempt.answers).length > 0;
+  const hasAnswers = hasServerAnswers || hasLocalAnswers;
 
   const { resume } = useLocation({
     select: (s) => ({
@@ -58,9 +70,13 @@ function AttemptQuizPage() {
     }),
   });
 
-  // Show dialog only if in-progress with existing answers
+  // Show dialog if in-progress with existing answers (server or local)
   const [showResumeDialog, setShowResumeDialog] = React.useState(
-    isInProgressAttempt && hasAnswers && !resume,
+    (isInProgressAttempt && hasAnswers && !resume) ||
+      (attemptResult.isNewAttempt &&
+        hasLocalAnswers &&
+        userId === null &&
+        !resume),
   );
 
   const forceStartMutation = useMutation({
@@ -114,22 +130,66 @@ function AttemptQuizPage() {
   };
 
   const handleStartOver = () => {
+    // For anonymous users, clear localStorage instead of calling server reset
+    if (userId === null) {
+      try {
+        localStorage.removeItem(`quiz-answers:${slug}`);
+      } catch {
+        // Ignore cleanup errors
+      }
+      toast.success("Starting fresh!");
+      router.invalidate();
+      return;
+    }
     resetAttemptMutation.mutate();
   };
 
   React.useEffect(() => {
-    setShowResumeDialog(isInProgressAttempt && hasAnswers && !resume);
-  }, [isInProgressAttempt, hasAnswers, resume]);
+    setShowResumeDialog(
+      (isInProgressAttempt && hasAnswers && !resume) ||
+        (attemptResult.isNewAttempt &&
+          hasLocalAnswers &&
+          userId === null &&
+          !resume),
+    );
+  }, [
+    isInProgressAttempt,
+    hasAnswers,
+    hasLocalAnswers,
+    resume,
+    attemptResult.isNewAttempt,
+    userId,
+  ]);
 
-  // New attempt - show the quiz immediately
+  // New attempt - show the quiz immediately (with local answers for anonymous resume)
   if (attemptResult.isNewAttempt) {
     return (
-      <QuizAttemptView
-        quiz={quizDetails.quiz}
-        questions={quizDetails.questions}
-        attemptId={attemptResult.attempt.id}
-        userId={session?.user?.id ?? null}
-      />
+      <>
+        {hasLocalAnswers && userId === null && (
+          <ResumeAttemptDialog
+            open={showResumeDialog}
+            onContinue={handleContinue}
+            onStartOver={handleStartOver}
+            isResetting={false}
+            answeredCount={Object.keys(localAnswers).length}
+            totalQuestions={quizDetails.questions.length}
+          />
+        )}
+        <QuizAttemptView
+          quiz={quizDetails.quiz}
+          questions={quizDetails.questions}
+          attemptId={attemptResult.attempt.id}
+          userId={session?.user?.id ?? null}
+          initialAnswers={
+            hasLocalAnswers && userId === null ? localAnswers : undefined
+          }
+          initialCheckedQuestions={
+            hasLocalAnswers && userId === null
+              ? localCheckedQuestions
+              : undefined
+          }
+        />
+      </>
     );
   }
 
@@ -162,6 +222,7 @@ function AttemptQuizPage() {
         attemptId={attemptResult.attempt.id}
         userId={session?.user?.id ?? null}
         initialAnswers={attemptResult.attempt.answers}
+        initialCheckedQuestions={Object.keys(attemptResult.attempt.answers)}
       />
     </>
   );

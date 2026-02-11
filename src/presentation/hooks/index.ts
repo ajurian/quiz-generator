@@ -9,3 +9,10 @@ export {
 } from "./use-quiz-events";
 
 export { useIsMobile } from "./use-mobile";
+
+export {
+  useLocalAnswerStorage,
+  getLocalAnswers,
+} from "./use-local-answer-storage";
+
+export { useAnswerPersistence } from "./use-answer-persistence";

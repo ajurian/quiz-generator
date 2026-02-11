@@ -2,11 +2,12 @@ import React from "react";
 import { useRouter } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/presentation/components/ui/badge";
-import { Cloud, CloudOff, Loader2, Lock } from "lucide-react";
+import { Cloud, CloudOff, HardDrive, Loader2, Lock } from "lucide-react";
 import { toast } from "sonner";
-import { autosaveAnswer, submitAttempt } from "@/presentation/server-functions";
+import { submitAttempt } from "@/presentation/server-functions";
 import { attemptKeys } from "@/presentation/queries";
 import { getUserFriendlyMessage } from "@/presentation/lib";
+import { useAnswerPersistence } from "@/presentation/hooks";
 import {
   QuestionCard,
   type Question,
@@ -35,6 +36,8 @@ interface QuizAttemptViewProps {
   userId: string | null;
   /** Initial answers (for resuming in-progress attempts) */
   initialAnswers?: Record<string, string>;
+  /** Initial checked question IDs (for resuming anonymous attempts from localStorage) */
+  initialCheckedQuestions?: string[];
 }
 
 /**
@@ -55,50 +58,13 @@ function useStableKey(
   }, [questions, initialAnswers]);
 }
 
-/**
- * Hook for saving answer when user checks it (no debouncing)
- */
-function useSaveAnswer(attemptId: string, userId: string | null) {
-  const [saveStatus, setSaveStatus] = React.useState<SaveStatus>("idle");
-  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
-
-  const saveAnswer = React.useCallback(
-    async (questionId: string, optionIndex: string) => {
-      setSaveStatus("saving");
-      try {
-        await autosaveAnswer({
-          data: {
-            attemptId,
-            userId,
-            questionId,
-            optionIndex,
-          },
-        });
-        setSaveStatus("saved");
-        // Reset to idle after showing "saved" state
-        clearTimeout(timeoutRef.current ?? undefined);
-        timeoutRef.current = setTimeout(() => setSaveStatus("idle"), 3000);
-      } catch (error) {
-        console.error("Save failed:", error);
-        setSaveStatus("error");
-        // Reset to idle after showing error
-        clearTimeout(timeoutRef.current ?? undefined);
-        timeoutRef.current = setTimeout(() => setSaveStatus("idle"), 3000);
-        throw error; // Re-throw to handle in the caller
-      }
-    },
-    [attemptId, userId],
-  );
-
-  return { saveStatus, saveAnswer };
-}
-
 export function QuizAttemptView({
   quiz,
   questions,
   attemptId,
   userId,
   initialAnswers = {},
+  initialCheckedQuestions = [],
 }: QuizAttemptViewProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -123,8 +89,13 @@ export function QuizAttemptView({
   const [answers, setAnswers] =
     React.useState<Record<string, string>>(initialAnswers);
   // Track which questions have been checked (locked)
+  // Merge keys from initialAnswers and initialCheckedQuestions for anonymous resume
   const [checkedQuestions, setCheckedQuestions] = React.useState<Set<string>>(
-    () => new Set(Object.keys(initialAnswers)),
+    () => {
+      const keys = new Set(Object.keys(initialAnswers));
+      for (const qId of initialCheckedQuestions) keys.add(qId);
+      return keys;
+    },
   );
   // Current question state: selecting or checked
   const [questionState, setQuestionState] = React.useState<QuestionState>(() =>
@@ -137,7 +108,8 @@ export function QuizAttemptView({
   const [isChecking, setIsChecking] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const { saveStatus, saveAnswer } = useSaveAnswer(attemptId, userId);
+  const { saveStatus, saveAnswer, clearAnswers, isLocal } =
+    useAnswerPersistence(attemptId, userId, quiz.slug);
 
   // Create a stable key to detect actual content changes (not just reference changes)
   const stableKey = useStableKey(questions, initialAnswers);
@@ -220,6 +192,9 @@ export function QuizAttemptView({
         description: `You scored ${score.toFixed(0)}%`,
       });
 
+      // Clear local storage for anonymous users after successful submit
+      clearAnswers();
+
       // Invalidate attempt history cache
       if (userId) {
         queryClient.invalidateQueries({
@@ -286,6 +261,7 @@ export function QuizAttemptView({
           totalQuestions={questions.length}
           currentIndex={currentIndex}
           saveStatus={saveStatus}
+          isLocal={isLocal}
         />
 
         {questionState === "selecting" ? (
@@ -325,6 +301,7 @@ interface ProgressHeaderProps {
   totalQuestions: number;
   currentIndex: number;
   saveStatus: SaveStatus;
+  isLocal: boolean;
 }
 
 function ProgressHeader({
@@ -333,13 +310,14 @@ function ProgressHeader({
   totalQuestions,
   currentIndex,
   saveStatus,
+  isLocal,
 }: ProgressHeaderProps) {
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-2">
         <h1 className="text-xl font-display font-semibold">{title}</h1>
         <div className="flex items-center gap-3">
-          <SaveStatusIndicator status={saveStatus} />
+          <SaveStatusIndicator status={saveStatus} isLocal={isLocal} />
           <Badge variant="outline">
             Question {currentIndex + 1} of {totalQuestions}
           </Badge>
@@ -361,9 +339,10 @@ function ProgressHeader({
 
 interface SaveStatusIndicatorProps {
   status: SaveStatus;
+  isLocal: boolean;
 }
 
-function SaveStatusIndicator({ status }: SaveStatusIndicatorProps) {
+function SaveStatusIndicator({ status, isLocal }: SaveStatusIndicatorProps) {
   if (status === "idle") return null;
 
   return (
@@ -374,7 +353,13 @@ function SaveStatusIndicator({ status }: SaveStatusIndicatorProps) {
           <span>Saving...</span>
         </>
       )}
-      {status === "saved" && (
+      {status === "saved" && isLocal && (
+        <>
+          <HardDrive className="h-3.5 w-3.5 text-emerald-600" />
+          <span className="text-emerald-600">Saved locally</span>
+        </>
+      )}
+      {status === "saved" && !isLocal && (
         <>
           <Cloud className="h-3.5 w-3.5 text-emerald-600" />
           <span className="text-emerald-600">Saved</span>

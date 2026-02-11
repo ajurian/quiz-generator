@@ -74,6 +74,7 @@ export {
 
 // Use Cases (via feature modules)
 export {
+  // Quiz
   GetUserQuizzesUseCase,
   type GetUserQuizzesInput,
   type GetUserQuizzesUseCaseDeps,
@@ -95,6 +96,10 @@ export {
   type UpdateQuizVisibilityInput,
   type UpdateQuizVisibilityOutput,
   type UpdateQuizVisibilityUseCaseDeps,
+} from "./features/quiz";
+
+export {
+  // Attempt
   StartAttemptUseCase,
   ForceStartAttemptUseCase,
   type StartAttemptInput as StartAttemptUseCaseInput,
@@ -125,6 +130,20 @@ export {
   type GetUserAttemptHistoryOutput,
   type AttemptHistoryItemDTO,
   type GetUserAttemptHistoryUseCaseDeps,
+  ClaimAnonymousAttemptsUseCase,
+  type ClaimAnonymousAttemptsInput,
+  type ClaimAnonymousAttemptsOutput,
+  type ClaimAnonymousAttemptsUseCaseDeps,
+} from "./features/attempt";
+
+export {
+  // Generation (policy only — use cases moved to Upstash Workflow)
+  QuizGenerationPolicy,
+  type ModelFallbackResult,
+} from "./features/generation";
+
+export {
+  // Files
   GetPresignedUploadUrlsUseCase,
   getPresignedUploadUrlsInputSchema,
   type GetPresignedUploadUrlsInput,
@@ -135,10 +154,7 @@ export {
   type GetSourceMaterialUrlInput,
   type GetSourceMaterialUrlOutput,
   type GetSourceMaterialUrlUseCaseDeps,
-  // Policy (generation logic moved to Upstash Workflow)
-  QuizGenerationPolicy,
-  type ModelFallbackResult,
-} from "./use-cases";
+} from "./features/files";
 
 // Errors
 export {

@@ -7,11 +7,16 @@ import { toast } from "sonner";
 import { submitAttempt } from "@/presentation/server-functions";
 import { attemptKeys } from "@/presentation/queries";
 import { getUserFriendlyMessage } from "@/presentation/lib";
-import { useAnswerPersistence } from "@/presentation/hooks";
+import {
+  useAnswerPersistence,
+  addAnonymousAttempt,
+  markLocalAnswersSubmitted,
+} from "@/presentation/hooks";
 import {
   QuestionCard,
   type Question,
 } from "@/presentation/components/quiz/question-card";
+import { AnonymousCompletionDialog } from "./anonymous-completion-dialog";
 
 interface Quiz {
   id: string;
@@ -107,6 +112,10 @@ export function QuizAttemptView({
   >(undefined);
   const [isChecking, setIsChecking] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  // Anonymous completion state: holds score when anonymous user finishes
+  const [anonymousResult, setAnonymousResult] = React.useState<{
+    score: number;
+  } | null>(null);
 
   const { saveStatus, saveAnswer, clearAnswers, isLocal } =
     useAnswerPersistence(attemptId, userId, quiz.slug);
@@ -188,28 +197,31 @@ export function QuizAttemptView({
         data: { attemptId, userId, score, answers },
       });
 
-      toast.success("Quiz completed!", {
-        description: `You scored ${score.toFixed(0)}%`,
-      });
-
-      // Clear local storage for anonymous users after successful submit
-      clearAnswers();
-
-      // Invalidate attempt history cache
       if (userId) {
+        // Authenticated user: normal flow
+        toast.success("Quiz completed!", {
+          description: `You scored ${score.toFixed(0)}%`,
+        });
+
+        clearAnswers();
+
         queryClient.invalidateQueries({
           queryKey: attemptKeys.list(quiz.slug, userId),
         });
-      }
 
-      // Navigate to the attempt result page
-      router.navigate({
-        to: "/quiz/h/$slug/$attemptSlug",
-        params: {
-          slug: quiz.slug,
-          attemptSlug: attemptResult.attempt.slug,
-        },
-      });
+        router.navigate({
+          to: "/quiz/h/$slug/$attemptSlug",
+          params: {
+            slug: quiz.slug,
+            attemptSlug: attemptResult.attempt.slug,
+          },
+        });
+      } else {
+        // Anonymous user: keep localStorage, track attempt, show dialog
+        addAnonymousAttempt(attemptId, quiz.slug);
+        markLocalAnswersSubmitted(quiz.slug, attemptId);
+        setAnonymousResult({ score });
+      }
     } catch (error) {
       toast.error("Failed to submit quiz", {
         description: getUserFriendlyMessage(error, "attempt"),
@@ -291,6 +303,16 @@ export function QuizAttemptView({
           />
         )}
       </div>
+
+      {/* Anonymous completion dialog */}
+      {anonymousResult && (
+        <AnonymousCompletionDialog
+          open
+          quizTitle={quiz.title}
+          score={anonymousResult.score}
+          currentPath={`/quiz/a/${quiz.slug}`}
+        />
+      )}
     </div>
   );
 }

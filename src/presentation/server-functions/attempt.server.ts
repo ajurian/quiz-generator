@@ -9,7 +9,7 @@ export const getQuizBySlug = createServerFn({ method: "GET" })
     z.object({
       quizSlug: z.string().length(22),
       userId: z.uuidv7().nullable().optional(),
-    })
+    }),
   )
   .handler(async ({ data }) => {
     const container = getContainer();
@@ -27,7 +27,7 @@ export const updateQuizVisibility = createServerFn({ method: "POST" })
       quizId: z.uuidv7(),
       userId: z.uuidv7(),
       visibility: z.enum(QuizVisibility),
-    })
+    }),
   )
   .handler(async ({ data }) => {
     const container = getContainer();
@@ -45,7 +45,7 @@ export const startAttempt = createServerFn({ method: "POST" })
     z.object({
       quizSlug: z.string().length(22),
       userId: z.uuidv7().nullable(),
-    })
+    }),
   )
   .handler(async ({ data }) => {
     const container = getContainer();
@@ -62,7 +62,7 @@ export const forceStartAttempt = createServerFn({ method: "POST" })
     z.object({
       quizSlug: z.string().length(22),
       userId: z.uuidv7().nullable(),
-    })
+    }),
   )
   .handler(async ({ data }) => {
     const container = getContainer();
@@ -81,7 +81,7 @@ export const submitAttempt = createServerFn({ method: "POST" })
       userId: z.uuidv7().nullable(),
       score: z.number().min(0).max(100),
       answers: z.record(z.string(), z.string()),
-    })
+    }),
   )
   .handler(async ({ data }) => {
     const container = getContainer();
@@ -100,7 +100,7 @@ export const getUserAttempts = createServerFn({ method: "GET" })
     z.object({
       quizSlug: z.string().length(22),
       userId: z.uuidv7(),
-    })
+    }),
   )
   .handler(async ({ data }) => {
     const container = getContainer();
@@ -118,7 +118,7 @@ export const getAttemptDetail = createServerFn({ method: "GET" })
       quizSlug: z.string().length(22),
       attemptSlug: z.string().length(22),
       userId: z.uuidv7().nullable(),
-    })
+    }),
   )
   .handler(async ({ data }) => {
     const container = getContainer();
@@ -138,7 +138,7 @@ export const autosaveAnswer = createServerFn({ method: "POST" })
       userId: z.uuidv7().nullable(),
       questionId: z.string(),
       optionIndex: z.string(),
-    })
+    }),
   )
   .handler(async ({ data }) => {
     const container = getContainer();
@@ -157,7 +157,7 @@ export const resetAttempt = createServerFn({ method: "POST" })
     z.object({
       attemptId: z.uuidv7(),
       userId: z.uuidv7().nullable(),
-    })
+    }),
   )
   .handler(async ({ data }) => {
     const container = getContainer();
@@ -173,12 +173,29 @@ export const getUserAttemptHistory = createServerFn({ method: "GET" })
   .inputValidator(
     z.object({
       userId: z.uuidv7(),
-    })
+    }),
   )
   .handler(async ({ data }) => {
     const container = getContainer();
     const result = await container.useCases.getUserAttemptHistory.execute({
       userId: data.userId,
+    });
+    return result;
+  });
+
+// POST Claim Anonymous Attempts (after sign-in/sign-up)
+export const claimAnonymousAttempts = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      userId: z.uuidv7(),
+      attemptIds: z.array(z.uuidv7()).min(1).max(100),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const container = getContainer();
+    const result = await container.useCases.claimAnonymousAttempts.execute({
+      userId: data.userId,
+      attemptIds: data.attemptIds,
     });
     return result;
   });

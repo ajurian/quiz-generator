@@ -18,6 +18,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { ThemeProvider } from "next-themes";
 import React from "react";
+import { useClaimAnonymousAttempts } from "@/presentation/hooks";
 
 interface RouterContext {
   queryClient: QueryClient;
@@ -69,6 +70,9 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function RootComponent() {
+  const { session } = Route.useRouteContext();
+  useClaimAnonymousAttempts(session?.user?.id ?? null);
+
   return (
     <RootDocument>
       <Outlet />

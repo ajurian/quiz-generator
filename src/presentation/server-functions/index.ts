@@ -25,6 +25,7 @@ export {
   autosaveAnswer,
   resetAttempt,
   getUserAttemptHistory,
+  claimAnonymousAttempts,
 } from "./attempt.server";
 
 export { getServerSession, type ServerSession } from "./auth.server";

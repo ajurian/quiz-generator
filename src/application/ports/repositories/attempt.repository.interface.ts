@@ -38,7 +38,7 @@ export interface IAttemptRepository {
    */
   findByQuizId(
     quizId: string,
-    pagination: PaginationParams
+    pagination: PaginationParams,
   ): Promise<PaginatedResult<QuizAttempt>>;
 
   /**
@@ -47,7 +47,7 @@ export interface IAttemptRepository {
    */
   findByUserId(
     userId: string,
-    pagination: PaginationParams
+    pagination: PaginationParams,
   ): Promise<PaginatedResult<QuizAttempt>>;
 
   /**
@@ -55,7 +55,7 @@ export interface IAttemptRepository {
    */
   findLastAttemptByQuizAndUser(
     quizId: string,
-    userId: string
+    userId: string,
   ): Promise<QuizAttempt | null>;
 
   /**
@@ -85,7 +85,7 @@ export interface IAttemptRepository {
    */
   findInProgressByQuizAndUser(
     quizId: string,
-    userId: string
+    userId: string,
   ): Promise<QuizAttempt | null>;
 
   /**
@@ -94,6 +94,13 @@ export interface IAttemptRepository {
    * Ordered by attempt startedAt DESC (most recent first)
    */
   findLatestAttemptPerQuizByUser(
-    userId: string
+    userId: string,
   ): Promise<{ attempt: QuizAttempt; quizId: string }[]>;
+
+  /**
+   * Claims multiple anonymous attempts for an authenticated user in a single batch.
+   * Only updates attempts where userId is currently NULL.
+   * @returns The number of attempts successfully claimed.
+   */
+  claimAnonymousAttempts(attemptIds: string[], userId: string): Promise<number>;
 }

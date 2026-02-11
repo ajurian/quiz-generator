@@ -17,6 +17,8 @@ type SaveStatus = "idle" | "saving" | "saved" | "error";
 interface StoredAnswerData {
   answers: Record<string, string>;
   checkedQuestions: string[];
+  attemptId?: string;
+  submitted?: boolean;
   lastUpdated: number;
 }
 
@@ -160,4 +162,88 @@ export function getLocalAnswers(
   const data = readStoredData(quizSlug);
   if (!data) return null;
   return { answers: data.answers, checkedQuestions: data.checkedQuestions };
+}
+
+// --- Anonymous attempt tracking across quizzes ---
+
+/**
+ * localStorage key for tracking anonymous attempt IDs across quizzes.
+ */
+const ANONYMOUS_ATTEMPTS_KEY = "anonymous-attempts";
+
+interface AnonymousAttemptEntry {
+  attemptId: string;
+  quizSlug: string;
+  submittedAt: number;
+}
+
+/**
+ * Record a submitted anonymous attempt for later claiming on sign-in.
+ */
+export function addAnonymousAttempt(attemptId: string, quizSlug: string): void {
+  try {
+    const raw = localStorage.getItem(ANONYMOUS_ATTEMPTS_KEY);
+    const entries: AnonymousAttemptEntry[] = raw ? JSON.parse(raw) : [];
+
+    // Avoid duplicates
+    if (entries.some((e) => e.attemptId === attemptId)) return;
+
+    entries.push({ attemptId, quizSlug, submittedAt: Date.now() });
+    localStorage.setItem(ANONYMOUS_ATTEMPTS_KEY, JSON.stringify(entries));
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+/**
+ * Get all anonymous attempt IDs stored in localStorage.
+ */
+export function getAnonymousAttemptIds(): string[] {
+  try {
+    const raw = localStorage.getItem(ANONYMOUS_ATTEMPTS_KEY);
+    if (!raw) return [];
+    const entries: AnonymousAttemptEntry[] = JSON.parse(raw);
+    return entries.map((e) => e.attemptId);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Clear all anonymous attempt tracking data and associated quiz answer data.
+ */
+export function clearAnonymousAttempts(): void {
+  try {
+    const raw = localStorage.getItem(ANONYMOUS_ATTEMPTS_KEY);
+    if (raw) {
+      const entries: AnonymousAttemptEntry[] = JSON.parse(raw);
+      // Also clear associated quiz-answers entries
+      for (const entry of entries) {
+        localStorage.removeItem(getStorageKey(entry.quizSlug));
+      }
+    }
+    localStorage.removeItem(ANONYMOUS_ATTEMPTS_KEY);
+  } catch {
+    // Ignore cleanup errors
+  }
+}
+
+/**
+ * Mark a quiz's local answer data as submitted with the given attemptId.
+ */
+export function markLocalAnswersSubmitted(
+  quizSlug: string,
+  attemptId: string,
+): void {
+  try {
+    const data = readStoredData(quizSlug);
+    if (data) {
+      data.attemptId = attemptId;
+      data.submitted = true;
+      data.lastUpdated = Date.now();
+      writeStoredData(quizSlug, data);
+    }
+  } catch {
+    // Ignore errors
+  }
 }

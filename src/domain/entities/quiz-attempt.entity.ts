@@ -45,7 +45,7 @@ export class QuizAttempt {
   private readonly _id: string;
   private readonly _slug: string;
   private readonly _quizId: string;
-  private readonly _userId: string | null;
+  private _userId: string | null;
   private _status: AttemptStatus;
   private _score: number | null;
   private _durationMs: number | null;
@@ -375,6 +375,27 @@ export class QuizAttempt {
       return false;
     }
     return this._userId === userId;
+  }
+
+  /**
+   * Claims this anonymous attempt for an authenticated user.
+   * Can only be called on attempts with no userId (anonymous).
+   * @throws {InvalidOperationError} if attempt already has a userId
+   * @throws {InvariantViolationError} if userId is invalid
+   */
+  public claimForUser(userId: string): void {
+    if (this._userId !== null) {
+      throw new InvalidOperationError(
+        "Cannot claim an attempt that already belongs to a user",
+      );
+    }
+    if (!userId || typeof userId !== "string") {
+      throw new InvariantViolationError(
+        "A valid user ID is required to claim an attempt",
+        "userId",
+      );
+    }
+    this._userId = userId;
   }
 
   /**

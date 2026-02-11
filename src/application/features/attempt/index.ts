@@ -49,3 +49,10 @@ export {
   type AttemptHistoryItemDTO,
   type GetUserAttemptHistoryUseCaseDeps,
 } from "./get-user-attempt-history.use-case";
+
+export {
+  ClaimAnonymousAttemptsUseCase,
+  type ClaimAnonymousAttemptsInput,
+  type ClaimAnonymousAttemptsOutput,
+  type ClaimAnonymousAttemptsUseCaseDeps,
+} from "./claim-anonymous-attempts.use-case";

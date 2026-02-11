@@ -1,4 +1,4 @@
-import { eq, desc, and, count, isNull, sql } from "drizzle-orm";
+import { eq, desc, and, count, isNull, inArray, sql } from "drizzle-orm";
 import type {
   IAttemptRepository,
   PaginationParams,
@@ -85,13 +85,13 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
    */
   async findByQuizAndUser(
     quizId: string,
-    userId: string
+    userId: string,
   ): Promise<QuizAttempt[]> {
     const results = await this.db
       .select()
       .from(quizAttempts)
       .where(
-        and(eq(quizAttempts.quizId, quizId), eq(quizAttempts.userId, userId))
+        and(eq(quizAttempts.quizId, quizId), eq(quizAttempts.userId, userId)),
       )
       .orderBy(desc(quizAttempts.startedAt));
 
@@ -103,7 +103,7 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
    */
   async findByQuizId(
     quizId: string,
-    pagination: PaginationParams
+    pagination: PaginationParams,
   ): Promise<PaginatedResult<QuizAttempt>> {
     const { page, limit } = pagination;
     const offset = (page - 1) * limit;
@@ -141,7 +141,7 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
    */
   async findByUserId(
     userId: string,
-    pagination: PaginationParams
+    pagination: PaginationParams,
   ): Promise<PaginatedResult<QuizAttempt>> {
     const { page, limit } = pagination;
     const offset = (page - 1) * limit;
@@ -179,7 +179,7 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
    */
   async findLastAttemptByQuizAndUser(
     quizId: string,
-    userId: string
+    userId: string,
   ): Promise<QuizAttempt | null> {
     const [result] = await this.db
       .select()
@@ -188,8 +188,8 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
         and(
           eq(quizAttempts.quizId, quizId),
           eq(quizAttempts.userId, userId),
-          eq(quizAttempts.status, AttemptStatus.SUBMITTED)
-        )
+          eq(quizAttempts.status, AttemptStatus.SUBMITTED),
+        ),
       )
       .orderBy(desc(quizAttempts.submittedAt))
       .limit(1);
@@ -206,7 +206,7 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
    */
   async findInProgressByQuizAndUser(
     quizId: string,
-    userId: string
+    userId: string,
   ): Promise<QuizAttempt | null> {
     const [result] = await this.db
       .select()
@@ -215,8 +215,8 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
         and(
           eq(quizAttempts.quizId, quizId),
           eq(quizAttempts.userId, userId),
-          eq(quizAttempts.status, AttemptStatus.IN_PROGRESS)
-        )
+          eq(quizAttempts.status, AttemptStatus.IN_PROGRESS),
+        ),
       )
       .limit(1);
 
@@ -235,7 +235,7 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
       .select({ total: count() })
       .from(quizAttempts)
       .where(
-        and(eq(quizAttempts.quizId, quizId), eq(quizAttempts.userId, userId))
+        and(eq(quizAttempts.quizId, quizId), eq(quizAttempts.userId, userId)),
       );
 
     return result?.total ?? 0;
@@ -249,6 +249,7 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
     const [updated] = await this.db
       .update(quizAttempts)
       .set({
+        userId: plain.userId,
         status: plain.status,
         score: plain.score,
         durationMs: plain.durationMs,
@@ -273,6 +274,27 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
   }
 
   /**
+   * Claims multiple anonymous attempts for a user in a single batch UPDATE.
+   * Only updates attempts where userId IS NULL.
+   */
+  async claimAnonymousAttempts(
+    attemptIds: string[],
+    userId: string,
+  ): Promise<number> {
+    if (attemptIds.length === 0) return 0;
+
+    const result = await this.db
+      .update(quizAttempts)
+      .set({ userId })
+      .where(
+        and(inArray(quizAttempts.id, attemptIds), isNull(quizAttempts.userId)),
+      )
+      .returning({ id: quizAttempts.id });
+
+    return result.length;
+  }
+
+  /**
    * Checks if an attempt exists
    */
   async exists(id: string): Promise<boolean> {
@@ -290,7 +312,7 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
    * Uses a window function to get the most recent attempt per quiz
    */
   async findLatestAttemptPerQuizByUser(
-    userId: string
+    userId: string,
   ): Promise<{ attempt: QuizAttempt; quizId: string }[]> {
     // Use a subquery with ROW_NUMBER() to get the latest attempt per quiz
     const latestAttemptsSubquery = this.db
@@ -298,7 +320,7 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
         id: quizAttempts.id,
         rowNum:
           sql<number>`ROW_NUMBER() OVER (PARTITION BY ${quizAttempts.quizId} ORDER BY ${quizAttempts.startedAt} DESC)`.as(
-            "row_num"
+            "row_num",
           ),
       })
       .from(quizAttempts)
@@ -312,8 +334,8 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
         latestAttemptsSubquery,
         and(
           eq(quizAttempts.id, latestAttemptsSubquery.id),
-          eq(latestAttemptsSubquery.rowNum, 1)
-        )
+          eq(latestAttemptsSubquery.rowNum, 1),
+        ),
       )
       .orderBy(desc(quizAttempts.startedAt));
 

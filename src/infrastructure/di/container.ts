@@ -31,6 +31,7 @@ import {
   AutosaveAnswerUseCase,
   ResetAttemptUseCase,
   GetUserAttemptHistoryUseCase,
+  ClaimAnonymousAttemptsUseCase,
   GetPresignedUploadUrlsUseCase,
   GetSourceMaterialUrlUseCase,
 } from "@/application";
@@ -91,6 +92,7 @@ export interface UseCases {
   autosaveAnswer: AutosaveAnswerUseCase;
   resetAttempt: ResetAttemptUseCase;
   getUserAttemptHistory: GetUserAttemptHistoryUseCase;
+  claimAnonymousAttempts: ClaimAnonymousAttemptsUseCase;
   getPresignedUploadUrls: GetPresignedUploadUrlsUseCase;
   getSourceMaterialUrl: GetSourceMaterialUrlUseCase;
   // Note: Quiz generation use cases removed - now handled by Upstash Workflow
@@ -247,6 +249,10 @@ export function createAppContainer(config: RuntimeConfig): AppContainer {
     attemptRepository,
   });
 
+  const claimAnonymousAttempts = new ClaimAnonymousAttemptsUseCase({
+    attemptRepository,
+  });
+
   const getPresignedUploadUrls = new GetPresignedUploadUrlsUseCase({
     s3Storage,
   });
@@ -292,6 +298,7 @@ export function createAppContainer(config: RuntimeConfig): AppContainer {
       autosaveAnswer,
       resetAttempt,
       getUserAttemptHistory,
+      claimAnonymousAttempts,
       getPresignedUploadUrls,
       getSourceMaterialUrl,
     },

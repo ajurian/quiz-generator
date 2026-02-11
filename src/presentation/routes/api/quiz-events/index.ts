@@ -10,8 +10,9 @@ import { handleQuizEventsRequest } from "@/presentation/features/quiz-events";
  * Authentication is required - the user ID is extracted from the session.
  *
  * Events:
- * - quiz.progress: Quiz generation progress (questions being generated)
- * - quiz.status: Quiz status change (ready or failed)
+ * - quiz.generation.processing: Quiz generation progress (questions being generated)
+ * - quiz.generation.completed: Quiz generation completed successfully
+ * - quiz.generation.failed: Quiz generation failed
  * - ping: Keep-alive ping every 30 seconds
  *
  * The route delegates to the quiz-events feature handler for all logic.

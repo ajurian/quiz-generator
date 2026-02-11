@@ -10,6 +10,7 @@ export {
   getPresignedUploadUrls,
   getSourceMaterialUrl,
   startQuizGeneration,
+  getCachedQuizEvents,
   type FileInfo,
 } from "./quiz.server";
 

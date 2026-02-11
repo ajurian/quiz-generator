@@ -1,6 +1,7 @@
 /**
  * Enum representing the available Google Gemini AI models.
  *
+ * - FLASH_3_0: Preview/experimental model with latest features
  * - FLASH_2_5: Primary model with higher quality output
  * - FLASH_2_5_LITE: Fallback model with lower quota requirements
  */

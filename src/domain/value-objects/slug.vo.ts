@@ -105,7 +105,7 @@ export function slugToUuid(slug: string): string {
   if (bytes.length !== 16) {
     throw new InvalidValueError(
       "Slug",
-      `Invalid slug: decoded to ${bytes.length} bytes instead of 16`
+      `Invalid slug: decoded to ${bytes.length} bytes instead of 16`,
     );
   }
 
@@ -151,7 +151,7 @@ export class Slug {
 
   /**
    * Creates a Slug from a UUID
-   * @throws Error if the UUID is invalid
+   * @throws {InvalidValueError} if the UUID is invalid
    */
   public static fromUuid(uuid: string): Slug {
     const slug = uuidToSlug(uuid);

@@ -12,9 +12,7 @@ export type DrizzleDatabase = ReturnType<
 >;
 
 /**
- * Creates a new database connection
- * - Development: Uses postgres-js (TCP) for local Docker database
- * - Production: Uses Neon HTTP driver (stateless)
+ * Creates a new database connection using Neon HTTP driver (stateless)
  */
 export function createDatabaseConnection(databaseUrl: string): DrizzleDatabase {
   if (!databaseUrl) {
@@ -46,7 +44,7 @@ export function createDatabaseConnection(databaseUrl: string): DrizzleDatabase {
 
 /**
  * Gets a database connection
- * Creates a fresh connection each time to avoid Workers I/O context issues
+ * Creates a fresh connection each time (stateless HTTP driver)
  */
 export function getDatabase(databaseUrl?: string): DrizzleDatabase {
   return createDatabaseConnection(databaseUrl ?? process.env.DATABASE_URL!);

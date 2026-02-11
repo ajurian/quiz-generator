@@ -73,14 +73,14 @@ export class Quiz {
 
   /**
    * Creates a new Quiz entity
-   * @throws {Error} if validation fails
+   * @throws {InvariantViolationError} if validation fails
    */
   public static create(props: CreateQuizProps): Quiz {
     Quiz.validateCreateProps(props);
 
     const now = new Date();
     const encodedDistribution = QuizDistributionService.encode(
-      props.distribution
+      props.distribution,
     );
 
     // Generate slug from UUID (deterministic)
@@ -102,7 +102,7 @@ export class Quiz {
 
   /**
    * Reconstitutes a Quiz entity from persisted data
-   * @throws {Error} if validation fails
+   * @throws {InvariantViolationError} if validation fails
    */
   public static reconstitute(props: QuizProps): Quiz {
     Quiz.validateProps(props);
@@ -128,21 +128,21 @@ export class Quiz {
     ) {
       throw new InvariantViolationError(
         "Quiz title is required and cannot be empty",
-        "title"
+        "title",
       );
     }
 
     if (props.title.length > 255) {
       throw new InvariantViolationError(
         "Quiz title cannot exceed 255 characters",
-        "title"
+        "title",
       );
     }
 
     if (!QuizDistributionService.validate(props.distribution)) {
       throw new InvariantViolationError(
         "Invalid question distribution",
-        "distribution"
+        "distribution",
       );
     }
 
@@ -152,7 +152,7 @@ export class Quiz {
     ) {
       throw new InvariantViolationError(
         "Invalid visibility value",
-        "visibility"
+        "visibility",
       );
     }
   }
@@ -177,7 +177,7 @@ export class Quiz {
     ) {
       throw new InvariantViolationError(
         "Quiz title is required and cannot be empty",
-        "title"
+        "title",
       );
     }
 
@@ -191,7 +191,7 @@ export class Quiz {
     ) {
       throw new InvariantViolationError(
         "Valid createdAt date is required",
-        "createdAt"
+        "createdAt",
       );
     }
 
@@ -201,14 +201,14 @@ export class Quiz {
     ) {
       throw new InvariantViolationError(
         "Valid updatedAt date is required",
-        "updatedAt"
+        "updatedAt",
       );
     }
 
     if (!Object.values(QuizVisibility).includes(props.visibility)) {
       throw new InvariantViolationError(
         "visibility must be a valid QuizVisibility value",
-        "visibility"
+        "visibility",
       );
     }
 
@@ -218,7 +218,7 @@ export class Quiz {
     ) {
       throw new InvariantViolationError(
         "questionDistribution must be an integer",
-        "questionDistribution"
+        "questionDistribution",
       );
     }
 
@@ -227,21 +227,21 @@ export class Quiz {
     if (!QuizDistributionService.validate(decoded)) {
       throw new InvariantViolationError(
         "questionDistribution contains invalid encoded values",
-        "questionDistribution"
+        "questionDistribution",
       );
     }
 
     if (!Object.values(QuizStatus).includes(props.status)) {
       throw new InvariantViolationError(
         "status must be a valid QuizStatus value",
-        "status"
+        "status",
       );
     }
 
     if (props.errorMessage !== null && typeof props.errorMessage !== "string") {
       throw new InvariantViolationError(
         "errorMessage must be a string or null",
-        "errorMessage"
+        "errorMessage",
       );
     }
   }
@@ -306,7 +306,7 @@ export class Quiz {
    */
   get totalQuestions(): number {
     return QuizDistributionService.getTotalQuestions(
-      this._questionDistribution
+      this._questionDistribution,
     );
   }
 
@@ -319,14 +319,14 @@ export class Quiz {
     if (!title || typeof title !== "string" || title.trim().length === 0) {
       throw new InvariantViolationError(
         "Quiz title is required and cannot be empty",
-        "title"
+        "title",
       );
     }
 
     if (title.length > 255) {
       throw new InvariantViolationError(
         "Quiz title cannot exceed 255 characters",
-        "title"
+        "title",
       );
     }
 
@@ -341,7 +341,7 @@ export class Quiz {
     if (!Object.values(QuizVisibility).includes(visibility)) {
       throw new InvariantViolationError(
         "Invalid visibility value",
-        "visibility"
+        "visibility",
       );
     }
     this._visibility = visibility;
@@ -379,7 +379,7 @@ export class Quiz {
     if (!QuizDistributionService.validate(distribution)) {
       throw new InvariantViolationError(
         "Invalid question distribution",
-        "distribution"
+        "distribution",
       );
     }
 
@@ -458,7 +458,7 @@ export class Quiz {
     if (!errorMessage || errorMessage.trim().length === 0) {
       throw new InvariantViolationError(
         "Error message is required when marking quiz as failed",
-        "errorMessage"
+        "errorMessage",
       );
     }
     this._status = QuizStatus.FAILED;

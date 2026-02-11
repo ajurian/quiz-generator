@@ -31,8 +31,8 @@ export interface DeleteQuizUseCaseDeps {
  * 1. Validate input
  * 2. Find quiz by ID
  * 3. Verify ownership
- * 4. Get source materials to find R2 keys
- * 5. Delete R2 files
+ * 4. Get source materials to find S3 keys
+ * 5. Delete S3 files (best effort, continues on failure)
  * 6. Delete quiz (cascade deletes questions and source_materials)
  */
 export class DeleteQuizUseCase {

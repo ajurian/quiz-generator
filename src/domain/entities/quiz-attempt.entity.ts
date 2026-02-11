@@ -15,7 +15,7 @@ export interface QuizAttemptProps {
   durationMs: number | null;
   startedAt: Date;
   submittedAt: Date | null;
-  /** User's selected answers (questionId -> optionId) */
+  /** User's selected answers (questionId -> optionIndex) */
   answers: Record<string, string>;
 }
 
@@ -68,7 +68,7 @@ export class QuizAttempt {
 
   /**
    * Creates a new QuizAttempt entity
-   * @throws {Error} if validation fails
+   * @throws {InvariantViolationError} if validation fails
    */
   public static create(props: CreateQuizAttemptProps): QuizAttempt {
     QuizAttempt.validateCreateProps(props);
@@ -91,7 +91,7 @@ export class QuizAttempt {
 
   /**
    * Reconstitutes a QuizAttempt entity from persisted data
-   * @throws {Error} if validation fails
+   * @throws {InvariantViolationError} if validation fails
    */
   public static reconstitute(props: QuizAttemptProps): QuizAttempt {
     QuizAttempt.validateProps(props);
@@ -113,7 +113,7 @@ export class QuizAttempt {
     if (props.userId !== null && typeof props.userId !== "string") {
       throw new InvariantViolationError(
         "User ID must be a string or null",
-        "userId"
+        "userId",
       );
     }
   }
@@ -138,14 +138,14 @@ export class QuizAttempt {
     if (props.userId !== null && typeof props.userId !== "string") {
       throw new InvariantViolationError(
         "User ID must be a string or null",
-        "userId"
+        "userId",
       );
     }
 
     if (!Object.values(AttemptStatus).includes(props.status)) {
       throw new InvariantViolationError(
         "status must be a valid AttemptStatus value",
-        "status"
+        "status",
       );
     }
 
@@ -155,7 +155,7 @@ export class QuizAttempt {
     ) {
       throw new InvariantViolationError(
         "Score must be a non-negative number or null",
-        "score"
+        "score",
       );
     }
 
@@ -165,7 +165,7 @@ export class QuizAttempt {
     ) {
       throw new InvariantViolationError(
         "Duration must be a non-negative number or null",
-        "durationMs"
+        "durationMs",
       );
     }
 
@@ -175,7 +175,7 @@ export class QuizAttempt {
     ) {
       throw new InvariantViolationError(
         "Valid startedAt date is required",
-        "startedAt"
+        "startedAt",
       );
     }
 
@@ -186,7 +186,7 @@ export class QuizAttempt {
     ) {
       throw new InvariantViolationError(
         "submittedAt must be a valid date or null",
-        "submittedAt"
+        "submittedAt",
       );
     }
 
@@ -203,7 +203,7 @@ export class QuizAttempt {
       if (typeof questionId !== "string" || typeof optionIndex !== "string") {
         throw new InvariantViolationError(
           "Answers must be a Record<string, string> (questionId -> optionIndex)",
-          "answers"
+          "answers",
         );
       }
     }
@@ -296,7 +296,7 @@ export class QuizAttempt {
     if (typeof score !== "number" || score < 0) {
       throw new InvariantViolationError(
         "Score must be a non-negative number",
-        "score"
+        "score",
       );
     }
 
@@ -315,7 +315,7 @@ export class QuizAttempt {
   public updateAnswers(answers: Record<string, string>): void {
     if (this._status === AttemptStatus.SUBMITTED) {
       throw new InvalidOperationError(
-        "Cannot update answers on submitted attempt"
+        "Cannot update answers on submitted attempt",
       );
     }
     this._answers = { ...answers };
@@ -328,7 +328,7 @@ export class QuizAttempt {
   public updateAnswer(questionId: string, optionIndex: string): void {
     if (this._status === AttemptStatus.SUBMITTED) {
       throw new InvalidOperationError(
-        "Cannot update answers on submitted attempt"
+        "Cannot update answers on submitted attempt",
       );
     }
     this._answers = { ...this._answers, [questionId]: optionIndex };
@@ -343,7 +343,7 @@ export class QuizAttempt {
   public resetAnswers(): void {
     if (this._status === AttemptStatus.SUBMITTED) {
       throw new InvalidOperationError(
-        "Cannot reset answers on submitted attempt"
+        "Cannot reset answers on submitted attempt",
       );
     }
     this._answers = {};

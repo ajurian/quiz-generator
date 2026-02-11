@@ -133,7 +133,7 @@ export class GeminiQuizGeneratorService implements IAIQuizGenerator {
 
   constructor(apiKey: string) {
     if (!apiKey) {
-      throw new Error("fGOOGLE_AI_API_KEY environment variable is required");
+      throw new Error("GOOGLE_AI_API_KEY environment variable is required");
     }
     this.client = new GoogleGenAI({ apiKey });
   }

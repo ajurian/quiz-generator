@@ -21,7 +21,7 @@ import type { Auth } from "@/infrastructure/auth";
 /**
  * Gets the application container
  *
- * For Node serverless (Lambda/Vercel), returns a singleton container
+ * For Node serverless (Vercel), returns a singleton container
  * that persists across warm invocations.
  */
 export function getContainer(): AppContainer {

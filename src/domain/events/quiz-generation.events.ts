@@ -26,7 +26,7 @@ export interface QuestionPreview {
 }
 
 /**
- * Group and User ID is included in all events for scoping
+ * Base event for quiz generation, including user and quiz identifiers for scoping
  */
 export interface QuizGenerationBaseEvent extends DomainEvent {
   readonly userId: string;

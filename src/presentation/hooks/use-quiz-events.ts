@@ -75,8 +75,8 @@ export interface UseQuizEventsState {
  * ```tsx
  * const { isConnected, generatingQuizzes } = useQuizEvents({
  *   userId: user.id,
- *   onReady: (event) => {
- *     toast.success(`Quiz "${event.quizSlug}" is ready!`);
+ *   onCompleted: (event) => {
+ *     toast.success(`Quiz is ready!`);
  *     queryClient.invalidateQueries({ queryKey: quizKeys.list(userId) });
  *   },
  *   onFailed: (event) => {

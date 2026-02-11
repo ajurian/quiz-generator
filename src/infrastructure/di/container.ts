@@ -101,7 +101,7 @@ export interface UseCases {
  * Application Container
  *
  * Provides dependency injection for the application.
- * All dependencies are lazily initialized when first accessed.
+ * Created eagerly via createAppContainer, cached as singleton via getContainer.
  */
 export interface AppContainer {
   /** Base URL */

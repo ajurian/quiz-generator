@@ -58,7 +58,7 @@ export class SourceMaterial {
 
   /**
    * Creates a new SourceMaterial entity
-   * @throws {Error} if validation fails
+   * @throws {InvariantViolationError} if validation fails
    */
   public static create(props: CreateSourceMaterialProps): SourceMaterial {
     SourceMaterial.validateCreateProps(props);
@@ -77,7 +77,7 @@ export class SourceMaterial {
 
   /**
    * Reconstitutes a SourceMaterial entity from persisted data
-   * @throws {Error} if validation fails
+   * @throws {InvariantViolationError} if validation fails
    */
   public static reconstitute(props: SourceMaterialProps): SourceMaterial {
     SourceMaterial.validateProps(props);
@@ -103,14 +103,14 @@ export class SourceMaterial {
     ) {
       throw new InvariantViolationError(
         "SourceMaterial title is required and cannot be empty",
-        "title"
+        "title",
       );
     }
 
     if (props.title.length > 255) {
       throw new InvariantViolationError(
         "SourceMaterial title cannot exceed 255 characters",
-        "title"
+        "title",
       );
     }
 
@@ -121,7 +121,7 @@ export class SourceMaterial {
     ) {
       throw new InvariantViolationError(
         "File key is required and cannot be empty",
-        "fileKey"
+        "fileKey",
       );
     }
 
@@ -132,14 +132,14 @@ export class SourceMaterial {
     ) {
       throw new InvariantViolationError(
         "MIME type is required and cannot be empty",
-        "mimeType"
+        "mimeType",
       );
     }
 
     if (typeof props.sizeBytes !== "number" || props.sizeBytes < 0) {
       throw new InvariantViolationError(
         "Size in bytes must be a non-negative number",
-        "sizeBytes"
+        "sizeBytes",
       );
     }
 
@@ -150,7 +150,7 @@ export class SourceMaterial {
     ) {
       throw new InvariantViolationError(
         "Quiz reference index must be a non-negative integer (0-based)",
-        "quizReferenceIndex"
+        "quizReferenceIndex",
       );
     }
   }
@@ -167,7 +167,7 @@ export class SourceMaterial {
     ) {
       throw new InvariantViolationError(
         "Valid createdAt date is required",
-        "createdAt"
+        "createdAt",
       );
     }
   }

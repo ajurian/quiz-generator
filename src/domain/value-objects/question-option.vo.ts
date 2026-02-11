@@ -56,7 +56,7 @@ export class QuestionOption {
 
   /**
    * Creates a new QuestionOption with validation
-   * @throws {Error} if validation fails
+   * @throws {InvalidValueError} if validation fails
    */
   public static create(props: QuestionOptionProps): QuestionOption {
     QuestionOption.validate(props);
@@ -78,7 +78,7 @@ export class QuestionOption {
    * Type guard to check if an object has the correct QuestionOption structure
    */
   private static isPlainQuestionOption(
-    obj: unknown
+    obj: unknown,
   ): obj is QuestionOptionProps {
     if (typeof obj !== "object" || obj === null) {
       return false;
@@ -101,21 +101,21 @@ export class QuestionOption {
     if (!isValidOptionIndex(props.index)) {
       throw new InvalidValueError(
         "QuestionOption",
-        `Invalid option index: ${props.index}. Must be one of: ${VALID_OPTION_INDICES.join(", ")}`
+        `Invalid option index: ${props.index}. Must be one of: ${VALID_OPTION_INDICES.join(", ")}`,
       );
     }
 
     if (typeof props.text !== "string" || props.text.trim().length === 0) {
       throw new InvalidValueError(
         "QuestionOption",
-        "Option text is required and cannot be empty"
+        "Option text is required and cannot be empty",
       );
     }
 
     if (typeof props.isCorrect !== "boolean") {
       throw new InvalidValueError(
         "QuestionOption",
-        "Option isCorrect must be a boolean"
+        "Option isCorrect must be a boolean",
       );
     }
 
@@ -125,7 +125,7 @@ export class QuestionOption {
     ) {
       throw new InvalidValueError(
         "QuestionOption",
-        "Option errorRationale must be a string if provided"
+        "Option errorRationale must be a string if provided",
       );
     }
   }

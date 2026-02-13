@@ -61,7 +61,7 @@ export function AttemptHistoryCard({ item }: AttemptHistoryCardProps) {
             <CardTitle className="truncate text-lg font-display font-semibold tracking-tight">
               {quiz.title}
             </CardTitle>
-            <CardDescription className="flex items-center gap-1.5">
+            <CardDescription className="flex items-center gap-1.5 text-nowrap">
               <Calendar className="h-3.5 w-3.5" />
               {formatDate(latestAttempt.startedAt)}
             </CardDescription>
@@ -94,7 +94,7 @@ export function AttemptHistoryCard({ item }: AttemptHistoryCardProps) {
       </CardHeader>
 
       <CardContent className="relative">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 xs:flex-row xs:items-center xs:justify-between">
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             {isSubmitted && latestAttempt.formattedDuration && (
               <span className="flex items-center gap-1">

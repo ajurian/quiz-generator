@@ -13,7 +13,7 @@ export function AttemptHistorySection({ items }: AttemptHistorySectionProps) {
       {items.length === 0 ? (
         <EmptyAttemptHistory />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {items.map((item) => (
             <AttemptHistoryCard key={item.latestAttempt.id} item={item} />
           ))}

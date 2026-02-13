@@ -64,7 +64,7 @@ export function QuizList({
       {allQuizzes.length === 0 ? (
         <EmptyQuizList />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {allQuizzes.map((quiz) => {
             const progress = generatingQuizzes?.get(quiz.id);
             // Only show progress for processing events

@@ -164,7 +164,7 @@ function CreatedQuizzesPage() {
           onValueChange={handleTabChange}
           className="w-full"
         >
-          <TabsList>
+          <TabsList className="w-full xs:w-fit">
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="private">Private</TabsTrigger>
             <TabsTrigger value="unlisted">Unlisted</TabsTrigger>

@@ -168,7 +168,7 @@ export function QuizCard({
       </CardHeader>
 
       <CardContent className="relative">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 xs:flex-row xs:items-center xs:justify-between">
           <div className="flex items-center gap-2">
             <div
               className={`flex h-8 w-8 items-center justify-center rounded-lg ${
@@ -189,7 +189,7 @@ export function QuizCard({
             </div>
             <div className="flex flex-col">
               <span
-                className={`text-sm font-medium ${isFailed ? "text-destructive" : "text-muted-foreground"}`}
+                className={`text-sm font-medium text-nowrap ${isFailed ? "text-destructive" : "text-muted-foreground"}`}
               >
                 {isGenerating
                   ? generatingProgress
@@ -209,7 +209,7 @@ export function QuizCard({
 
           {/* Actions - only show for ready quizzes */}
           {isReady && (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 *:grow xs:*:grow-0">
               {mode === "owner" ? (
                 <>
                   <ShareQuizDialog

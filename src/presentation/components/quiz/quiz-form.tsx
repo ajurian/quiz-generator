@@ -277,7 +277,7 @@ export function QuizForm({
         </div>
 
         {/* Distribution Grid */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="flex flex-wrap gap-4">
           {(
             [
               {
@@ -307,8 +307,8 @@ export function QuizForm({
             const isSoleUnlocked = !isLocked && unlockedCount === 1;
 
             return (
-              <div key={key} className="space-y-2">
-                <Label htmlFor={id} className="text-sm">
+              <div key={key} className="space-y-2 basis-[1/3] grow">
+                <Label htmlFor={id} className="text-sm text-nowrap">
                   {label}
                 </Label>
                 <div className="flex gap-1">

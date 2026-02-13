@@ -164,7 +164,7 @@ function AttemptQuizPage() {
   ]);
 
   const quizGemLogo = (
-    <div className="bg-muted/20 px-4 pt-4">
+    <div className="bg-muted/20 pt-4">
       <div className="container max-w-4xl mx-auto">
         <Link to="/" className="inline-flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">

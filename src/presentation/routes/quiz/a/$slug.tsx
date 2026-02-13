@@ -1,9 +1,11 @@
 import React from "react";
 import {
   createFileRoute,
+  Link,
   useLocation,
   useRouter,
 } from "@tanstack/react-router";
+import { Brain } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   startAttempt,
@@ -161,10 +163,26 @@ function AttemptQuizPage() {
     userId,
   ]);
 
+  const quizGemLogo = (
+    <div className="bg-muted/20 px-4 pt-4">
+      <div className="container max-w-4xl mx-auto">
+        <Link to="/" className="inline-flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <Brain className="h-4 w-4" />
+          </div>
+          <span className="font-display font-semibold tracking-tight">
+            QuizGem
+          </span>
+        </Link>
+      </div>
+    </div>
+  );
+
   // New attempt - show the quiz immediately (with local answers for anonymous resume)
   if (attemptResult.isNewAttempt) {
     return (
       <>
+        {quizGemLogo}
         {hasLocalAnswers && userId === null && (
           <ResumeAttemptDialog
             open={showResumeDialog}
@@ -196,18 +214,22 @@ function AttemptQuizPage() {
   // Existing submitted attempts - show completion screen
   if (attemptResult.existingAttemptSummary) {
     return (
-      <ExistingAttemptCard
-        slug={slug}
-        summary={attemptResult.existingAttemptSummary}
-        onStartNewAttempt={() => forceStartMutation.mutate()}
-        isStarting={forceStartMutation.isPending}
-      />
+      <>
+        {quizGemLogo}
+        <ExistingAttemptCard
+          slug={slug}
+          summary={attemptResult.existingAttemptSummary}
+          onStartNewAttempt={() => forceStartMutation.mutate()}
+          isStarting={forceStartMutation.isPending}
+        />
+      </>
     );
   }
 
   // In-progress attempt - show dialog if has answers, otherwise show quiz
   return (
     <>
+      {quizGemLogo}
       <ResumeAttemptDialog
         open={showResumeDialog}
         onContinue={handleContinue}

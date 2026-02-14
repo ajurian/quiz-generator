@@ -62,12 +62,6 @@ export const quizAttempts = pgTable(
     /** When the attempt was submitted (null if in progress) */
     submittedAt: timestamp("submitted_at"),
 
-    /** User's selected answers (questionId -> optionId) */
-    answers: jsonb("answers")
-      .$type<Record<string, string>>()
-      .default({})
-      .notNull(),
-
     /** Reference to the parent attempt this was retaken from (null if original) */
     parentAttemptId: uuid("parent_attempt_id").references(
       (): AnyPgColumn => quizAttempts.id,

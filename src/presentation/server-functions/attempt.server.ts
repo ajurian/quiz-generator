@@ -199,3 +199,22 @@ export const claimAnonymousAttempts = createServerFn({ method: "POST" })
     });
     return result;
   });
+
+// POST Retake Attempt (retake wrong answers only from a submitted attempt)
+export const retakeAttempt = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      sourceAttemptId: z.uuidv7(),
+      quizSlug: z.string().length(22),
+      userId: z.uuidv7().nullable(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const container = getContainer();
+    const result = await container.useCases.retakeAttempt.execute({
+      sourceAttemptId: data.sourceAttemptId,
+      quizSlug: data.quizSlug,
+      userId: data.userId,
+    });
+    return result;
+  });

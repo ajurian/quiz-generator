@@ -29,7 +29,7 @@ describe("AutosaveAnswerUseCase", () => {
   });
 
   const createInProgressAttempt = (
-    answers: Record<string, string> = {}
+    answers: Record<string, string> = {},
   ): QuizAttempt => {
     return QuizAttempt.reconstitute({
       id: ATTEMPT_ID,
@@ -42,6 +42,8 @@ describe("AutosaveAnswerUseCase", () => {
       startedAt: new Date(),
       submittedAt: null,
       answers,
+      parentAttemptId: null,
+      lockedQuestionIds: [],
     });
   };
 
@@ -57,6 +59,8 @@ describe("AutosaveAnswerUseCase", () => {
       startedAt: new Date(Date.now() - 60000),
       submittedAt: new Date(),
       answers: { [QUESTION_ID]: "B" },
+      parentAttemptId: null,
+      lockedQuestionIds: [],
     });
   };
 
@@ -74,7 +78,7 @@ describe("AutosaveAnswerUseCase", () => {
           page: pagination.page,
           limit: pagination.limit,
           totalPages: 0,
-        })
+        }),
       ),
       findByUserId: mock((_userId, pagination) =>
         Promise.resolve({
@@ -83,7 +87,7 @@ describe("AutosaveAnswerUseCase", () => {
           page: pagination.page,
           limit: pagination.limit,
           totalPages: 0,
-        })
+        }),
       ),
       findLastAttemptByQuizAndUser: mock(() => Promise.resolve(null)),
       countByQuizAndUser: mock(() => Promise.resolve(0)),

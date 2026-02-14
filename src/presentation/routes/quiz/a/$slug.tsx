@@ -206,6 +206,7 @@ function AttemptQuizPage() {
               ? localCheckedQuestions
               : undefined
           }
+          lockedQuestionIds={attemptResult.attempt.lockedQuestionIds}
         />
       </>
     );
@@ -245,6 +246,7 @@ function AttemptQuizPage() {
         userId={session?.user?.id ?? null}
         initialAnswers={attemptResult.attempt.answers}
         initialCheckedQuestions={Object.keys(attemptResult.attempt.answers)}
+        lockedQuestionIds={attemptResult.attempt.lockedQuestionIds}
       />
     </>
   );

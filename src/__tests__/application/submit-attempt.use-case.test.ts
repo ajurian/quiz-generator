@@ -24,7 +24,7 @@ describe("SubmitAttemptUseCase", () => {
 
   const createMockAttempt = (
     userId: string | null = USER_ID,
-    status: AttemptStatus = AttemptStatus.IN_PROGRESS
+    status: AttemptStatus = AttemptStatus.IN_PROGRESS,
   ): QuizAttempt => {
     if (status === AttemptStatus.SUBMITTED) {
       return QuizAttempt.reconstitute({
@@ -38,6 +38,8 @@ describe("SubmitAttemptUseCase", () => {
         startedAt: new Date("2024-01-01T10:00:00Z"),
         submittedAt: new Date("2024-01-01T10:01:00Z"),
         answers: { q1: "A" },
+        parentAttemptId: null,
+        lockedQuestionIds: [],
       });
     }
     return QuizAttempt.create({
@@ -181,13 +183,13 @@ describe("SubmitAttemptUseCase", () => {
 
       await expect(useCase.execute(input)).rejects.toThrow(ForbiddenError);
       await expect(useCase.execute(input)).rejects.toThrow(
-        "You can only submit your own attempts"
+        "You can only submit your own attempts",
       );
     });
 
     it("should throw ForbiddenError when trying to claim anonymous attempt", async () => {
       mockAttemptRepository.findById = mock(async () =>
-        createMockAttempt(null)
+        createMockAttempt(null),
       );
 
       const input: SubmitAttemptInput = {
@@ -199,13 +201,13 @@ describe("SubmitAttemptUseCase", () => {
 
       await expect(useCase.execute(input)).rejects.toThrow(ForbiddenError);
       await expect(useCase.execute(input)).rejects.toThrow(
-        "Cannot claim anonymous attempt"
+        "Cannot claim anonymous attempt",
       );
     });
 
     it("should allow anonymous submission when attempt was started anonymously", async () => {
       mockAttemptRepository.findById = mock(async () =>
-        createMockAttempt(null)
+        createMockAttempt(null),
       );
 
       const input: SubmitAttemptInput = {
@@ -244,7 +246,7 @@ describe("SubmitAttemptUseCase", () => {
 
       await expect(useCase.execute(input)).rejects.toThrow(ValidationError);
       await expect(useCase.execute(input)).rejects.toThrow(
-        "Attempt ID is required"
+        "Attempt ID is required",
       );
     });
 
@@ -273,7 +275,7 @@ describe("SubmitAttemptUseCase", () => {
 
     it("should throw ValidationError when attempting to submit already submitted attempt", async () => {
       mockAttemptRepository.findById = mock(async () =>
-        createMockAttempt(USER_ID, AttemptStatus.SUBMITTED)
+        createMockAttempt(USER_ID, AttemptStatus.SUBMITTED),
       );
 
       const input: SubmitAttemptInput = {
@@ -285,7 +287,7 @@ describe("SubmitAttemptUseCase", () => {
 
       await expect(useCase.execute(input)).rejects.toThrow(ValidationError);
       await expect(useCase.execute(input)).rejects.toThrow(
-        "Attempt has already been submitted"
+        "Attempt has already been submitted",
       );
     });
   });

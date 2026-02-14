@@ -134,6 +134,10 @@ export {
   type ClaimAnonymousAttemptsInput,
   type ClaimAnonymousAttemptsOutput,
   type ClaimAnonymousAttemptsUseCaseDeps,
+  RetakeAttemptUseCase,
+  type RetakeAttemptInput,
+  type RetakeAttemptOutput,
+  type RetakeAttemptUseCaseDeps,
 } from "./features/attempt";
 
 export {

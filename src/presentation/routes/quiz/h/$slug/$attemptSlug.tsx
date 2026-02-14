@@ -1,5 +1,14 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import {
+  createFileRoute,
+  Link,
+  redirect,
+  useRouter,
+} from "@tanstack/react-router";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { Button } from "@/presentation/components/ui/button";
 import {
   Card,
@@ -10,10 +19,20 @@ import {
 } from "@/presentation/components/ui/card";
 import { Badge } from "@/presentation/components/ui/badge";
 import { Skeleton } from "@/presentation/components/ui/skeleton";
-import { attemptDetailQueryOptions } from "@/presentation/queries";
+import { attemptDetailQueryOptions, attemptKeys } from "@/presentation/queries";
 import { AttemptStatus } from "@/domain";
 import { QuestionCard } from "@/presentation/components/quiz/question-card";
-import { Clock, Play, Trophy, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { retakeAttempt } from "@/presentation/server-functions";
+import { getUserFriendlyMessage } from "@/presentation/lib";
+import { toast } from "sonner";
+import {
+  Clock,
+  Play,
+  Trophy,
+  ArrowLeft,
+  CheckCircle2,
+  RotateCcw,
+} from "lucide-react";
 
 export const Route = createFileRoute("/quiz/h/$slug/$attemptSlug")({
   loader: async ({ params, context }) => {
@@ -61,10 +80,43 @@ function AttemptDetailSkeleton() {
 function AttemptDetailPage() {
   const { slug, attemptSlug } = Route.useParams();
   const { userId } = Route.useLoaderData();
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const { data } = useSuspenseQuery(
     attemptDetailQueryOptions(slug, attemptSlug, userId),
   );
   const { quiz, attempt, questions } = data;
+
+  const retakeMutation = useMutation({
+    mutationFn: async () => {
+      return retakeAttempt({
+        data: {
+          sourceAttemptId: attempt.id,
+          quizSlug: slug,
+          userId: userId,
+        },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Retake started — answer the questions you got wrong!");
+      if (userId) {
+        queryClient.invalidateQueries({
+          queryKey: attemptKeys.list(slug, userId),
+        });
+      }
+      router.navigate({
+        to: "/quiz/a/$slug",
+        params: { slug },
+      });
+    },
+    onError: (error) => {
+      toast.error("Failed to start retake", {
+        description: getUserFriendlyMessage(error, "attempt"),
+      });
+    },
+  });
+
+  const hasWrongAnswers = attempt.score !== null && attempt.score < 100;
 
   // Note: In-progress attempts are redirected to /quiz/a/$slug in the loader
 
@@ -135,12 +187,26 @@ function AttemptDetailPage() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">Questions Review</h2>
-            <Button asChild>
-              <Link to="/quiz/a/$slug" params={{ slug }}>
-                <Play className="h-4 w-4 mr-2" />
-                Try Again
-              </Link>
-            </Button>
+            <div className="flex items-center gap-2">
+              {hasWrongAnswers && (
+                <Button
+                  variant="outline"
+                  onClick={() => retakeMutation.mutate()}
+                  disabled={retakeMutation.isPending}
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  {retakeMutation.isPending
+                    ? "Starting..."
+                    : "Retake Wrong Answers"}
+                </Button>
+              )}
+              <Button asChild>
+                <Link to="/quiz/a/$slug" params={{ slug }}>
+                  <Play className="h-4 w-4 mr-2" />
+                  Try Again
+                </Link>
+              </Button>
+            </div>
           </div>
 
           {questions.map((question, index) => (

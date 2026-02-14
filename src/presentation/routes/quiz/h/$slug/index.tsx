@@ -17,7 +17,7 @@ export const Route = createFileRoute("/quiz/h/$slug/")({
   loader: async ({ params, context }) => {
     const userId = context.session!.user.id;
     await context.queryClient.ensureQueryData(
-      userAttemptsQueryOptions(params.slug, userId)
+      userAttemptsQueryOptions(params.slug, userId),
     );
     return { userId };
   },
@@ -39,7 +39,7 @@ function HistoryPage() {
           summary={summary}
           totalQuestions={quiz.totalQuestions}
         />
-        <AttemptsList quizSlug={slug} attempts={attempts} />
+        <AttemptsList quizSlug={slug} attempts={attempts} userId={userId} />
       </div>
     </div>
   );

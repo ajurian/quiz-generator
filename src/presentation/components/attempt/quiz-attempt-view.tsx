@@ -43,6 +43,8 @@ interface QuizAttemptViewProps {
   initialAnswers?: Record<string, string>;
   /** Initial checked question IDs (for resuming anonymous attempts from localStorage) */
   initialCheckedQuestions?: string[];
+  /** Question IDs whose answers are locked (from retake - correct answers carried over) */
+  lockedQuestionIds?: string[];
 }
 
 /**
@@ -70,6 +72,7 @@ export function QuizAttemptView({
   userId,
   initialAnswers = {},
   initialCheckedQuestions = [],
+  lockedQuestionIds = [],
 }: QuizAttemptViewProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -80,6 +83,11 @@ export function QuizAttemptView({
     const firstUnanswered = questions.findIndex((q) => !initialAnswers[q.id]);
     return firstUnanswered === -1 ? questions.length - 1 : firstUnanswered;
   }, [questions, initialAnswers]);
+
+  const lockedSet = React.useMemo(
+    () => new Set(lockedQuestionIds),
+    [lockedQuestionIds],
+  );
 
   const getInitialQuestionState = React.useCallback(
     (startIdx: number): QuestionState => {
@@ -129,6 +137,10 @@ export function QuizAttemptView({
   const currentQuestion = questions[currentIndex];
   const isLastQuestion = currentIndex === questions.length - 1;
   const completedCount = checkedQuestions.size;
+  const isCurrentLocked = currentQuestion
+    ? lockedSet.has(currentQuestion.id)
+    : false;
+  const isRetakeMode = lockedQuestionIds.length > 0;
 
   // Handle option selection (before checking)
   const handleSelectAnswer = (optionIndex: string) => {
@@ -274,9 +286,34 @@ export function QuizAttemptView({
           currentIndex={currentIndex}
           saveStatus={saveStatus}
           isLocal={isLocal}
+          isRetakeMode={isRetakeMode}
         />
 
-        {questionState === "selecting" ? (
+        {isCurrentLocked ? (
+          /* Locked question from retake — show as checked with a badge */
+          <div className="relative">
+            <div className="absolute top-4 right-4 z-10">
+              <Badge
+                variant="outline"
+                className="border-emerald-500 text-emerald-500 gap-1"
+              >
+                <Lock className="h-3 w-3" />
+                Correct from previous attempt
+              </Badge>
+            </div>
+            <QuestionCard
+              question={currentQuestion}
+              questionNumber={currentIndex + 1}
+              state="checked"
+              selectedAnswer={answers[currentQuestion.id] ?? ""}
+              isLastQuestion={isLastQuestion}
+              onNext={handleNext}
+              isSubmitting={isSubmitting}
+              quizId={quiz.id}
+              userId={userId}
+            />
+          </div>
+        ) : questionState === "selecting" ? (
           <QuestionCard
             question={currentQuestion}
             questionNumber={currentIndex + 1}
@@ -324,6 +361,7 @@ interface ProgressHeaderProps {
   currentIndex: number;
   saveStatus: SaveStatus;
   isLocal: boolean;
+  isRetakeMode?: boolean;
 }
 
 function ProgressHeader({
@@ -333,6 +371,7 @@ function ProgressHeader({
   currentIndex,
   saveStatus,
   isLocal,
+  isRetakeMode = false,
 }: ProgressHeaderProps) {
   return (
     <div className="mb-6">
@@ -353,7 +392,11 @@ function ProgressHeader({
       </div>
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <Lock className="h-3 w-3" />
-        <span>Answers lock after you check.</span>
+        <span>
+          {isRetakeMode
+            ? "Retake mode — correct answers from your previous attempt are locked."
+            : "Answers lock after you check."}
+        </span>
       </div>
     </div>
   );

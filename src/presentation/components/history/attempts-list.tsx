@@ -1,8 +1,13 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouter } from "@tanstack/react-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/presentation/components/ui/button";
 import { Card, CardContent } from "@/presentation/components/ui/card";
 import { Badge } from "@/presentation/components/ui/badge";
-import { Clock, Calendar, Eye, Play } from "lucide-react";
+import { Clock, Calendar, Eye, Play, RotateCcw } from "lucide-react";
+import { retakeAttempt } from "@/presentation/server-functions";
+import { attemptKeys } from "@/presentation/queries";
+import { getUserFriendlyMessage } from "@/presentation/lib";
+import { toast } from "sonner";
 
 interface Attempt {
   id: string;
@@ -16,9 +21,14 @@ interface Attempt {
 interface AttemptsListProps {
   quizSlug: string;
   attempts: Attempt[];
+  userId: string | null;
 }
 
-export function AttemptsList({ quizSlug, attempts }: AttemptsListProps) {
+export function AttemptsList({
+  quizSlug,
+  attempts,
+  userId,
+}: AttemptsListProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -49,6 +59,7 @@ export function AttemptsList({ quizSlug, attempts }: AttemptsListProps) {
               attempt={attempt}
               quizSlug={quizSlug}
               attemptNumber={attempts.length - index}
+              userId={userId}
             />
           ))}
         </div>
@@ -61,10 +72,49 @@ interface AttemptCardProps {
   attempt: Attempt;
   quizSlug: string;
   attemptNumber: number;
+  userId: string | null;
 }
 
-function AttemptCard({ attempt, quizSlug, attemptNumber }: AttemptCardProps) {
+function AttemptCard({
+  attempt,
+  quizSlug,
+  attemptNumber,
+  userId,
+}: AttemptCardProps) {
   const isInProgress = attempt.status === "in_progress";
+  const hasWrongAnswers =
+    !isInProgress && attempt.score !== null && attempt.score < 100;
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const retakeMutation = useMutation({
+    mutationFn: async () => {
+      return retakeAttempt({
+        data: {
+          sourceAttemptId: attempt.id,
+          quizSlug,
+          userId,
+        },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Retake started — answer the questions you got wrong!");
+      if (userId) {
+        queryClient.invalidateQueries({
+          queryKey: attemptKeys.list(quizSlug, userId),
+        });
+      }
+      router.navigate({
+        to: "/quiz/a/$slug",
+        params: { slug: quizSlug },
+      });
+    },
+    onError: (error) => {
+      toast.error("Failed to start retake", {
+        description: getUserFriendlyMessage(error, "attempt"),
+      });
+    },
+  });
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -111,26 +161,39 @@ function AttemptCard({ attempt, quizSlug, attemptNumber }: AttemptCardProps) {
               </div>
             </div>
           </div>
-          <Button variant="ghost" size="sm" asChild>
-            {isInProgress ? (
-              <Link
-                to="/quiz/a/$slug"
-                params={{ slug: quizSlug }}
-                state={(prev) => ({ ...prev, resume: true })}
+          <div className="flex items-center gap-2">
+            {hasWrongAnswers && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => retakeMutation.mutate()}
+                disabled={retakeMutation.isPending}
               >
-                <Play className="h-4 w-4 mr-2" />
-                Continue
-              </Link>
-            ) : (
-              <Link
-                to="/quiz/h/$slug/$attemptSlug"
-                params={{ slug: quizSlug, attemptSlug: attempt.slug }}
-              >
-                <Eye className="h-4 w-4 mr-2" />
-                Review
-              </Link>
+                <RotateCcw className="h-4 w-4 mr-2" />
+                {retakeMutation.isPending ? "Starting..." : "Retake"}
+              </Button>
             )}
-          </Button>
+            <Button variant="ghost" size="sm" asChild>
+              {isInProgress ? (
+                <Link
+                  to="/quiz/a/$slug"
+                  params={{ slug: quizSlug }}
+                  state={(prev) => ({ ...prev, resume: true })}
+                >
+                  <Play className="h-4 w-4 mr-2" />
+                  Continue
+                </Link>
+              ) : (
+                <Link
+                  to="/quiz/h/$slug/$attemptSlug"
+                  params={{ slug: quizSlug, attemptSlug: attempt.slug }}
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  Review
+                </Link>
+              )}
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

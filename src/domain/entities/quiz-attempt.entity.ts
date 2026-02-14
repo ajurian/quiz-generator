@@ -17,6 +17,10 @@ export interface QuizAttemptProps {
   submittedAt: Date | null;
   /** User's selected answers (questionId -> optionIndex) */
   answers: Record<string, string>;
+  /** Reference to the parent attempt this was retaken from (null if original) */
+  parentAttemptId: string | null;
+  /** Question IDs whose answers are locked (carried over correct answers from parent) */
+  lockedQuestionIds: string[];
 }
 
 /**
@@ -28,6 +32,10 @@ export interface CreateQuizAttemptProps {
   userId: string | null;
   /** Initial answers (empty by default, used when resuming) */
   answers?: Record<string, string>;
+  /** Reference to the parent attempt this was retaken from */
+  parentAttemptId?: string | null;
+  /** Question IDs whose answers are locked (carried over correct answers from parent) */
+  lockedQuestionIds?: string[];
 }
 
 /**
@@ -52,6 +60,8 @@ export class QuizAttempt {
   private _startedAt: Date;
   private _submittedAt: Date | null;
   private _answers: Record<string, string>;
+  private readonly _parentAttemptId: string | null;
+  private readonly _lockedQuestionIds: string[];
 
   private constructor(props: QuizAttemptProps) {
     this._id = props.id;
@@ -64,6 +74,8 @@ export class QuizAttempt {
     this._startedAt = props.startedAt;
     this._submittedAt = props.submittedAt;
     this._answers = props.answers;
+    this._parentAttemptId = props.parentAttemptId;
+    this._lockedQuestionIds = props.lockedQuestionIds;
   }
 
   /**
@@ -86,6 +98,8 @@ export class QuizAttempt {
       startedAt: new Date(),
       submittedAt: null,
       answers: props.answers ?? {},
+      parentAttemptId: props.parentAttemptId ?? null,
+      lockedQuestionIds: props.lockedQuestionIds ?? [],
     });
   }
 
@@ -250,6 +264,21 @@ export class QuizAttempt {
     return { ...this._answers };
   }
 
+  get parentAttemptId(): string | null {
+    return this._parentAttemptId;
+  }
+
+  get lockedQuestionIds(): string[] {
+    return [...this._lockedQuestionIds];
+  }
+
+  /**
+   * Checks if this attempt is a retake from a parent attempt
+   */
+  get isRetake(): boolean {
+    return this._parentAttemptId !== null;
+  }
+
   // Computed Properties
 
   /**
@@ -329,6 +358,11 @@ export class QuizAttempt {
     if (this._status === AttemptStatus.SUBMITTED) {
       throw new InvalidOperationError(
         "Cannot update answers on submitted attempt",
+      );
+    }
+    if (this._lockedQuestionIds.includes(questionId)) {
+      throw new InvalidOperationError(
+        "Cannot update a locked answer from a previous attempt",
       );
     }
     this._answers = { ...this._answers, [questionId]: optionIndex };
@@ -421,6 +455,8 @@ export class QuizAttempt {
       startedAt: this._startedAt,
       submittedAt: this._submittedAt,
       answers: { ...this._answers },
+      parentAttemptId: this._parentAttemptId,
+      lockedQuestionIds: [...this._lockedQuestionIds],
     };
   }
 }

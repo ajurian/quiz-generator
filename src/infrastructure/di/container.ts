@@ -34,6 +34,7 @@ import {
   ClaimAnonymousAttemptsUseCase,
   GetPresignedUploadUrlsUseCase,
   GetSourceMaterialUrlUseCase,
+  RetakeAttemptUseCase,
 } from "@/application";
 import type {
   IQuizRepository,
@@ -95,6 +96,7 @@ export interface UseCases {
   claimAnonymousAttempts: ClaimAnonymousAttemptsUseCase;
   getPresignedUploadUrls: GetPresignedUploadUrlsUseCase;
   getSourceMaterialUrl: GetSourceMaterialUrlUseCase;
+  retakeAttempt: RetakeAttemptUseCase;
   // Note: Quiz generation use cases removed - now handled by Upstash Workflow
   // See: src/presentation/routes/api/generate-quiz/index.ts
 }
@@ -263,6 +265,13 @@ export function createAppContainer(config: RuntimeConfig): AppContainer {
     s3Storage,
   });
 
+  const retakeAttempt = new RetakeAttemptUseCase({
+    attemptRepository,
+    quizRepository,
+    questionRepository,
+    idGenerator,
+  });
+
   return {
     baseUrl: config.baseUrl,
     db: database,
@@ -301,6 +310,7 @@ export function createAppContainer(config: RuntimeConfig): AppContainer {
       claimAnonymousAttempts,
       getPresignedUploadUrls,
       getSourceMaterialUrl,
+      retakeAttempt,
     },
   };
 }

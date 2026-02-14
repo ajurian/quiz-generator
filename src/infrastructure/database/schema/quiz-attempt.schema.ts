@@ -65,6 +65,18 @@ export const quizAttempts = pgTable(
       .$type<Record<string, string>>()
       .default({})
       .notNull(),
+
+    /** Reference to the parent attempt this was retaken from (null if original) */
+    parentAttemptId: uuid("parent_attempt_id").references(
+      () => quizAttempts.id,
+      { onDelete: "set null" },
+    ),
+
+    /** Question IDs whose answers are locked (carried over correct answers from parent) */
+    lockedQuestionIds: jsonb("locked_question_ids")
+      .$type<string[]>()
+      .default([])
+      .notNull(),
   },
   (table) => [
     // Index for finding attempts by quiz and user
@@ -73,9 +85,9 @@ export const quizAttempts = pgTable(
     index("quiz_attempts_quiz_user_submitted_idx").on(
       table.quizId,
       table.userId,
-      table.submittedAt
+      table.submittedAt,
     ),
-  ]
+  ],
 );
 
 /**

@@ -28,7 +28,7 @@ describe("ResetAttemptUseCase", () => {
   });
 
   const createInProgressAttemptWithAnswers = (
-    startedAt: Date = new Date()
+    startedAt: Date = new Date(),
   ): QuizAttempt => {
     return QuizAttempt.reconstitute({
       id: ATTEMPT_ID,
@@ -44,11 +44,13 @@ describe("ResetAttemptUseCase", () => {
         [QUESTION_ID_1]: "A",
         [QUESTION_ID_2]: "B",
       },
+      parentAttemptId: null,
+      lockedQuestionIds: [],
     });
   };
 
   const createInProgressAttemptWithoutAnswers = (
-    startedAt: Date = new Date()
+    startedAt: Date = new Date(),
   ): QuizAttempt => {
     return QuizAttempt.reconstitute({
       id: ATTEMPT_ID,
@@ -61,6 +63,8 @@ describe("ResetAttemptUseCase", () => {
       startedAt,
       submittedAt: null,
       answers: {},
+      parentAttemptId: null,
+      lockedQuestionIds: [],
     });
   };
 
@@ -79,6 +83,8 @@ describe("ResetAttemptUseCase", () => {
         [QUESTION_ID_1]: "A",
         [QUESTION_ID_2]: "C",
       },
+      parentAttemptId: null,
+      lockedQuestionIds: [],
     });
   };
 
@@ -86,7 +92,7 @@ describe("ResetAttemptUseCase", () => {
     mockAttemptRepository = {
       create: mock(() => Promise.resolve(createInProgressAttemptWithAnswers())),
       findById: mock(() =>
-        Promise.resolve(createInProgressAttemptWithAnswers())
+        Promise.resolve(createInProgressAttemptWithAnswers()),
       ),
       findBySlug: mock(() => Promise.resolve(null)),
       findByQuizAndUser: mock(() => Promise.resolve([])),
@@ -98,7 +104,7 @@ describe("ResetAttemptUseCase", () => {
           page: pagination.page,
           limit: pagination.limit,
           totalPages: 0,
-        })
+        }),
       ),
       findByUserId: mock((_userId, pagination) =>
         Promise.resolve({
@@ -107,7 +113,7 @@ describe("ResetAttemptUseCase", () => {
           page: pagination.page,
           limit: pagination.limit,
           totalPages: 0,
-        })
+        }),
       ),
       findLastAttemptByQuizAndUser: mock(() => Promise.resolve(null)),
       countByQuizAndUser: mock(() => Promise.resolve(0)),
@@ -162,10 +168,10 @@ describe("ResetAttemptUseCase", () => {
 
       // Timer should be reset to approximately now
       expect(updatedAttempt.startedAt.getTime()).toBeGreaterThanOrEqual(
-        beforeReset
+        beforeReset,
       );
       expect(updatedAttempt.startedAt.getTime()).toBeLessThanOrEqual(
-        afterReset
+        afterReset,
       );
     });
 

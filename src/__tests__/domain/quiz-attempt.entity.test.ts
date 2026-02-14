@@ -15,7 +15,7 @@ describe("QuizAttempt Entity", () => {
 
   // Helper to create valid create props
   const createValidCreateProps = (
-    overrides?: Partial<CreateQuizAttemptProps>
+    overrides?: Partial<CreateQuizAttemptProps>,
   ): CreateQuizAttemptProps => ({
     id: ATTEMPT_ID,
     quizId: QUIZ_ID,
@@ -25,7 +25,7 @@ describe("QuizAttempt Entity", () => {
 
   // Helper to create valid reconstitute props
   const createValidProps = (
-    overrides?: Partial<QuizAttemptProps>
+    overrides?: Partial<QuizAttemptProps>,
   ): QuizAttemptProps => ({
     id: ATTEMPT_ID,
     slug: "AZshk0egcAAKcS5bxcMTwQ",
@@ -37,6 +37,8 @@ describe("QuizAttempt Entity", () => {
     startedAt: new Date("2024-01-01T10:00:00Z"),
     submittedAt: null,
     answers: {},
+    parentAttemptId: null,
+    lockedQuestionIds: [],
     ...overrides,
   });
 
@@ -64,14 +66,14 @@ describe("QuizAttempt Entity", () => {
     it("should create attempt with initial answers when provided", () => {
       const initialAnswers = { q1: "A", q2: "B", q3: "C" };
       const attempt = QuizAttempt.create(
-        createValidCreateProps({ answers: initialAnswers })
+        createValidCreateProps({ answers: initialAnswers }),
       );
       expect(attempt.answers).toEqual(initialAnswers);
     });
 
     it("should create attempt with null userId for anonymous attempts", () => {
       const attempt = QuizAttempt.create(
-        createValidCreateProps({ userId: null })
+        createValidCreateProps({ userId: null }),
       );
       expect(attempt.userId).toBeNull();
     });
@@ -85,21 +87,21 @@ describe("QuizAttempt Entity", () => {
     describe("validation errors", () => {
       it("should throw for missing id", () => {
         expect(() =>
-          QuizAttempt.create(createValidCreateProps({ id: "" }))
+          QuizAttempt.create(createValidCreateProps({ id: "" })),
         ).toThrow("Attempt ID is required");
       });
 
       it("should throw for missing quizId", () => {
         expect(() =>
-          QuizAttempt.create(createValidCreateProps({ quizId: "" }))
+          QuizAttempt.create(createValidCreateProps({ quizId: "" })),
         ).toThrow("Quiz ID is required");
       });
 
       it("should throw for invalid userId type", () => {
         expect(() =>
           QuizAttempt.create(
-            createValidCreateProps({ userId: 123 as unknown as string })
-          )
+            createValidCreateProps({ userId: 123 as unknown as string }),
+          ),
         ).toThrow("User ID must be a string or null");
       });
     });
@@ -141,27 +143,27 @@ describe("QuizAttempt Entity", () => {
     describe("validation errors", () => {
       it("should throw for missing slug", () => {
         expect(() =>
-          QuizAttempt.reconstitute(createValidProps({ slug: "" }))
+          QuizAttempt.reconstitute(createValidProps({ slug: "" })),
         ).toThrow("Attempt slug is required");
       });
 
       it("should throw for invalid status", () => {
         expect(() =>
           QuizAttempt.reconstitute(
-            createValidProps({ status: "invalid" as AttemptStatus })
-          )
+            createValidProps({ status: "invalid" as AttemptStatus }),
+          ),
         ).toThrow("status must be a valid AttemptStatus value");
       });
 
       it("should throw for negative score", () => {
         expect(() =>
-          QuizAttempt.reconstitute(createValidProps({ score: -5 }))
+          QuizAttempt.reconstitute(createValidProps({ score: -5 })),
         ).toThrow("Score must be a non-negative number or null");
       });
 
       it("should throw for negative duration", () => {
         expect(() =>
-          QuizAttempt.reconstitute(createValidProps({ durationMs: -1000 }))
+          QuizAttempt.reconstitute(createValidProps({ durationMs: -1000 })),
         ).toThrow("Duration must be a non-negative number or null");
       });
 
@@ -170,8 +172,8 @@ describe("QuizAttempt Entity", () => {
           QuizAttempt.reconstitute(
             createValidProps({
               answers: null as unknown as Record<string, string>,
-            })
-          )
+            }),
+          ),
         ).toThrow("Answers must be an object");
       });
 
@@ -180,8 +182,8 @@ describe("QuizAttempt Entity", () => {
           QuizAttempt.reconstitute(
             createValidProps({
               answers: [] as unknown as Record<string, string>,
-            })
-          )
+            }),
+          ),
         ).toThrow("Answers must be an object");
       });
     });
@@ -191,7 +193,7 @@ describe("QuizAttempt Entity", () => {
     it("should return a copy of answers (immutability)", () => {
       const originalAnswers = { q1: "A", q2: "B" };
       const attempt = QuizAttempt.reconstitute(
-        createValidProps({ answers: originalAnswers })
+        createValidProps({ answers: originalAnswers }),
       );
 
       const answers = attempt.answers;
@@ -246,11 +248,11 @@ describe("QuizAttempt Entity", () => {
         createValidProps({
           status: AttemptStatus.SUBMITTED,
           score: 80,
-        })
+        }),
       );
 
       expect(() => attempt.submit(90, {})).toThrow(
-        "Attempt has already been submitted"
+        "Attempt has already been submitted",
       );
     });
 
@@ -258,13 +260,13 @@ describe("QuizAttempt Entity", () => {
       const attempt = QuizAttempt.create(createValidCreateProps());
 
       expect(() => attempt.submit(-10, {})).toThrow(
-        "Score must be a non-negative number"
+        "Score must be a non-negative number",
       );
     });
 
     it("should overwrite initial answers with submission answers", () => {
       const attempt = QuizAttempt.create(
-        createValidCreateProps({ answers: { q1: "A" } })
+        createValidCreateProps({ answers: { q1: "A" } }),
       );
       const newAnswers = { q1: "B", q2: "C" };
 
@@ -286,7 +288,7 @@ describe("QuizAttempt Entity", () => {
 
     it("should replace all previous answers", () => {
       const attempt = QuizAttempt.create(
-        createValidCreateProps({ answers: { q1: "A", q2: "B", q3: "C" } })
+        createValidCreateProps({ answers: { q1: "A", q2: "B", q3: "C" } }),
       );
 
       attempt.updateAnswers({ q1: "X" });
@@ -299,11 +301,11 @@ describe("QuizAttempt Entity", () => {
         createValidProps({
           status: AttemptStatus.SUBMITTED,
           score: 80,
-        })
+        }),
       );
 
       expect(() => attempt.updateAnswers({ q1: "A" })).toThrow(
-        "Cannot update answers on submitted attempt"
+        "Cannot update answers on submitted attempt",
       );
     });
   });
@@ -319,7 +321,7 @@ describe("QuizAttempt Entity", () => {
 
     it("should add new answer while preserving existing ones", () => {
       const attempt = QuizAttempt.create(
-        createValidCreateProps({ answers: { q1: "A", q2: "B" } })
+        createValidCreateProps({ answers: { q1: "A", q2: "B" } }),
       );
 
       attempt.updateAnswer("q3", "C");
@@ -329,7 +331,7 @@ describe("QuizAttempt Entity", () => {
 
     it("should overwrite existing answer for same question", () => {
       const attempt = QuizAttempt.create(
-        createValidCreateProps({ answers: { q1: "A" } })
+        createValidCreateProps({ answers: { q1: "A" } }),
       );
 
       attempt.updateAnswer("q1", "B");
@@ -342,17 +344,17 @@ describe("QuizAttempt Entity", () => {
         createValidProps({
           status: AttemptStatus.SUBMITTED,
           score: 80,
-        })
+        }),
       );
 
       expect(() => attempt.updateAnswer("q1", "A")).toThrow(
-        "Cannot update answers on submitted attempt"
+        "Cannot update answers on submitted attempt",
       );
     });
 
     it("should be idempotent when setting same value", () => {
       const attempt = QuizAttempt.create(
-        createValidCreateProps({ answers: { q1: "A" } })
+        createValidCreateProps({ answers: { q1: "A" } }),
       );
 
       attempt.updateAnswer("q1", "A");
@@ -364,7 +366,7 @@ describe("QuizAttempt Entity", () => {
   describe("resetAnswers", () => {
     it("should clear all answers for in-progress attempt", () => {
       const attempt = QuizAttempt.create(
-        createValidCreateProps({ answers: { q1: "A", q2: "B", q3: "C" } })
+        createValidCreateProps({ answers: { q1: "A", q2: "B", q3: "C" } }),
       );
 
       attempt.resetAnswers();
@@ -383,7 +385,7 @@ describe("QuizAttempt Entity", () => {
 
     it("should preserve attempt status as in-progress", () => {
       const attempt = QuizAttempt.create(
-        createValidCreateProps({ answers: { q1: "A" } })
+        createValidCreateProps({ answers: { q1: "A" } }),
       );
 
       attempt.resetAnswers();
@@ -398,11 +400,11 @@ describe("QuizAttempt Entity", () => {
           status: AttemptStatus.SUBMITTED,
           score: 80,
           answers: { q1: "A" },
-        })
+        }),
       );
 
       expect(() => attempt.resetAnswers()).toThrow(
-        "Cannot reset answers on submitted attempt"
+        "Cannot reset answers on submitted attempt",
       );
     });
   });
@@ -410,7 +412,7 @@ describe("QuizAttempt Entity", () => {
   describe("reset", () => {
     it("should clear all answers for in-progress attempt", () => {
       const attempt = QuizAttempt.create(
-        createValidCreateProps({ answers: { q1: "A", q2: "B", q3: "C" } })
+        createValidCreateProps({ answers: { q1: "A", q2: "B", q3: "C" } }),
       );
 
       attempt.reset();
@@ -422,7 +424,7 @@ describe("QuizAttempt Entity", () => {
     it("should reset startedAt to current time", () => {
       const oldStartTime = new Date("2024-01-01T10:00:00Z");
       const attempt = QuizAttempt.reconstitute(
-        createValidProps({ startedAt: oldStartTime })
+        createValidProps({ startedAt: oldStartTime }),
       );
 
       const beforeReset = Date.now();
@@ -435,7 +437,7 @@ describe("QuizAttempt Entity", () => {
 
     it("should reset status to IN_PROGRESS", () => {
       const attempt = QuizAttempt.reconstitute(
-        createValidProps({ status: AttemptStatus.IN_PROGRESS })
+        createValidProps({ status: AttemptStatus.IN_PROGRESS }),
       );
 
       attempt.reset();
@@ -449,7 +451,7 @@ describe("QuizAttempt Entity", () => {
         createValidProps({
           status: AttemptStatus.IN_PROGRESS,
           score: null,
-        })
+        }),
       );
 
       attempt.reset();
@@ -462,7 +464,7 @@ describe("QuizAttempt Entity", () => {
         createValidProps({
           status: AttemptStatus.IN_PROGRESS,
           durationMs: 60000,
-        })
+        }),
       );
 
       attempt.reset();
@@ -475,7 +477,7 @@ describe("QuizAttempt Entity", () => {
         createValidProps({
           status: AttemptStatus.IN_PROGRESS,
           submittedAt: null,
-        })
+        }),
       );
 
       attempt.reset();
@@ -491,7 +493,7 @@ describe("QuizAttempt Entity", () => {
           quizId: QUIZ_ID,
           userId: USER_ID,
           answers: { q1: "A" },
-        })
+        }),
       );
 
       attempt.reset();
@@ -516,7 +518,7 @@ describe("QuizAttempt Entity", () => {
           status: AttemptStatus.SUBMITTED,
           score: 80,
           answers: { q1: "A" },
-        })
+        }),
       );
 
       expect(() => attempt.reset()).toThrow("Cannot reset a submitted attempt");
@@ -524,7 +526,7 @@ describe("QuizAttempt Entity", () => {
 
     it("should allow continuing after reset (equivalent to fresh start)", () => {
       const attempt = QuizAttempt.create(
-        createValidCreateProps({ answers: { q1: "A", q2: "B" } })
+        createValidCreateProps({ answers: { q1: "A", q2: "B" } }),
       );
 
       attempt.reset();
@@ -537,7 +539,7 @@ describe("QuizAttempt Entity", () => {
 
     it("should allow submission after reset", () => {
       const attempt = QuizAttempt.create(
-        createValidCreateProps({ answers: { q1: "A" } })
+        createValidCreateProps({ answers: { q1: "A" } }),
       );
 
       attempt.reset();
@@ -558,7 +560,7 @@ describe("QuizAttempt Entity", () => {
 
       it("should return false for submitted attempt", () => {
         const attempt = QuizAttempt.reconstitute(
-          createValidProps({ status: AttemptStatus.SUBMITTED })
+          createValidProps({ status: AttemptStatus.SUBMITTED }),
         );
         expect(attempt.isInProgress).toBe(false);
       });
@@ -567,7 +569,7 @@ describe("QuizAttempt Entity", () => {
     describe("isSubmitted", () => {
       it("should return true for submitted attempt", () => {
         const attempt = QuizAttempt.reconstitute(
-          createValidProps({ status: AttemptStatus.SUBMITTED })
+          createValidProps({ status: AttemptStatus.SUBMITTED }),
         );
         expect(attempt.isSubmitted).toBe(true);
       });
@@ -586,14 +588,14 @@ describe("QuizAttempt Entity", () => {
 
       it("should format seconds only", () => {
         const attempt = QuizAttempt.reconstitute(
-          createValidProps({ durationMs: 45000 })
+          createValidProps({ durationMs: 45000 }),
         );
         expect(attempt.formattedDuration).toBe("45s");
       });
 
       it("should format minutes and seconds", () => {
         const attempt = QuizAttempt.reconstitute(
-          createValidProps({ durationMs: 125000 })
+          createValidProps({ durationMs: 125000 }),
         );
         expect(attempt.formattedDuration).toBe("2m 5s");
       });
@@ -613,7 +615,7 @@ describe("QuizAttempt Entity", () => {
 
     it("should return false for anonymous attempt", () => {
       const attempt = QuizAttempt.create(
-        createValidCreateProps({ userId: null })
+        createValidCreateProps({ userId: null }),
       );
       expect(attempt.isOwnedBy(USER_ID)).toBe(false);
     });
@@ -627,7 +629,7 @@ describe("QuizAttempt Entity", () => {
   describe("countsForStats", () => {
     it("should return true for submitted attempt", () => {
       const attempt = QuizAttempt.reconstitute(
-        createValidProps({ status: AttemptStatus.SUBMITTED })
+        createValidProps({ status: AttemptStatus.SUBMITTED }),
       );
       expect(attempt.countsForStats()).toBe(true);
     });
@@ -648,7 +650,7 @@ describe("QuizAttempt Entity", () => {
           durationMs: 60000,
           submittedAt: new Date("2024-01-01T10:01:00Z"),
           answers,
-        })
+        }),
       );
 
       const plain = attempt.toPlain();
@@ -666,13 +668,110 @@ describe("QuizAttempt Entity", () => {
     it("should return a copy of answers (immutability)", () => {
       const originalAnswers = { q1: "A" };
       const attempt = QuizAttempt.reconstitute(
-        createValidProps({ answers: originalAnswers })
+        createValidProps({ answers: originalAnswers }),
       );
 
       const plain = attempt.toPlain();
       plain.answers.q1 = "X"; // Modify the returned copy
 
       expect(attempt.answers.q1).toBe("A"); // Original should be unchanged
+    });
+  });
+
+  describe("retake features", () => {
+    const QUESTION_ID_1 = "019b2194-72a0-7000-a712-5e5bc5c313d1";
+    const QUESTION_ID_2 = "019b2194-72a0-7000-a712-5e5bc5c313d2";
+    const PARENT_ATTEMPT_ID = "019b2194-72a0-7000-a712-5e5bc5c313e0";
+
+    it("should create attempt with parentAttemptId and lockedQuestionIds", () => {
+      const attempt = QuizAttempt.create(
+        createValidCreateProps({
+          answers: { [QUESTION_ID_1]: "A" },
+          parentAttemptId: PARENT_ATTEMPT_ID,
+          lockedQuestionIds: [QUESTION_ID_1],
+        }),
+      );
+
+      expect(attempt.parentAttemptId).toBe(PARENT_ATTEMPT_ID);
+      expect(attempt.lockedQuestionIds).toEqual([QUESTION_ID_1]);
+      expect(attempt.isRetake).toBe(true);
+    });
+
+    it("should default parentAttemptId to null and lockedQuestionIds to empty", () => {
+      const attempt = QuizAttempt.create(createValidCreateProps());
+
+      expect(attempt.parentAttemptId).toBeNull();
+      expect(attempt.lockedQuestionIds).toEqual([]);
+      expect(attempt.isRetake).toBe(false);
+    });
+
+    it("should reconstitute with parentAttemptId and lockedQuestionIds", () => {
+      const attempt = QuizAttempt.reconstitute(
+        createValidProps({
+          answers: { [QUESTION_ID_1]: "A" },
+          parentAttemptId: PARENT_ATTEMPT_ID,
+          lockedQuestionIds: [QUESTION_ID_1],
+        }),
+      );
+
+      expect(attempt.parentAttemptId).toBe(PARENT_ATTEMPT_ID);
+      expect(attempt.lockedQuestionIds).toEqual([QUESTION_ID_1]);
+      expect(attempt.isRetake).toBe(true);
+    });
+
+    it("should include parentAttemptId and lockedQuestionIds in toPlain()", () => {
+      const attempt = QuizAttempt.create(
+        createValidCreateProps({
+          answers: { [QUESTION_ID_1]: "A" },
+          parentAttemptId: PARENT_ATTEMPT_ID,
+          lockedQuestionIds: [QUESTION_ID_1],
+        }),
+      );
+
+      const plain = attempt.toPlain();
+      expect(plain.parentAttemptId).toBe(PARENT_ATTEMPT_ID);
+      expect(plain.lockedQuestionIds).toEqual([QUESTION_ID_1]);
+    });
+
+    it("should throw InvalidOperationError when updating a locked answer", () => {
+      const attempt = QuizAttempt.create(
+        createValidCreateProps({
+          answers: { [QUESTION_ID_1]: "A" },
+          parentAttemptId: PARENT_ATTEMPT_ID,
+          lockedQuestionIds: [QUESTION_ID_1],
+        }),
+      );
+
+      expect(() => attempt.updateAnswer(QUESTION_ID_1, "B")).toThrow(
+        "Cannot update a locked answer from a previous attempt",
+      );
+    });
+
+    it("should allow updating non-locked answers on a retake attempt", () => {
+      const attempt = QuizAttempt.create(
+        createValidCreateProps({
+          answers: { [QUESTION_ID_1]: "A" },
+          parentAttemptId: PARENT_ATTEMPT_ID,
+          lockedQuestionIds: [QUESTION_ID_1],
+        }),
+      );
+
+      // QUESTION_ID_2 is not locked, should allow updating
+      attempt.updateAnswer(QUESTION_ID_2, "C");
+      expect(attempt.answers[QUESTION_ID_2]).toBe("C");
+    });
+
+    it("should return a defensive copy of lockedQuestionIds", () => {
+      const attempt = QuizAttempt.create(
+        createValidCreateProps({
+          lockedQuestionIds: [QUESTION_ID_1],
+        }),
+      );
+
+      const ids = attempt.lockedQuestionIds;
+      ids.push(QUESTION_ID_2);
+
+      expect(attempt.lockedQuestionIds).toEqual([QUESTION_ID_1]);
     });
   });
 });

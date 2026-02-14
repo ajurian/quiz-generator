@@ -26,6 +26,7 @@ export {
   resetAttempt,
   getUserAttemptHistory,
   claimAnonymousAttempts,
+  retakeAttempt,
 } from "./attempt.server";
 
 export { getServerSession, type ServerSession } from "./auth.server";

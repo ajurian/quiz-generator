@@ -49,6 +49,8 @@ export const attemptResponseSchema = z.object({
   startedAt: z.string().datetime(),
   submittedAt: z.string().datetime().nullable(),
   answers: z.record(z.string(), z.string()),
+  parentAttemptId: z.uuidv7().nullable(),
+  lockedQuestionIds: z.array(z.string()),
 });
 
 /**
@@ -70,6 +72,8 @@ export function toAttemptResponseDTO(attempt: {
   startedAt: Date;
   submittedAt: Date | null;
   answers: Record<string, string>;
+  parentAttemptId: string | null;
+  lockedQuestionIds: string[];
 }): AttemptResponseDTO {
   // Calculate formatted duration
   let formattedDuration: string | null = null;
@@ -93,6 +97,8 @@ export function toAttemptResponseDTO(attempt: {
     startedAt: attempt.startedAt.toISOString(),
     submittedAt: attempt.submittedAt?.toISOString() ?? null,
     answers: attempt.answers,
+    parentAttemptId: attempt.parentAttemptId,
+    lockedQuestionIds: attempt.lockedQuestionIds,
   };
 }
 
@@ -137,10 +143,10 @@ export interface AttemptSummaryDTO {
  * Helper function to create attempt summary
  */
 export function createAttemptSummary(
-  attempts: AttemptResponseDTO[]
+  attempts: AttemptResponseDTO[],
 ): AttemptSummaryDTO {
   const submittedAttempts = attempts.filter(
-    (a) => a.status === AttemptStatus.SUBMITTED
+    (a) => a.status === AttemptStatus.SUBMITTED,
   );
 
   const scores = submittedAttempts
@@ -154,7 +160,7 @@ export function createAttemptSummary(
     averageScore:
       scores.length > 0
         ? Math.round(
-            (scores.reduce((a, b) => a + b, 0) / scores.length) * 100
+            (scores.reduce((a, b) => a + b, 0) / scores.length) * 100,
           ) / 100
         : null,
   };

@@ -56,3 +56,10 @@ export {
   type ClaimAnonymousAttemptsOutput,
   type ClaimAnonymousAttemptsUseCaseDeps,
 } from "./claim-anonymous-attempts.use-case";
+
+export {
+  RetakeAttemptUseCase,
+  type RetakeAttemptInput,
+  type RetakeAttemptOutput,
+  type RetakeAttemptUseCaseDeps,
+} from "./retake-attempt.use-case";

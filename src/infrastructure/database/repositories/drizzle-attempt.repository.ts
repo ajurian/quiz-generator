@@ -35,6 +35,8 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
         startedAt: plain.startedAt,
         submittedAt: plain.submittedAt,
         answers: plain.answers,
+        parentAttemptId: plain.parentAttemptId,
+        lockedQuestionIds: plain.lockedQuestionIds,
       })
       .returning();
 
@@ -360,6 +362,8 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
       startedAt: row.startedAt,
       submittedAt: row.submittedAt,
       answers: (row.answers as Record<string, string>) ?? {},
+      parentAttemptId: row.parentAttemptId ?? null,
+      lockedQuestionIds: (row.lockedQuestionIds as string[]) ?? [],
     });
   }
 }

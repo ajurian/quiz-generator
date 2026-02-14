@@ -1,0 +1,3 @@
+ALTER TABLE "quiz_attempts" ADD COLUMN "parent_attempt_id" uuid;--> statement-breakpoint
+ALTER TABLE "quiz_attempts" ADD COLUMN "locked_question_ids" jsonb DEFAULT '[]'::jsonb NOT NULL;--> statement-breakpoint
+ALTER TABLE "quiz_attempts" ADD CONSTRAINT "quiz_attempts_parent_attempt_id_quiz_attempts_id_fk" FOREIGN KEY ("parent_attempt_id") REFERENCES "public"."quiz_attempts"("id") ON DELETE set null ON UPDATE no action;

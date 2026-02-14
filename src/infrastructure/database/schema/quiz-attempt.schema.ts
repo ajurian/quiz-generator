@@ -12,6 +12,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { quizzes } from "./quiz.schema";
+import { quizAttemptAnswers } from "./quiz-attempt-answer.schema";
 import { users } from "../../auth/auth.schema";
 import { AttemptStatus } from "@/domain";
 
@@ -95,16 +96,20 @@ export const quizAttempts = pgTable(
  * Quiz Attempt relations
  * Defines the relationship between attempts, quizzes, and users
  */
-export const quizAttemptsRelations = relations(quizAttempts, ({ one }) => ({
-  quiz: one(quizzes, {
-    fields: [quizAttempts.quizId],
-    references: [quizzes.id],
+export const quizAttemptsRelations = relations(
+  quizAttempts,
+  ({ one, many }) => ({
+    quiz: one(quizzes, {
+      fields: [quizAttempts.quizId],
+      references: [quizzes.id],
+    }),
+    user: one(users, {
+      fields: [quizAttempts.userId],
+      references: [users.id],
+    }),
+    answers: many(quizAttemptAnswers),
   }),
-  user: one(users, {
-    fields: [quizAttempts.userId],
-    references: [users.id],
-  }),
-}));
+);
 
 /**
  * Type for inserting a new quiz attempt

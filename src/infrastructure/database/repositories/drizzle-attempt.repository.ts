@@ -6,7 +6,7 @@ import type {
 } from "@/application";
 import { QuizAttempt, AttemptStatus } from "@/domain";
 import type { DrizzleDatabase } from "../connection";
-import { quizAttempts } from "../schema";
+import { quizAttempts, quizAttemptAnswers } from "../schema";
 
 /**
  * Drizzle ORM implementation of the Attempt Repository
@@ -34,7 +34,7 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
         durationMs: plain.durationMs,
         startedAt: plain.startedAt,
         submittedAt: plain.submittedAt,
-        answers: plain.answers,
+        answers: plain.answers, // dual-write: keep JSONB during transition
         parentAttemptId: plain.parentAttemptId,
         lockedQuestionIds: plain.lockedQuestionIds,
       })
@@ -44,7 +44,10 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
       throw new Error("Failed to insert attempt");
     }
 
-    return this.mapToDomain(inserted);
+    // Persist answer rows in the new table
+    await this.upsertAnswerRows(plain.id, plain.answers);
+
+    return this.mapToDomain(inserted, plain.answers);
   }
 
   /**
@@ -61,7 +64,8 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
       return null;
     }
 
-    return this.mapToDomain(result);
+    const answers = await this.loadAnswerRows(result.id, result.answers);
+    return this.mapToDomain(result, answers);
   }
 
   /**
@@ -78,7 +82,8 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
       return null;
     }
 
-    return this.mapToDomain(result);
+    const answers = await this.loadAnswerRows(result.id, result.answers);
+    return this.mapToDomain(result, answers);
   }
 
   /**
@@ -97,7 +102,12 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
       )
       .orderBy(desc(quizAttempts.startedAt));
 
-    return results.map((row) => this.mapToDomain(row));
+    return Promise.all(
+      results.map(async (row) => {
+        const answers = await this.loadAnswerRows(row.id, row.answers);
+        return this.mapToDomain(row, answers);
+      }),
+    );
   }
 
   /**
@@ -127,7 +137,12 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
       .limit(limit)
       .offset(offset);
 
-    const data = results.map((row) => this.mapToDomain(row));
+    const data = await Promise.all(
+      results.map(async (row) => {
+        const answers = await this.loadAnswerRows(row.id, row.answers);
+        return this.mapToDomain(row, answers);
+      }),
+    );
 
     return {
       data,
@@ -165,7 +180,12 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
       .limit(limit)
       .offset(offset);
 
-    const data = results.map((row) => this.mapToDomain(row));
+    const data = await Promise.all(
+      results.map(async (row) => {
+        const answers = await this.loadAnswerRows(row.id, row.answers);
+        return this.mapToDomain(row, answers);
+      }),
+    );
 
     return {
       data,
@@ -200,7 +220,8 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
       return null;
     }
 
-    return this.mapToDomain(result);
+    const answers = await this.loadAnswerRows(result.id, result.answers);
+    return this.mapToDomain(result, answers);
   }
 
   /**
@@ -226,7 +247,8 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
       return null;
     }
 
-    return this.mapToDomain(result);
+    const answers = await this.loadAnswerRows(result.id, result.answers);
+    return this.mapToDomain(result, answers);
   }
 
   /**
@@ -256,7 +278,7 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
         score: plain.score,
         durationMs: plain.durationMs,
         submittedAt: plain.submittedAt,
-        answers: plain.answers,
+        answers: plain.answers, // dual-write: keep JSONB during transition
       })
       .where(eq(quizAttempts.id, plain.id))
       .returning();
@@ -265,13 +287,20 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
       throw new Error(`Attempt with id ${plain.id} not found`);
     }
 
-    return this.mapToDomain(updated);
+    // Sync answer rows in the new table
+    await this.upsertAnswerRows(plain.id, plain.answers);
+
+    return this.mapToDomain(updated, plain.answers);
   }
 
   /**
    * Deletes an attempt by its identifier
    */
   async delete(id: string): Promise<void> {
+    // Answer rows are cascade-deleted via FK, but delete explicitly for clarity
+    await this.db
+      .delete(quizAttemptAnswers)
+      .where(eq(quizAttemptAnswers.quizAttemptId, id));
     await this.db.delete(quizAttempts).where(eq(quizAttempts.id, id));
   }
 
@@ -341,16 +370,29 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
       )
       .orderBy(desc(quizAttempts.startedAt));
 
-    return results.map((row) => ({
-      attempt: this.mapToDomain(row.quiz_attempts),
-      quizId: row.quiz_attempts.quizId,
-    }));
+    return Promise.all(
+      results.map(async (row) => {
+        const answers = await this.loadAnswerRows(
+          row.quiz_attempts.id,
+          row.quiz_attempts.answers,
+        );
+        return {
+          attempt: this.mapToDomain(row.quiz_attempts, answers),
+          quizId: row.quiz_attempts.quizId,
+        };
+      }),
+    );
   }
 
   /**
    * Maps a database row to a QuizAttempt domain entity
+   * @param row - The database row from quiz_attempts
+   * @param answers - Pre-loaded answers record (from new table or JSONB fallback)
    */
-  private mapToDomain(row: typeof quizAttempts.$inferSelect): QuizAttempt {
+  private mapToDomain(
+    row: typeof quizAttempts.$inferSelect,
+    answers: Record<string, string>,
+  ): QuizAttempt {
     return QuizAttempt.reconstitute({
       id: row.id,
       slug: row.slug,
@@ -361,9 +403,66 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
       durationMs: row.durationMs,
       startedAt: row.startedAt,
       submittedAt: row.submittedAt,
-      answers: (row.answers as Record<string, string>) ?? {},
+      answers,
       parentAttemptId: row.parentAttemptId ?? null,
       lockedQuestionIds: (row.lockedQuestionIds as string[]) ?? [],
     });
+  }
+
+  /**
+   * Loads answers from quiz_attempt_answers table.
+   * Falls back to JSONB column if no rows exist (pre-migration data).
+   */
+  private async loadAnswerRows(
+    attemptId: string,
+    jsonbFallback: unknown,
+  ): Promise<Record<string, string>> {
+    const rows = await this.db
+      .select({
+        questionId: quizAttemptAnswers.questionId,
+        answer: quizAttemptAnswers.answer,
+      })
+      .from(quizAttemptAnswers)
+      .where(eq(quizAttemptAnswers.quizAttemptId, attemptId));
+
+    if (rows.length > 0) {
+      const result: Record<string, string> = {};
+      for (const row of rows) {
+        result[row.questionId] = row.answer;
+      }
+      return result;
+    }
+
+    // Fallback: use JSONB column for pre-migration attempts
+    return (jsonbFallback as Record<string, string>) ?? {};
+  }
+
+  /**
+   * Upserts answer rows into quiz_attempt_answers table.
+   * Uses ON CONFLICT DO UPDATE for idempotent autosave behavior.
+   */
+  private async upsertAnswerRows(
+    attemptId: string,
+    answers: Record<string, string>,
+  ): Promise<void> {
+    const entries = Object.entries(answers);
+    if (entries.length === 0) return;
+
+    const values = entries.map(([questionId, answer]) => ({
+      quizAttemptId: attemptId,
+      questionId,
+      answer,
+    }));
+
+    await this.db
+      .insert(quizAttemptAnswers)
+      .values(values)
+      .onConflictDoUpdate({
+        target: [
+          quizAttemptAnswers.quizAttemptId,
+          quizAttemptAnswers.questionId,
+        ],
+        set: { answer: sql`excluded.answer` },
+      });
   }
 }

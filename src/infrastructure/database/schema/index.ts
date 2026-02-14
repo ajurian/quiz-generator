@@ -32,3 +32,10 @@ export {
   type InsertSourceMaterial,
   type SelectSourceMaterial,
 } from "./source-material.schema";
+
+export {
+  quizAttemptAnswers,
+  quizAttemptAnswersRelations,
+  type InsertQuizAttemptAnswer,
+  type SelectQuizAttemptAnswer,
+} from "./quiz-attempt-answer.schema";

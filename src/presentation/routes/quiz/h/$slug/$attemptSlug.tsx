@@ -107,6 +107,7 @@ function AttemptDetailPage() {
       router.navigate({
         to: "/quiz/a/$slug",
         params: { slug },
+        state: { resume: true },
       });
     },
     onError: (error) => {

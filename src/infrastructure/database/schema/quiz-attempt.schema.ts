@@ -8,6 +8,7 @@ import {
   index,
   jsonb,
   pgEnum,
+  AnyPgColumn,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { quizzes } from "./quiz.schema";
@@ -68,7 +69,7 @@ export const quizAttempts = pgTable(
 
     /** Reference to the parent attempt this was retaken from (null if original) */
     parentAttemptId: uuid("parent_attempt_id").references(
-      () => quizAttempts.id,
+      (): AnyPgColumn => quizAttempts.id,
       { onDelete: "set null" },
     ),
 

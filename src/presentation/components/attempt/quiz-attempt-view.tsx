@@ -77,25 +77,37 @@ export function QuizAttemptView({
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  // Calculate starting index based on initial answers (for resuming)
-  const getStartingIndex = React.useCallback(() => {
-    // Find the first question that hasn't been answered
-    const firstUnanswered = questions.findIndex((q) => !initialAnswers[q.id]);
-    return firstUnanswered === -1 ? questions.length - 1 : firstUnanswered;
-  }, [questions, initialAnswers]);
-
   const lockedSet = React.useMemo(
     () => new Set(lockedQuestionIds),
     [lockedQuestionIds],
   );
 
+  // In retake mode, filter out locked (correct) questions — user only sees wrong ones
+  const isRetakeMode = lockedQuestionIds.length > 0;
+  const visibleQuestions = React.useMemo(
+    () =>
+      isRetakeMode ? questions.filter((q) => !lockedSet.has(q.id)) : questions,
+    [questions, lockedSet, isRetakeMode],
+  );
+
+  // Calculate starting index based on initial answers (for resuming)
+  const getStartingIndex = React.useCallback(() => {
+    // Find the first question that hasn't been answered
+    const firstUnanswered = visibleQuestions.findIndex(
+      (q) => !initialAnswers[q.id],
+    );
+    return firstUnanswered === -1
+      ? visibleQuestions.length - 1
+      : firstUnanswered;
+  }, [visibleQuestions, initialAnswers]);
+
   const getInitialQuestionState = React.useCallback(
     (startIdx: number): QuestionState => {
-      const question = questions[startIdx];
+      const question = visibleQuestions[startIdx];
       if (!question) return "selecting";
       return initialAnswers[question.id] ? "checked" : "selecting";
     },
-    [questions, initialAnswers],
+    [visibleQuestions, initialAnswers],
   );
 
   const [currentIndex, setCurrentIndex] = React.useState(getStartingIndex);
@@ -134,13 +146,9 @@ export function QuizAttemptView({
   const prevKeyRef = React.useRef(stableKey);
   const isInitialMount = React.useRef(true);
 
-  const currentQuestion = questions[currentIndex];
-  const isLastQuestion = currentIndex === questions.length - 1;
+  const currentQuestion = visibleQuestions[currentIndex];
+  const isLastQuestion = currentIndex === visibleQuestions.length - 1;
   const completedCount = checkedQuestions.size;
-  const isCurrentLocked = currentQuestion
-    ? lockedSet.has(currentQuestion.id)
-    : false;
-  const isRetakeMode = lockedQuestionIds.length > 0;
 
   // Handle option selection (before checking)
   const handleSelectAnswer = (optionIndex: string) => {
@@ -282,38 +290,14 @@ export function QuizAttemptView({
         <ProgressHeader
           title={quiz.title}
           completedCount={completedCount}
-          totalQuestions={questions.length}
+          totalQuestions={visibleQuestions.length}
           currentIndex={currentIndex}
           saveStatus={saveStatus}
           isLocal={isLocal}
           isRetakeMode={isRetakeMode}
         />
 
-        {isCurrentLocked ? (
-          /* Locked question from retake — show as checked with a badge */
-          <div className="relative">
-            <div className="absolute top-4 right-4 z-10">
-              <Badge
-                variant="outline"
-                className="border-emerald-500 text-emerald-500 gap-1"
-              >
-                <Lock className="h-3 w-3" />
-                Correct from previous attempt
-              </Badge>
-            </div>
-            <QuestionCard
-              question={currentQuestion}
-              questionNumber={currentIndex + 1}
-              state="checked"
-              selectedAnswer={answers[currentQuestion.id] ?? ""}
-              isLastQuestion={isLastQuestion}
-              onNext={handleNext}
-              isSubmitting={isSubmitting}
-              quizId={quiz.id}
-              userId={userId}
-            />
-          </div>
-        ) : questionState === "selecting" ? (
+        {questionState === "selecting" ? (
           <QuestionCard
             question={currentQuestion}
             questionNumber={currentIndex + 1}
@@ -387,7 +371,9 @@ function ProgressHeader({
       <div className="w-full h-2 bg-muted rounded-full overflow-hidden mb-2">
         <div
           className="h-full bg-primary transition-all"
-          style={{ width: `${(completedCount / totalQuestions) * 100}%` }}
+          style={{
+            width: `${((currentIndex + 1) / totalQuestions) * 100}%`,
+          }}
         />
       </div>
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

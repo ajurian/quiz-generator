@@ -107,6 +107,7 @@ function AttemptCard({
       router.navigate({
         to: "/quiz/a/$slug",
         params: { slug: quizSlug },
+        state: { resume: true },
       });
     },
     onError: (error) => {

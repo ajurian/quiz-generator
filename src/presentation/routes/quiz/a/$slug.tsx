@@ -71,6 +71,7 @@ function AttemptQuizPage() {
       resume: s.state.resume,
     }),
   });
+  console.log(resume);
 
   // Show dialog if in-progress with existing answers (server or local)
   const [showResumeDialog, setShowResumeDialog] = React.useState(

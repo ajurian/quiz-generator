@@ -1,13 +1,23 @@
+import { useMemo } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/presentation/components/ui/button";
 import { Card, CardContent } from "@/presentation/components/ui/card";
 import { Badge } from "@/presentation/components/ui/badge";
-import { Clock, Calendar, Eye, Play, RotateCcw } from "lucide-react";
+import {
+  Clock,
+  Calendar,
+  Eye,
+  Play,
+  RotateCcw,
+  CornerDownRight,
+} from "lucide-react";
 import { retakeAttempt } from "@/presentation/server-functions";
 import { attemptKeys } from "@/presentation/queries";
-import { getUserFriendlyMessage } from "@/presentation/lib";
+import { getUserFriendlyMessage, buildAttemptTree } from "@/presentation/lib";
+import type { AttemptFlat, AttemptTreeNode } from "@/presentation/lib";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface Attempt {
   id: string;
@@ -16,6 +26,7 @@ interface Attempt {
   score: number | null;
   startedAt: string;
   formattedDuration: string | null;
+  parentAttemptId: string | null;
 }
 
 interface AttemptsListProps {
@@ -29,6 +40,8 @@ export function AttemptsList({
   attempts,
   userId,
 }: AttemptsListProps) {
+  const tree = useMemo(() => buildAttemptTree(attempts), [attempts]);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -53,12 +66,11 @@ export function AttemptsList({
         </Card>
       ) : (
         <div className="space-y-3">
-          {attempts.map((attempt, index) => (
-            <AttemptCard
-              key={attempt.id}
-              attempt={attempt}
+          {tree.map((node) => (
+            <AttemptTreeBranch
+              key={node.attempt.id}
+              node={node}
               quizSlug={quizSlug}
-              attemptNumber={attempts.length - index}
               userId={userId}
             />
           ))}
@@ -68,22 +80,63 @@ export function AttemptsList({
   );
 }
 
-interface AttemptCardProps {
-  attempt: Attempt;
+// ─── Tree branch renderer (recursive) ────────────────────────────────────
+
+interface AttemptTreeBranchProps {
+  node: AttemptTreeNode;
   quizSlug: string;
-  attemptNumber: number;
+  userId: string | null;
+}
+
+function AttemptTreeBranch({ node, quizSlug, userId }: AttemptTreeBranchProps) {
+  const isChild = node.depth > 0;
+
+  return (
+    <div className={cn(isChild && "ml-6 border-l-2 border-muted pl-4")}>
+      <AttemptCard
+        attempt={node.attempt}
+        quizSlug={quizSlug}
+        label={node.label}
+        depth={node.depth}
+        userId={userId}
+      />
+      {node.children.length > 0 && (
+        <div className="mt-2 space-y-2">
+          {node.children.map((child) => (
+            <AttemptTreeBranch
+              key={child.attempt.id}
+              node={child}
+              quizSlug={quizSlug}
+              userId={userId}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Attempt card ────────────────────────────────────────────────────────
+
+interface AttemptCardProps {
+  attempt: AttemptFlat;
+  quizSlug: string;
+  label: string;
+  depth: number;
   userId: string | null;
 }
 
 function AttemptCard({
   attempt,
   quizSlug,
-  attemptNumber,
+  label,
+  depth,
   userId,
 }: AttemptCardProps) {
   const isInProgress = attempt.status === "in_progress";
   const hasWrongAnswers =
     !isInProgress && attempt.score !== null && attempt.score < 100;
+  const isRetake = depth > 0;
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -118,12 +171,25 @@ function AttemptCard({
   });
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card
+      className={cn(
+        "hover:shadow-md transition-shadow",
+        isRetake && "border-dashed",
+      )}
+    >
       <CardContent className="py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-muted font-medium">
-              #{attemptNumber}
+            <div
+              className={cn(
+                "flex items-center justify-center w-10 h-10 rounded-full font-medium text-sm",
+                isRetake ? "bg-muted/60" : "bg-muted",
+              )}
+            >
+              {isRetake && (
+                <CornerDownRight className="h-3 w-3 mr-0.5 opacity-60" />
+              )}
+              {label}
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -140,6 +206,11 @@ function AttemptCard({
                     className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20"
                   >
                     Completed
+                  </Badge>
+                )}
+                {isRetake && (
+                  <Badge variant="secondary" className="text-xs">
+                    Retake
                   </Badge>
                 )}
                 {attempt.score !== null && (

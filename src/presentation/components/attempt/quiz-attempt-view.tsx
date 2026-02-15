@@ -372,7 +372,7 @@ function ProgressHeader({
         <div
           className="h-full bg-primary transition-all"
           style={{
-            width: `${((currentIndex + 1) / totalQuestions) * 100}%`,
+            width: `${(currentIndex / totalQuestions) * 100}%`,
           }}
         />
       </div>

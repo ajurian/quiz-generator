@@ -3,12 +3,14 @@ import type {
   IQuizRepository,
   PaginationParams,
   PaginatedResult,
-  UserQuizFilterParams,
-  PublicQuizFilterParams,
 } from "@/application";
 import { Quiz, QuizVisibility, QuizStatus } from "@/domain";
 import type { DrizzleDatabase } from "../connection";
 import { quizzes } from "../schema";
+import {
+  PublicQuizFilterParams,
+  UserQuizFilterParams,
+} from "@/application/ports/repositories";
 
 /**
  * Drizzle ORM implementation of the Quiz Repository

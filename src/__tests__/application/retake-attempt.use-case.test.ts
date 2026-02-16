@@ -240,11 +240,79 @@ describe("RetakeAttemptUseCase", () => {
       expect(result.attempt).toBeDefined();
       expect(result.attempt.status).toBe(AttemptStatus.IN_PROGRESS);
       expect(result.attempt.parentAttemptId).toBe(SOURCE_ATTEMPT_ID);
+      expect(result.isResumed).toBe(false);
 
       // Only Q1 was answered correctly (A), Q2 and Q3 were wrong
       expect(result.attempt.answers).toEqual({
         [QUESTION_ID_1]: "A",
       });
+    });
+
+    it("should resume existing in-progress retake instead of creating a new one", async () => {
+      const existingRetake = QuizAttempt.reconstitute({
+        id: NEW_ATTEMPT_ID,
+        slug: "existing-retake-slug12",
+        quizId: QUIZ_ID,
+        userId: USER_ID,
+        status: AttemptStatus.IN_PROGRESS,
+        score: null,
+        durationMs: null,
+        startedAt: new Date(),
+        submittedAt: null,
+        answers: { [QUESTION_ID_1]: "A" },
+        parentAttemptId: SOURCE_ATTEMPT_ID,
+        lockedQuestionIds: [QUESTION_ID_1],
+      });
+      mockAttemptRepository.findInProgressByQuizAndUser = mock(() =>
+        Promise.resolve(existingRetake),
+      );
+
+      const input = createValidInput();
+      const result = await useCase.execute(input);
+
+      expect(result.isResumed).toBe(true);
+      expect(result.attempt.id).toBe(NEW_ATTEMPT_ID);
+      expect(result.attempt.parentAttemptId).toBe(SOURCE_ATTEMPT_ID);
+      // Should NOT create a new attempt
+      expect(mockAttemptRepository.create).not.toHaveBeenCalled();
+      // Should NOT generate a new ID
+      expect(mockIdGenerator.generate).not.toHaveBeenCalled();
+    });
+
+    it("should not check for existing retake when user is anonymous", async () => {
+      const anonymousAttempt = QuizAttempt.reconstitute({
+        id: SOURCE_ATTEMPT_ID,
+        slug: "source-slug-test-12345",
+        quizId: QUIZ_ID,
+        userId: null,
+        status: AttemptStatus.SUBMITTED,
+        score: 33.33,
+        durationMs: 60000,
+        startedAt: new Date(Date.now() - 60000),
+        submittedAt: new Date(),
+        answers: {
+          [QUESTION_ID_1]: "A",
+          [QUESTION_ID_2]: "B",
+          [QUESTION_ID_3]: "D",
+        },
+        parentAttemptId: null,
+        lockedQuestionIds: [],
+      });
+      mockAttemptRepository.findById = mock(() =>
+        Promise.resolve(anonymousAttempt),
+      );
+
+      const input = createValidInput();
+      input.userId = null;
+
+      const result = await useCase.execute(input);
+
+      expect(result.isResumed).toBe(false);
+      // findInProgressByQuizAndUser should not be called for anonymous users
+      expect(
+        mockAttemptRepository.findInProgressByQuizAndUser,
+      ).not.toHaveBeenCalled();
+      expect(mockAttemptRepository.create).toHaveBeenCalledTimes(1);
     });
 
     it("should set lockedQuestionIds for correct answers", async () => {

@@ -5,6 +5,7 @@ import {
   useLocation,
   useRouter,
 } from "@tanstack/react-router";
+import { z } from "zod";
 import { Brain } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -23,13 +24,23 @@ import {
 import { getUserFriendlyMessage } from "@/presentation/lib";
 import { getLocalAnswers } from "@/presentation/hooks";
 
+const searchSchema = z.object({
+  parent: z.string().optional(),
+});
+
 export const Route = createFileRoute("/quiz/a/$slug")({
-  loader: async ({ params, context }) => {
+  validateSearch: searchSchema,
+  loaderDeps: ({ search }) => ({ parent: search.parent }),
+  loader: async ({ params, context, deps }) => {
     const userId = context.session?.user?.id ?? null;
 
     // Start attempt is a mutation-like operation, called in loader for UX
     const result = await startAttempt({
-      data: { quizSlug: params.slug, userId },
+      data: {
+        quizSlug: params.slug,
+        userId,
+        parentAttemptId: deps.parent,
+      },
     });
 
     // Use cached quiz details

@@ -224,12 +224,21 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
   }
 
   /**
-   * Finds in-progress attempt for a user on a quiz
+   * Finds in-progress attempt for a user on a quiz.
+   *
+   * @param parentAttemptId - When omitted, only root attempts (parentAttemptId IS NULL) are matched.
+   *                          When provided, only children whose parentAttemptId equals this value are matched.
    */
   async findInProgressByQuizAndUser(
     quizId: string,
     userId: string,
+    parentAttemptId?: string,
   ): Promise<QuizAttempt | null> {
+    const parentFilter =
+      parentAttemptId !== undefined
+        ? eq(quizAttempts.parentAttemptId, parentAttemptId)
+        : isNull(quizAttempts.parentAttemptId);
+
     const [result] = await this.db
       .select()
       .from(quizAttempts)
@@ -238,6 +247,7 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
           eq(quizAttempts.quizId, quizId),
           eq(quizAttempts.userId, userId),
           eq(quizAttempts.status, AttemptStatus.IN_PROGRESS),
+          parentFilter,
         ),
       )
       .limit(1);

@@ -99,6 +99,7 @@ function AttemptTreeBranch({ node, quizSlug, userId }: AttemptTreeBranchProps) {
         label={node.label}
         depth={node.depth}
         userId={userId}
+        childNodes={node.children}
       />
       {node.children.length > 0 && (
         <div className="mt-2 space-y-2">
@@ -124,6 +125,7 @@ interface AttemptCardProps {
   label: string;
   depth: number;
   userId: string | null;
+  childNodes: AttemptTreeNode[];
 }
 
 function AttemptCard({
@@ -132,6 +134,7 @@ function AttemptCard({
   label,
   depth,
   userId,
+  childNodes,
 }: AttemptCardProps) {
   const isInProgress = attempt.status === "in_progress";
   const hasWrongAnswers =
@@ -139,6 +142,11 @@ function AttemptCard({
   const isRetake = depth > 0;
   const router = useRouter();
   const queryClient = useQueryClient();
+
+  // Check if this attempt already has an in-progress retake child
+  const inProgressChild = childNodes.find(
+    (c) => c.attempt.status === "in_progress",
+  );
 
   const retakeMutation = useMutation({
     mutationFn: async () => {
@@ -150,8 +158,12 @@ function AttemptCard({
         },
       });
     },
-    onSuccess: () => {
-      toast.success("Retake started — answer the questions you got wrong!");
+    onSuccess: (result) => {
+      toast.success(
+        result.isResumed
+          ? "Continuing previous retake"
+          : "Retake started — answer the questions you got wrong!",
+      );
       if (userId) {
         queryClient.invalidateQueries({
           queryKey: attemptKeys.list(quizSlug, userId),
@@ -160,6 +172,7 @@ function AttemptCard({
       router.navigate({
         to: "/quiz/a/$slug",
         params: { slug: quizSlug },
+        search: { parent: attempt.id },
         state: { resume: true },
       });
     },
@@ -238,11 +251,31 @@ function AttemptCard({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => retakeMutation.mutate()}
+                onClick={() => {
+                  if (inProgressChild) {
+                    if (userId) {
+                      queryClient.invalidateQueries({
+                        queryKey: attemptKeys.list(quizSlug, userId),
+                      });
+                    }
+                    router.navigate({
+                      to: "/quiz/a/$slug",
+                      params: { slug: quizSlug },
+                      search: { parent: attempt.id },
+                      state: { resume: true },
+                    });
+                  } else {
+                    retakeMutation.mutate();
+                  }
+                }}
                 disabled={retakeMutation.isPending}
               >
                 <RotateCcw className="h-4 w-4 mr-2" />
-                {retakeMutation.isPending ? "Starting..." : "Retake"}
+                {retakeMutation.isPending
+                  ? "Starting..."
+                  : inProgressChild
+                    ? "Continue Retake"
+                    : "Retake"}
               </Button>
             )}
             <Button variant="ghost" size="sm" asChild>
@@ -250,6 +283,11 @@ function AttemptCard({
                 <Link
                   to="/quiz/a/$slug"
                   params={{ slug: quizSlug }}
+                  search={
+                    attempt.parentAttemptId
+                      ? { parent: attempt.parentAttemptId }
+                      : undefined
+                  }
                   state={(prev) => ({ ...prev, resume: true })}
                 >
                   <Play className="h-4 w-4 mr-2" />

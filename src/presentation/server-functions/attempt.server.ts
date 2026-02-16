@@ -45,6 +45,7 @@ export const startAttempt = createServerFn({ method: "POST" })
     z.object({
       quizSlug: z.string().length(22),
       userId: z.uuidv7().nullable(),
+      parentAttemptId: z.uuidv7().optional(),
     }),
   )
   .handler(async ({ data }) => {
@@ -52,6 +53,7 @@ export const startAttempt = createServerFn({ method: "POST" })
     const result = await container.useCases.startAttempt.execute({
       quizSlug: data.quizSlug,
       userId: data.userId,
+      parentAttemptId: data.parentAttemptId,
     });
     return result;
   });

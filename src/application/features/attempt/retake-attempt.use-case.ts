@@ -25,6 +25,8 @@ export interface RetakeAttemptInput {
  */
 export interface RetakeAttemptOutput {
   attempt: AttemptResponseDTO;
+  /** True when an existing in-progress retake was resumed instead of creating a new one */
+  isResumed: boolean;
 }
 
 /**
@@ -99,10 +101,27 @@ export class RetakeAttemptUseCase {
       throw new ForbiddenError("You can only retake your own attempts");
     }
 
-    // 6. Fetch questions for the quiz
+    // 6. Check for existing in-progress retake from this source attempt
+    if (input.userId) {
+      const existingRetake =
+        await this.deps.attemptRepository.findInProgressByQuizAndUser(
+          quiz.id,
+          input.userId,
+          sourceAttempt.id,
+        );
+
+      if (existingRetake) {
+        return {
+          attempt: toAttemptResponseDTO(existingRetake.toPlain()),
+          isResumed: true,
+        };
+      }
+    }
+
+    // 7. Fetch questions for the quiz
     const questions = await this.deps.questionRepository.findByQuizId(quiz.id);
 
-    // 7. Build filtered answers: keep only correct answers from source
+    // 8. Build filtered answers: keep only correct answers from source
     const correctAnswers: Record<string, string> = {};
     const lockedQuestionIds: string[] = [];
 
@@ -117,7 +136,7 @@ export class RetakeAttemptUseCase {
       // Wrong or unanswered questions are left empty — user must re-answer them
     }
 
-    // 8. Create new attempt with pre-filled correct answers
+    // 9. Create new attempt with pre-filled correct answers
     const attemptId = this.deps.idGenerator.generate();
     const attempt = QuizAttempt.create({
       id: attemptId,
@@ -128,11 +147,12 @@ export class RetakeAttemptUseCase {
       lockedQuestionIds,
     });
 
-    // 9. Persist and return
+    // 10. Persist and return
     const savedAttempt = await this.deps.attemptRepository.create(attempt);
 
     return {
       attempt: toAttemptResponseDTO(savedAttempt.toPlain()),
+      isResumed: false,
     };
   }
 }

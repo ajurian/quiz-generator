@@ -18,6 +18,9 @@ import { QuizAttempt } from "@/domain";
 export interface StartAttemptInput {
   quizSlug: string;
   userId: string | null;
+  /** When provided, only match in-progress attempts whose parentAttemptId equals this value.
+   *  When omitted, only root attempts (parentAttemptId IS NULL) are matched. */
+  parentAttemptId?: string;
 }
 
 /**
@@ -77,7 +80,8 @@ export class StartAttemptUseCase {
       const inProgressAttempt =
         await this.deps.attemptRepository.findInProgressByQuizAndUser(
           quiz.id,
-          input.userId
+          input.userId,
+          input.parentAttemptId,
         );
 
       if (inProgressAttempt) {
@@ -93,12 +97,12 @@ export class StartAttemptUseCase {
       const existingAttempts =
         await this.deps.attemptRepository.findByQuizAndUser(
           quiz.id,
-          input.userId
+          input.userId,
         );
 
       if (existingAttempts.length > 0) {
         const attemptDTOs = existingAttempts.map((a) =>
-          toAttemptResponseDTO(a.toPlain())
+          toAttemptResponseDTO(a.toPlain()),
         );
         const summary = createAttemptSummary(attemptDTOs);
 

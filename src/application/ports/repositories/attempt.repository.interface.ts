@@ -80,12 +80,15 @@ export interface IAttemptRepository {
   exists(id: string): Promise<boolean>;
 
   /**
-   * Finds in-progress attempts for a user on a quiz
-   * Used to check if user has an incomplete attempt
+   * Finds an in-progress attempt for a user on a quiz.
+   *
+   * @param parentAttemptId - When omitted, only root attempts (parentAttemptId IS NULL) are matched.
+   *                          When provided, only children whose parentAttemptId equals this value are matched.
    */
   findInProgressByQuizAndUser(
     quizId: string,
     userId: string,
+    parentAttemptId?: string,
   ): Promise<QuizAttempt | null>;
 
   /**

@@ -107,6 +107,7 @@ function AttemptDetailPage() {
       router.navigate({
         to: "/quiz/a/$slug",
         params: { slug },
+        search: { parent: attempt.id },
         state: { resume: true },
       });
     },

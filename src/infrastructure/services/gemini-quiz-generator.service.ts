@@ -81,7 +81,7 @@ const questionSchema = z.array(
       .int()
       .nonnegative()
       .describe(
-        "The exact source material reference where the 'sourceQuotes' originated.",
+        "The exact source material reference where the 'sourceQuotes' originated (0-based index).",
       ),
   }),
 );

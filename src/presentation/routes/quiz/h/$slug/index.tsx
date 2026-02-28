@@ -32,7 +32,7 @@ function HistoryPage() {
   const { quiz, attempts, summary } = data;
 
   return (
-    <div className="min-h-screen bg-muted/20 py-8">
+    <div className="min-h-screen min-w-fit bg-muted/20 py-8">
       <div className="container max-w-4xl mx-auto px-4">
         <HistoryHeader quizTitle={quiz.title} />
         <HistoryStatsGrid

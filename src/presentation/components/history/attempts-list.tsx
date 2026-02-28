@@ -186,7 +186,7 @@ function AttemptCard({
   return (
     <Card
       className={cn(
-        "hover:shadow-md transition-shadow",
+        "min-w-[600px] hover:shadow-md transition-shadow",
         isRetake && "border-dashed",
       )}
     >

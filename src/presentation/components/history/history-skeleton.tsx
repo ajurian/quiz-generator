@@ -7,7 +7,7 @@ import { Skeleton } from "@/presentation/components/ui/skeleton";
 
 export function HistorySkeleton() {
   return (
-    <div className="min-h-screen bg-muted/20 py-8">
+    <div className="min-h-screen min-w-fit bg-muted/20 py-8">
       <div className="container max-w-4xl mx-auto px-4">
         <Skeleton className="h-8 w-64 mb-6" />
         <div className="space-y-4">

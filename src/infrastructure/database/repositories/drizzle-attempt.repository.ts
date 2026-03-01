@@ -286,6 +286,7 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
         status: plain.status,
         score: plain.score,
         durationMs: plain.durationMs,
+        startedAt: plain.startedAt,
         submittedAt: plain.submittedAt,
       })
       .where(eq(quizAttempts.id, plain.id))
@@ -296,7 +297,7 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
     }
 
     // Sync answer rows in the new table
-    await this.upsertAnswerRows(plain.id, plain.answers);
+    await this.syncAnswerRows(plain.id, plain.answers);
 
     return this.mapToDomain(updated, plain.answers);
   }
@@ -433,6 +434,26 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
       result[row.questionId] = row.answer;
     }
     return result;
+  }
+
+  /**
+   * Syncs answer rows in quiz_attempt_answers table with the current attempt answers.
+   *
+   * This is a full replacement sync used by update flows:
+   * 1) delete all existing answer rows for the attempt
+   * 2) insert current answer rows (if any)
+   *
+   * This guarantees stale answers are removed when an attempt is reset.
+   */
+  private async syncAnswerRows(
+    attemptId: string,
+    answers: Record<string, string>,
+  ): Promise<void> {
+    await this.db
+      .delete(quizAttemptAnswers)
+      .where(eq(quizAttemptAnswers.quizAttemptId, attemptId));
+
+    await this.upsertAnswerRows(attemptId, answers);
   }
 
   /**

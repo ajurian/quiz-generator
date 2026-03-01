@@ -159,7 +159,8 @@ function HomePage() {
                 Supported Question Types
               </h2>
               <p className="text-lg text-muted-foreground">
-                Generate diverse question formats to test knowledge effectively
+                All questions are multiple choice. Each type varies in how the
+                question is framed to test knowledge at different depths.
               </p>
             </div>
 

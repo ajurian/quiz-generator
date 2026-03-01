@@ -121,7 +121,6 @@ This project follows **Clean Architecture** with strict adherence to the **Depen
 
 ### Prerequisites
 - [Bun](https://bun.sh/) >= 1.3.3
-- [pnpm](https://pnpm.io/) >= 10.x
 - [PostgreSQL](https://www.postgresql.org/) database ([Neon](https://neon.tech/) recommended)
 - [Redis](https://redis.io/) instance ([Upstash](https://upstash.com/) recommended)
 - S3-compatible storage bucket ([Cloudflare R2](https://www.cloudflare.com/developer-platform/r2/) recommended)
@@ -179,7 +178,7 @@ cd quiz-generator
 
 2. **Install dependencies**
 ```bash
-pnpm install
+bun install
 ```
 
 3. **Generate auth schema**

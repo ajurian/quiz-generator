@@ -1,0 +1,206 @@
+import { describe, expect, it, beforeEach, mock } from "bun:test";
+import {
+  RemoveAnswerUseCase,
+  type RemoveAnswerUseCaseDeps,
+  type RemoveAnswerInput,
+} from "@/application/features/attempt/remove-answer.use-case";
+import { QuizAttempt, AttemptStatus } from "@/domain";
+import type { IAttemptRepository } from "@/application/ports";
+import {
+  NotFoundError,
+  ForbiddenError,
+  ValidationError,
+} from "@/application/errors";
+
+describe("RemoveAnswerUseCase", () => {
+  let useCase: RemoveAnswerUseCase;
+  let mockAttemptRepository: IAttemptRepository;
+
+  const ATTEMPT_ID = "019b2194-72a0-7000-a712-5e5bc5c313c0";
+  const QUIZ_ID = "019b2194-72a0-7000-a712-5e5bc5c313c1";
+  const USER_ID = "018e3f5e-5f2a-7c2b-b3a4-9f8d6c4b2a10";
+  const QUESTION_ID = "019b2194-72a0-7000-a712-5e5bc5c313c2";
+
+  const createValidInput = (): RemoveAnswerInput => ({
+    attemptId: ATTEMPT_ID,
+    userId: USER_ID,
+    questionId: QUESTION_ID,
+  });
+
+  const createInProgressAttempt = (
+    answers: Record<string, string> = {},
+  ): QuizAttempt => {
+    return QuizAttempt.reconstitute({
+      id: ATTEMPT_ID,
+      slug: "test-slug",
+      quizId: QUIZ_ID,
+      userId: USER_ID,
+      status: AttemptStatus.IN_PROGRESS,
+      score: null,
+      durationMs: null,
+      startedAt: new Date(),
+      submittedAt: null,
+      answers,
+      parentAttemptId: null,
+      lockedQuestionIds: [],
+    });
+  };
+
+  const createSubmittedAttempt = (): QuizAttempt => {
+    return QuizAttempt.reconstitute({
+      id: ATTEMPT_ID,
+      slug: "test-slug",
+      quizId: QUIZ_ID,
+      userId: USER_ID,
+      status: AttemptStatus.SUBMITTED,
+      score: 80,
+      durationMs: 60000,
+      startedAt: new Date(Date.now() - 60000),
+      submittedAt: new Date(),
+      answers: { [QUESTION_ID]: "B" },
+      parentAttemptId: null,
+      lockedQuestionIds: [],
+    });
+  };
+
+  beforeEach(() => {
+    mockAttemptRepository = {
+      create: mock(() => Promise.resolve(createInProgressAttempt())),
+      findById: mock(() => Promise.resolve(createInProgressAttempt())),
+      findBySlug: mock(() => Promise.resolve(null)),
+      findByQuizAndUser: mock(() => Promise.resolve([])),
+      findLatestAttemptPerQuizByUser: mock(() => Promise.resolve([])),
+      findByQuizId: mock((_quizId, pagination) =>
+        Promise.resolve({
+          data: [],
+          total: 0,
+          page: pagination.page,
+          limit: pagination.limit,
+          totalPages: 0,
+        }),
+      ),
+      findByUserId: mock((_userId, pagination) =>
+        Promise.resolve({
+          data: [],
+          total: 0,
+          page: pagination.page,
+          limit: pagination.limit,
+          totalPages: 0,
+        }),
+      ),
+      findLastAttemptByQuizAndUser: mock(() => Promise.resolve(null)),
+      countByQuizAndUser: mock(() => Promise.resolve(0)),
+      update: mock((attempt: QuizAttempt) => Promise.resolve(attempt)),
+      delete: mock(() => Promise.resolve()),
+      exists: mock(() => Promise.resolve(true)),
+      findInProgressByQuizAndUser: mock(() => Promise.resolve(null)),
+      claimAnonymousAttempts: mock(() => Promise.resolve(0)),
+    };
+
+    const deps: RemoveAnswerUseCaseDeps = {
+      attemptRepository: mockAttemptRepository,
+    };
+
+    useCase = new RemoveAnswerUseCase(deps);
+  });
+
+  describe("successful removal", () => {
+    it("should remove answer for in-progress attempt", async () => {
+      const input = createValidInput();
+      const attempt = createInProgressAttempt({ [QUESTION_ID]: "A" });
+      mockAttemptRepository.findById = mock(() => Promise.resolve(attempt));
+
+      const result = await useCase.execute(input);
+
+      expect(result.attempt).toBeDefined();
+      expect(result.attempt.id).toBe(ATTEMPT_ID);
+      expect(result.attempt.answers[QUESTION_ID]).toBeUndefined();
+      expect(mockAttemptRepository.update).toHaveBeenCalled();
+    });
+
+    it("should preserve other answers when removing one", async () => {
+      const otherQuestionId = "other-question-id";
+      const input = createValidInput();
+      const attempt = createInProgressAttempt({
+        [QUESTION_ID]: "A",
+        [otherQuestionId]: "C",
+      });
+      mockAttemptRepository.findById = mock(() => Promise.resolve(attempt));
+
+      await useCase.execute(input);
+
+      const updateMock = mockAttemptRepository.update as ReturnType<
+        typeof mock
+      >;
+      expect(updateMock).toHaveBeenCalledTimes(1);
+      const updatedAttempt = updateMock.mock.calls[0]![0] as QuizAttempt;
+      expect(updatedAttempt.answers[QUESTION_ID]).toBeUndefined();
+      expect(updatedAttempt.answers[otherQuestionId]).toBe("C");
+    });
+
+    it("should be idempotent when answer does not exist", async () => {
+      const input = createValidInput();
+      const attempt = createInProgressAttempt({ q1: "A" });
+      mockAttemptRepository.findById = mock(() => Promise.resolve(attempt));
+
+      const result = await useCase.execute(input);
+
+      expect(result.attempt).toBeDefined();
+      expect(result.attempt.answers.q1).toBe("A");
+      expect(mockAttemptRepository.update).toHaveBeenCalled();
+    });
+  });
+
+  describe("validation errors", () => {
+    it("should throw ValidationError when attemptId is missing", async () => {
+      const input = createValidInput();
+      input.attemptId = "";
+
+      await expect(useCase.execute(input)).rejects.toThrow(ValidationError);
+    });
+
+    it("should throw ValidationError when questionId is missing", async () => {
+      const input = createValidInput();
+      input.questionId = "";
+
+      await expect(useCase.execute(input)).rejects.toThrow(ValidationError);
+    });
+  });
+
+  describe("not found errors", () => {
+    it("should throw NotFoundError when attempt does not exist", async () => {
+      const input = createValidInput();
+      mockAttemptRepository.findById = mock(() => Promise.resolve(null));
+
+      await expect(useCase.execute(input)).rejects.toThrow(NotFoundError);
+    });
+  });
+
+  describe("forbidden errors", () => {
+    it("should throw ForbiddenError when user does not own attempt", async () => {
+      const input = createValidInput();
+      input.userId = "different-user-id";
+      const attempt = createInProgressAttempt();
+      mockAttemptRepository.findById = mock(() => Promise.resolve(attempt));
+
+      await expect(useCase.execute(input)).rejects.toThrow(ForbiddenError);
+    });
+
+    it("should throw ForbiddenError when attempt is already submitted", async () => {
+      const input = createValidInput();
+      const attempt = createSubmittedAttempt();
+      mockAttemptRepository.findById = mock(() => Promise.resolve(attempt));
+
+      await expect(useCase.execute(input)).rejects.toThrow(ForbiddenError);
+    });
+
+    it("should throw ForbiddenError for null userId trying to update owned attempt", async () => {
+      const input = createValidInput();
+      input.userId = null;
+      const attempt = createInProgressAttempt();
+      mockAttemptRepository.findById = mock(() => Promise.resolve(attempt));
+
+      await expect(useCase.execute(input)).rejects.toThrow(ForbiddenError);
+    });
+  });
+});

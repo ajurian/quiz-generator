@@ -363,6 +363,55 @@ describe("QuizAttempt Entity", () => {
     });
   });
 
+  describe("removeAnswer (single)", () => {
+    it("should remove an existing answer for in-progress attempt", () => {
+      const attempt = QuizAttempt.create(
+        createValidCreateProps({ answers: { q1: "A", q2: "B" } }),
+      );
+
+      attempt.removeAnswer("q1");
+
+      expect(attempt.answers).toEqual({ q2: "B" });
+    });
+
+    it("should be idempotent when removing a missing answer", () => {
+      const attempt = QuizAttempt.create(
+        createValidCreateProps({ answers: { q1: "A" } }),
+      );
+
+      attempt.removeAnswer("q2");
+
+      expect(attempt.answers).toEqual({ q1: "A" });
+    });
+
+    it("should throw when removing from a submitted attempt", () => {
+      const attempt = QuizAttempt.reconstitute(
+        createValidProps({
+          status: AttemptStatus.SUBMITTED,
+          score: 80,
+        }),
+      );
+
+      expect(() => attempt.removeAnswer("q1")).toThrow(
+        "Cannot update answers on submitted attempt",
+      );
+    });
+
+    it("should throw when removing a locked question answer", () => {
+      const attempt = QuizAttempt.reconstitute(
+        createValidProps({
+          answers: { q1: "A", q2: "B" },
+          parentAttemptId: ATTEMPT_ID,
+          lockedQuestionIds: ["q1"],
+        }),
+      );
+
+      expect(() => attempt.removeAnswer("q1")).toThrow(
+        "Cannot update a locked answer from a previous attempt",
+      );
+    });
+  });
+
   describe("resetAnswers", () => {
     it("should clear all answers for in-progress attempt", () => {
       const attempt = QuizAttempt.create(

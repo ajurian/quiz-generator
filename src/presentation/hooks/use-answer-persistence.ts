@@ -1,5 +1,5 @@
 import React from "react";
-import { autosaveAnswer } from "@/presentation/server-functions";
+import { autosaveAnswer, removeAnswer } from "@/presentation/server-functions";
 import { useLocalAnswerStorage } from "./use-local-answer-storage";
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
@@ -7,6 +7,7 @@ type SaveStatus = "idle" | "saving" | "saved" | "error";
 interface AnswerPersistence {
   saveStatus: SaveStatus;
   saveAnswer: (questionId: string, optionIndex: string) => Promise<void>;
+  removeAnswer: (questionId: string) => Promise<void>;
   /** Clear locally stored answers (no-op for authenticated users). */
   clearAnswers: () => void;
   /** Whether answers are stored locally (anonymous) vs server (authenticated). */
@@ -20,7 +21,7 @@ interface AnswerPersistence {
 function useServerSaveAnswer(
   attemptId: string,
   userId: string,
-): Pick<AnswerPersistence, "saveStatus" | "saveAnswer"> {
+): Pick<AnswerPersistence, "saveStatus" | "saveAnswer" | "removeAnswer"> {
   const [saveStatus, setSaveStatus] = React.useState<SaveStatus>("idle");
   const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -50,13 +51,38 @@ function useServerSaveAnswer(
     [attemptId, userId],
   );
 
+  const removeSavedAnswer = React.useCallback(
+    async (questionId: string) => {
+      setSaveStatus("saving");
+      try {
+        await removeAnswer({
+          data: {
+            attemptId,
+            userId,
+            questionId,
+          },
+        });
+        setSaveStatus("saved");
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => setSaveStatus("idle"), 3000);
+      } catch (error) {
+        console.error("Remove failed:", error);
+        setSaveStatus("error");
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => setSaveStatus("idle"), 3000);
+        throw error;
+      }
+    },
+    [attemptId, userId],
+  );
+
   React.useEffect(() => {
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
 
-  return { saveStatus, saveAnswer };
+  return { saveStatus, saveAnswer, removeAnswer: removeSavedAnswer };
 }
 
 /**
@@ -85,6 +111,7 @@ export function useAnswerPersistence(
     return {
       saveStatus: localHook.saveStatus,
       saveAnswer: localHook.saveAnswer,
+      removeAnswer: localHook.removeAnswer,
       clearAnswers: localHook.clearAnswers,
       isLocal: true,
     };
@@ -93,6 +120,7 @@ export function useAnswerPersistence(
   return {
     saveStatus: serverHook.saveStatus,
     saveAnswer: serverHook.saveAnswer,
+    removeAnswer: serverHook.removeAnswer,
     clearAnswers: () => {}, // No-op for authenticated users
     isLocal: false,
   };

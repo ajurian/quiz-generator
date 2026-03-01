@@ -369,6 +369,27 @@ export class QuizAttempt {
   }
 
   /**
+   * Removes a single answer for retry functionality
+   * @throws {InvalidOperationError} if already submitted
+   */
+  public removeAnswer(questionId: string): void {
+    if (this._status === AttemptStatus.SUBMITTED) {
+      throw new InvalidOperationError(
+        "Cannot update answers on submitted attempt",
+      );
+    }
+    if (this._lockedQuestionIds.includes(questionId)) {
+      throw new InvalidOperationError(
+        "Cannot update a locked answer from a previous attempt",
+      );
+    }
+
+    const nextAnswers = { ...this._answers };
+    delete nextAnswers[questionId];
+    this._answers = nextAnswers;
+  }
+
+  /**
    * Resets all answers for 'Start Over' functionality
    * Keeps the same attempt but clears all answers
    * @throws {InvalidOperationError} if already submitted

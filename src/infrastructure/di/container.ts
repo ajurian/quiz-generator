@@ -29,6 +29,7 @@ import {
   GetUserAttemptsUseCase,
   GetAttemptDetailUseCase,
   AutosaveAnswerUseCase,
+  RemoveAnswerUseCase,
   ResetAttemptUseCase,
   GetUserAttemptHistoryUseCase,
   ClaimAnonymousAttemptsUseCase,
@@ -91,6 +92,7 @@ export interface UseCases {
   getUserAttempts: GetUserAttemptsUseCase;
   getAttemptDetail: GetAttemptDetailUseCase;
   autosaveAnswer: AutosaveAnswerUseCase;
+  removeAnswer: RemoveAnswerUseCase;
   resetAttempt: ResetAttemptUseCase;
   getUserAttemptHistory: GetUserAttemptHistoryUseCase;
   claimAnonymousAttempts: ClaimAnonymousAttemptsUseCase;
@@ -242,6 +244,10 @@ export function createAppContainer(config: RuntimeConfig): AppContainer {
     attemptRepository,
   });
 
+  const removeAnswer = new RemoveAnswerUseCase({
+    attemptRepository,
+  });
+
   const resetAttempt = new ResetAttemptUseCase({
     attemptRepository,
   });
@@ -305,6 +311,7 @@ export function createAppContainer(config: RuntimeConfig): AppContainer {
       getUserAttempts,
       getAttemptDetail,
       autosaveAnswer,
+      removeAnswer,
       resetAttempt,
       getUserAttemptHistory,
       claimAnonymousAttempts,

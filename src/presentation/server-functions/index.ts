@@ -23,6 +23,7 @@ export {
   getUserAttempts,
   getAttemptDetail,
   autosaveAnswer,
+  removeAnswer,
   resetAttempt,
   getUserAttemptHistory,
   claimAnonymousAttempts,

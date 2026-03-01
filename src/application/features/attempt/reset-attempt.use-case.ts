@@ -58,7 +58,9 @@ export class ResetAttemptUseCase {
     }
 
     // 5. Fully reset the attempt (answers, timer, and all state)
+    console.log(attempt);
     attempt.reset();
+    console.log(attempt);
 
     // 6. Persist the updated attempt
     const updatedAttempt = await this.deps.attemptRepository.update(attempt);

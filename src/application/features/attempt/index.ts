@@ -36,6 +36,13 @@ export {
 } from "./autosave-answer.use-case";
 
 export {
+  RemoveAnswerUseCase,
+  type RemoveAnswerInput,
+  type RemoveAnswerOutput,
+  type RemoveAnswerUseCaseDeps,
+} from "./remove-answer.use-case";
+
+export {
   ResetAttemptUseCase,
   type ResetAttemptInput,
   type ResetAttemptOutput,

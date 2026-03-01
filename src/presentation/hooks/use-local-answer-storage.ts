@@ -126,6 +126,45 @@ export function useLocalAnswerStorage(quizSlug: string) {
   }, [quizSlug]);
 
   /**
+   * Remove a single saved answer and unlock the question.
+   */
+  const removeAnswer = React.useCallback(
+    async (questionId: string): Promise<void> => {
+      setSaveStatus("saving");
+      try {
+        const existing = readStoredData(quizSlug);
+        const nextAnswers = { ...(existing?.answers ?? {}) };
+        delete nextAnswers[questionId];
+
+        const nextCheckedQuestions = (existing?.checkedQuestions ?? []).filter(
+          (id) => id !== questionId,
+        );
+
+        const data: StoredAnswerData = {
+          answers: nextAnswers,
+          checkedQuestions: nextCheckedQuestions,
+          attemptId: existing?.attemptId,
+          submitted: existing?.submitted,
+          lastUpdated: Date.now(),
+        };
+
+        writeStoredData(quizSlug, data);
+        setSaveStatus("saved");
+
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => setSaveStatus("idle"), 3000);
+      } catch (error) {
+        console.error("Local remove failed:", error);
+        setSaveStatus("error");
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => setSaveStatus("idle"), 3000);
+        throw error;
+      }
+    },
+    [quizSlug],
+  );
+
+  /**
    * Clear all saved answers for this quiz (call after successful submit).
    */
   const clearAnswers = React.useCallback((): void => {
@@ -146,6 +185,7 @@ export function useLocalAnswerStorage(quizSlug: string) {
   return {
     saveStatus,
     saveAnswer,
+    removeAnswer,
     getAnswers,
     getCheckedQuestions,
     clearAnswers,

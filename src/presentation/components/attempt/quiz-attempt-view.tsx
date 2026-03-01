@@ -136,8 +136,9 @@ export function QuizAttemptView({
   const [anonymousResult, setAnonymousResult] = React.useState<{
     score: number;
   } | null>(null);
+  const [isTryingAgain, setIsTryingAgain] = React.useState(false);
 
-  const { saveStatus, saveAnswer, clearAnswers, isLocal } =
+  const { saveStatus, saveAnswer, removeAnswer, clearAnswers, isLocal } =
     useAnswerPersistence(attemptId, userId, quiz.slug);
 
   // Create a stable key to detect actual content changes (not just reference changes)
@@ -190,6 +191,34 @@ export function QuizAttemptView({
       setCurrentIndex((i) => i + 1);
       setQuestionState("selecting");
       setCurrentSelection(undefined);
+    }
+  };
+
+  const handleTryAgain = async () => {
+    if (!currentQuestion) return;
+
+    setIsTryingAgain(true);
+    try {
+      await removeAnswer(currentQuestion.id);
+
+      setAnswers((prev) => {
+        const next = { ...prev };
+        delete next[currentQuestion.id];
+        return next;
+      });
+      setCheckedQuestions((prev) => {
+        const next = new Set(prev);
+        next.delete(currentQuestion.id);
+        return next;
+      });
+      setQuestionState("selecting");
+      setCurrentSelection(undefined);
+    } catch (error) {
+      toast.error("Failed to retry question", {
+        description: getUserFriendlyMessage(error, "attempt"),
+      });
+    } finally {
+      setIsTryingAgain(false);
     }
   };
 
@@ -318,6 +347,8 @@ export function QuizAttemptView({
             selectedAnswer={answers[currentQuestion.id] ?? ""}
             isLastQuestion={isLastQuestion}
             onNext={handleNext}
+            onTryAgain={handleTryAgain}
+            isTryingAgain={isTryingAgain}
             isSubmitting={isSubmitting}
             quizId={quiz.id}
             userId={userId}

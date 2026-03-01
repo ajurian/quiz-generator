@@ -8,7 +8,14 @@ import {
 import { Badge } from "@/presentation/components/ui/badge";
 import { Button } from "@/presentation/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Check, X, Lightbulb, Loader2, ArrowRight } from "lucide-react";
+import {
+  Check,
+  X,
+  Lightbulb,
+  Loader2,
+  ArrowRight,
+  RotateCcw,
+} from "lucide-react";
 import { FormattedText } from "@/presentation/lib";
 import { CorrectExplanation } from "@/presentation/components/shared/correct-explanation";
 
@@ -68,6 +75,8 @@ interface QuestionCardCheckedProps extends QuestionCardBaseProps {
   selectedAnswer: string;
   isLastQuestion: boolean;
   onNext: () => void;
+  onTryAgain?: () => void;
+  isTryingAgain?: boolean;
   isSubmitting?: boolean;
 }
 
@@ -180,11 +189,32 @@ export function QuestionCard(props: QuestionCardProps) {
         )}
 
         {state === "checked" && (
-          <div className="pt-2 flex w-full">
+          <div className="pt-2 flex w-full gap-2 sm:w-fit sm:ml-auto">
+            {!isCorrect && props.onTryAgain && (
+              <Button
+                variant="outline"
+                onClick={props.onTryAgain}
+                disabled={props.isTryingAgain}
+                className="flex-1 sm:flex-none"
+                size="lg"
+              >
+                {props.isTryingAgain ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Trying...
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="h-4 w-4 mr-2" />
+                    Try again
+                  </>
+                )}
+              </Button>
+            )}
             <Button
               onClick={props.onNext}
               disabled={props.isSubmitting}
-              className="w-full sm:w-auto sm:ml-auto"
+              className="flex-1 sm:flex-none"
               size="lg"
             >
               {props.isSubmitting ? (

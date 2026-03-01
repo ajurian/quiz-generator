@@ -153,6 +153,25 @@ export const autosaveAnswer = createServerFn({ method: "POST" })
     return result;
   });
 
+// POST Remove Answer (for retrying the same question)
+export const removeAnswer = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      attemptId: z.uuidv7(),
+      userId: z.uuidv7().nullable(),
+      questionId: z.string(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const container = getContainer();
+    const result = await container.useCases.removeAnswer.execute({
+      attemptId: data.attemptId,
+      userId: data.userId,
+      questionId: data.questionId,
+    });
+    return result;
+  });
+
 // POST Reset Attempt (for "Start Over" functionality)
 export const resetAttempt = createServerFn({ method: "POST" })
   .inputValidator(

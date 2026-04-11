@@ -373,30 +373,6 @@ Quiz generation uses a fire-and-forget pattern with `waitUntil`:
 4. Progress events are published via Redis pub/sub and cached for state recovery
 5. Client receives real-time updates via SSE (`/api/quiz-events`)
 
-## 🤝 Contributing
-
-This project follows **Clean Architecture** and **SOLID principles**. Before contributing:
-
-1. Read [`.github/copilot-instructions.md`](.github/copilot-instructions.md) for coding guidelines
-2. Review [`docs/FEATURES.md`](docs/FEATURES.md) for system architecture
-3. Ensure all tests pass: `bun test`
-4. Follow the layer separation strictly:
-   - Domain layer: No external dependencies
-   - Application layer: No framework coupling
-   - Infrastructure layer: Implements interfaces from Application
-   - Presentation layer: Uses dependency injection via composition accessor
-
-### Development Workflow
-1. Create feature branch from `main`
-2. Implement changes following Clean Architecture
-3. Write tests (80%+ coverage required)
-4. Run `bun run lint` to check types
-5. Submit pull request with clear description
-
-## 📄 License
-
-[Add your license here]
-
 ## 🙏 Acknowledgments
 
 - Google Gemini for AI-powered quiz generation

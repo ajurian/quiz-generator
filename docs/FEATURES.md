@@ -99,8 +99,8 @@ enum QuestionType {
 }
 
 enum GeminiModel {
-  FLASH_2_5 = 'gemini-2.5-flash',
-  FLASH_2_5_LITE = 'gemini-2.5-flash-lite'
+  FLASH_STABLE = 'gemini-3.5-flash',
+  FLASH_STABLE_LITE = 'gemini-3.1-flash-lite'
 }
 
 enum QuizVisibility {
@@ -211,7 +211,7 @@ The Application layer contains use-case specific business logic and orchestrates
     * Logic:
         - Upload files to storage
         - Generate questions via AI with quota management
-        - Fallback from gemini-2.5-flash to gemini-2.5-flash-lite on quota exceeded
+        - Fallback from gemini-3.5-flash to gemini-3.1-flash-lite on quota exceeded
 
 ### Repository Interfaces (Ports)
 
@@ -395,8 +395,8 @@ class DrizzleQuizRepository implements IQuizRepository {
 ```typescript
 // src/infrastructure/services/gemini-quiz-generator.service.ts
 class GeminiQuizGeneratorService implements IAIQuizGenerator {
-  private primaryModel = GeminiModel.FLASH_2_5
-  private fallbackModel = GeminiModel.FLASH_2_5_LITE
+  private primaryModel = GeminiModel.FLASH_STABLE
+  private fallbackModel = GeminiModel.FLASH_STABLE_LITE
   
   async generateQuiz(params: GenerateQuizParams): Promise<Question[]> {
     try {

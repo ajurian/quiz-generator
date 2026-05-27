@@ -23,15 +23,13 @@ import { parse as parsePartialJson } from "partial-json";
  */
 function mapAIModelToGeminiModel(model: AIModel): GeminiModel {
   switch (model) {
-    case AIModel.PREVIEW:
-      return GeminiModel.FLASH_3_0;
     case AIModel.PRIMARY:
-      return GeminiModel.FLASH_2_5;
+      return GeminiModel.FLASH_STABLE;
     case AIModel.LITE:
-      return GeminiModel.FLASH_2_5_LITE;
-    default:
-      return GeminiModel.FLASH_2_5;
+      return GeminiModel.FLASH_STABLE_LITE;
   }
+  const exhaustiveCheck: never = model;
+  throw new Error(`Unsupported AI model: ${String(exhaustiveCheck)}`);
 }
 
 /**

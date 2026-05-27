@@ -75,6 +75,7 @@ describe("DI Container", () => {
     process.env.S3_SECRET_ACCESS_KEY = "test-secret-access-key";
     process.env.S3_BUCKET_NAME = "test-bucket";
     process.env.VITE_APP_URL = "http://localhost:3000";
+    process.env.VERCEL_URL = "localhost:3000";
     process.env.GOOGLE_CLIENT_ID = "test-google-client-id";
     process.env.GOOGLE_CLIENT_SECRET = "test-google-client-secret";
     process.env.MICROSOFT_CLIENT_ID = "test-microsoft-client-id";

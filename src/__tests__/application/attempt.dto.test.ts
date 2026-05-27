@@ -19,10 +19,10 @@ describe("Attempt DTOs", () => {
   describe("attemptStatusSchema", () => {
     it("should accept valid status values", () => {
       expect(attemptStatusSchema.parse("in_progress")).toBe(
-        AttemptStatus.IN_PROGRESS
+        AttemptStatus.IN_PROGRESS,
       );
       expect(attemptStatusSchema.parse("submitted")).toBe(
-        AttemptStatus.SUBMITTED
+        AttemptStatus.SUBMITTED,
       );
     });
 
@@ -147,6 +147,8 @@ describe("Attempt DTOs", () => {
       startedAt: "2024-01-01T10:00:00.000Z",
       submittedAt: "2024-01-01T10:02:00.000Z",
       answers: { q1: "A", q2: "B" },
+      parentAttemptId: null,
+      lockedQuestionIds: [],
     };
 
     it("should validate correct response", () => {
@@ -168,7 +170,7 @@ describe("Attempt DTOs", () => {
     it("should require answers field", () => {
       const { answers, ...responseWithoutAnswers } = validResponse;
       expect(() =>
-        attemptResponseSchema.parse(responseWithoutAnswers)
+        attemptResponseSchema.parse(responseWithoutAnswers),
       ).toThrow();
     });
 
@@ -194,6 +196,8 @@ describe("Attempt DTOs", () => {
         startedAt: new Date("2024-01-01T10:00:00Z"),
         submittedAt: new Date("2024-01-01T10:02:00Z"),
         answers: { q1: "A", q2: "C" },
+        parentAttemptId: null,
+        lockedQuestionIds: [],
       };
 
       const dto = toAttemptResponseDTO(attempt);
@@ -216,6 +220,8 @@ describe("Attempt DTOs", () => {
         startedAt: new Date("2024-01-01T10:00:00Z"),
         submittedAt: new Date("2024-01-01T10:00:45Z"),
         answers: {},
+        parentAttemptId: null,
+        lockedQuestionIds: [],
       };
 
       const dto = toAttemptResponseDTO(attempt);
@@ -235,6 +241,8 @@ describe("Attempt DTOs", () => {
         startedAt: new Date("2024-01-01T10:00:00Z"),
         submittedAt: new Date("2024-01-01T10:02:05Z"),
         answers: {},
+        parentAttemptId: null,
+        lockedQuestionIds: [],
       };
 
       const dto = toAttemptResponseDTO(attempt);
@@ -254,6 +262,8 @@ describe("Attempt DTOs", () => {
         startedAt: new Date("2024-01-01T10:00:00Z"),
         submittedAt: null,
         answers: { q1: "A" },
+        parentAttemptId: null,
+        lockedQuestionIds: [],
       };
 
       const dto = toAttemptResponseDTO(attempt);
@@ -273,6 +283,8 @@ describe("Attempt DTOs", () => {
         startedAt: new Date("2024-01-01T10:00:00Z"),
         submittedAt: new Date("2024-01-01T10:01:00Z"),
         answers: {},
+        parentAttemptId: null,
+        lockedQuestionIds: [],
       };
 
       const dto = toAttemptResponseDTO(attempt);
@@ -322,7 +334,7 @@ describe("Attempt DTOs", () => {
 
   describe("createAttemptSummary", () => {
     const createMockAttemptDTO = (
-      overrides: Partial<AttemptResponseDTO>
+      overrides: Partial<AttemptResponseDTO>,
     ): AttemptResponseDTO => ({
       id: VALID_UUID,
       slug: "AZshk0egcAAKcS5bxcMTwQ",
@@ -335,6 +347,8 @@ describe("Attempt DTOs", () => {
       startedAt: "2024-01-01T10:00:00.000Z",
       submittedAt: "2024-01-01T10:01:00.000Z",
       answers: {},
+      parentAttemptId: null,
+      lockedQuestionIds: [],
       ...overrides,
     });
 

@@ -111,7 +111,7 @@ describe("GeminiQuizGeneratorService", () => {
           client: { models: { generateContent: () => Promise<unknown> } };
         }
       ).client.models.generateContent = () => {
-        throw new Error("Quota exceeded for gemini-2.5-flash");
+        throw new Error("Quota exceeded for gemini-3.5-flash");
       };
 
       try {
@@ -120,7 +120,7 @@ describe("GeminiQuizGeneratorService", () => {
       } catch (error) {
         expect(error).toBeInstanceOf(AIGenerationError);
         expect((error as AIGenerationError).reason).toBe("quota");
-        expect((error as AIGenerationError).model).toBe("gemini-2.5-flash");
+        expect((error as AIGenerationError).model).toBe("gemini-3.5-flash");
       }
     });
 
@@ -143,7 +143,7 @@ describe("GeminiQuizGeneratorService", () => {
       } catch (error) {
         expect(error).toBeInstanceOf(AIGenerationError);
         expect((error as AIGenerationError).reason).toBe("timeout");
-        expect((error as AIGenerationError).model).toBe("gemini-2.5-flash");
+        expect((error as AIGenerationError).model).toBe("gemini-3.5-flash");
       }
     });
 
@@ -354,45 +354,45 @@ describe("GeminiQuizGeneratorService", () => {
 
 describe("AIGenerationError", () => {
   it("should have correct name and message for quota errors", () => {
-    const error = new AIGenerationError("gemini-2.5-flash", "quota");
+    const error = new AIGenerationError("gemini-3.5-flash", "quota");
 
     expect(error.name).toBe("AIGenerationError");
     expect(error.reason).toBe("quota");
-    expect(error.model).toBe("gemini-2.5-flash");
-    expect(error.message).toBe("Quota exceeded for model: gemini-2.5-flash");
+    expect(error.model).toBe("gemini-3.5-flash");
+    expect(error.message).toBe("Quota exceeded for model: gemini-3.5-flash");
   });
 
   it("should have correct name and message for timeout errors", () => {
-    const error = new AIGenerationError("gemini-2.5-flash", "timeout");
+    const error = new AIGenerationError("gemini-3.5-flash", "timeout");
 
     expect(error.name).toBe("AIGenerationError");
     expect(error.reason).toBe("timeout");
-    expect(error.model).toBe("gemini-2.5-flash");
+    expect(error.model).toBe("gemini-3.5-flash");
     expect(error.message).toBe(
-      "Request timed out (DEADLINE_EXCEEDED) for model: gemini-2.5-flash",
+      "Request timed out (DEADLINE_EXCEEDED) for model: gemini-3.5-flash",
     );
   });
 
   it("should have correct name and message for unavailable errors", () => {
-    const error = new AIGenerationError("gemini-2.5-flash", "unavailable");
+    const error = new AIGenerationError("gemini-3.5-flash", "unavailable");
 
     expect(error.name).toBe("AIGenerationError");
     expect(error.reason).toBe("unavailable");
-    expect(error.model).toBe("gemini-2.5-flash");
+    expect(error.model).toBe("gemini-3.5-flash");
     expect(error.message).toBe(
-      "Service unavailable (503) for model: gemini-2.5-flash",
+      "Service unavailable (503) for model: gemini-3.5-flash",
     );
   });
 
   it("should include original message when provided", () => {
     const error = new AIGenerationError(
-      "gemini-2.5-flash",
+      "gemini-3.5-flash",
       "quota",
       "Original error details",
     );
 
     expect(error.message).toBe(
-      "Quota exceeded for model: gemini-2.5-flash - Original error details",
+      "Quota exceeded for model: gemini-3.5-flash - Original error details",
     );
   });
 });

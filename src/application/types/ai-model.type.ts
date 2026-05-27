@@ -7,15 +7,12 @@
  * Capabilities:
  * - PRIMARY: High-quality output, standard quotas
  * - LITE: Lower quota requirements, faster responses, suitable for fallback
- * - PREVIEW: Experimental features, may have different behavior
  */
 export enum AIModel {
   /** Primary model with higher quality output */
   PRIMARY = "primary",
   /** Fallback model with lower quota requirements */
   LITE = "lite",
-  /** Preview/experimental model */
-  PREVIEW = "preview",
 }
 
 /**
@@ -35,7 +32,6 @@ export function getAIModelDisplayName(model: AIModel): string {
   const displayNames: Record<AIModel, string> = {
     [AIModel.PRIMARY]: "Standard",
     [AIModel.LITE]: "Fast",
-    [AIModel.PREVIEW]: "Preview",
   };
   return displayNames[model];
 }

@@ -89,10 +89,14 @@ describe("GetUserQuizzesUseCase", () => {
 
       await useCase.execute(input);
 
-      expect(mockQuizRepository.findByUserId).toHaveBeenCalledWith(USER_ID, {
-        page: 1,
-        limit: 10,
-      });
+      expect(mockQuizRepository.findByUserId).toHaveBeenCalledWith(
+        USER_ID,
+        {
+          page: 1,
+          limit: 10,
+        },
+        undefined,
+      );
     });
 
     it("should use custom pagination when provided", async () => {
@@ -103,10 +107,14 @@ describe("GetUserQuizzesUseCase", () => {
 
       await useCase.execute(input);
 
-      expect(mockQuizRepository.findByUserId).toHaveBeenCalledWith(USER_ID, {
-        page: 2,
-        limit: 20,
-      });
+      expect(mockQuizRepository.findByUserId).toHaveBeenCalledWith(
+        USER_ID,
+        {
+          page: 2,
+          limit: 20,
+        },
+        undefined,
+      );
     });
 
     it("should transform quizzes to response DTOs", async () => {
@@ -164,7 +172,7 @@ describe("GetUserQuizzesUseCase", () => {
           page: pagination.page,
           limit: pagination.limit,
           totalPages: 0,
-        })
+        }),
       );
 
       const input: GetUserQuizzesInput = {

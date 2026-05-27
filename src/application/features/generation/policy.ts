@@ -36,7 +36,7 @@ export interface AIGenerationOperation<T> {
  * for AI quiz generation. This separates the policy concern from use-case orchestration.
  *
  * Default behavior:
- * - For streaming generation: PREVIEW → PRIMARY fallback
+ * - For streaming generation: PRIMARY → LITE fallback
  * - For sync generation: PRIMARY → LITE fallback
  *
  * Fallback triggers on quota/rate-limit errors (429, "quota", "rate limit").
@@ -44,12 +44,9 @@ export interface AIGenerationOperation<T> {
 export class QuizGenerationPolicy {
   /**
    * Default config for streaming generation (workflow-based)
-   * Uses PREVIEW as primary since it's the latest/experimental model
+   * Uses PRIMARY as the stable default
    */
   static readonly STREAMING_CONFIG: ModelFallbackConfig = {
-    // USE STABLE VERSION FOR NOW TO AVOID UNEXPECTED ISSUES
-    /* primaryModel: AIModel.PREVIEW,
-    fallbackModel: AIModel.PRIMARY, */
     primaryModel: AIModel.PRIMARY,
     fallbackModel: AIModel.LITE,
   };

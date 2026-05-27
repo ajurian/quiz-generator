@@ -5,7 +5,7 @@ An AI-powered quiz generation platform built with Clean Architecture principles.
 ## 🚀 Features
 
 ### Core Functionality
-- **AI-Powered Quiz Generation**: Upload PDFs and generate quizzes automatically using Google Gemini AI (2.5 Flash, 2.5 Flash Lite, 3.0 Flash Preview)
+- **AI-Powered Quiz Generation**: Upload PDFs and generate quizzes automatically using Google Gemini AI (3.5 Flash, 3.1 Flash Lite)
 - **Multiple Question Types**: Support for direct questions, two-statement compound questions, and contextual questions
 - **Flexible Visibility Controls**: Private, unlisted, and public quiz sharing options
 - **Real-time Generation**: Server-Sent Events (SSE) for live quiz generation progress with Redis pub/sub
@@ -92,7 +92,7 @@ This project follows **Clean Architecture** with strict adherence to the **Depen
 - **ORM**: [Drizzle ORM](https://orm.drizzle.team/)
 - **Cache**: [Redis](https://redis.io/) via [Upstash](https://upstash.com/)
 - **Storage**: [Cloudflare R2](https://www.cloudflare.com/developer-platform/r2/) via S3-compatible API
-- **AI**: [Google Gemini](https://ai.google.dev/gemini-api/docs) (2.5 Flash, 2.5 Flash Lite, 3.0 Flash Preview)
+- **AI**: [Google Gemini](https://ai.google.dev/gemini-api/docs) (3.5 Flash, 3.1 Flash Lite)
 
 ### Frontend
 - **Router**: [TanStack Router](https://tanstack.com/router) with SSR

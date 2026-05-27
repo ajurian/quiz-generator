@@ -1,14 +1,12 @@
 /**
  * Enum representing the available Google Gemini AI models.
  *
- * - FLASH_3_0: Preview/experimental model with latest features
- * - FLASH_2_5: Primary model with higher quality output
- * - FLASH_2_5_LITE: Fallback model with lower quota requirements
+ * - FLASH_STABLE: Current stable Flash model
+ * - FLASH_STABLE_LITE: Stable lite model with lower quota requirements
  */
 export enum GeminiModel {
-  FLASH_3_0 = "gemini-3-flash-preview",
-  FLASH_2_5 = "gemini-2.5-flash",
-  FLASH_2_5_LITE = "gemini-2.5-flash-lite",
+  FLASH_STABLE = "gemini-3.5-flash",
+  FLASH_STABLE_LITE = "gemini-3.1-flash-lite",
 }
 
 /**
@@ -26,9 +24,8 @@ export function isGeminiModel(value: unknown): value is GeminiModel {
  */
 export function getGeminiModelDisplayName(model: GeminiModel): string {
   const displayNames: Record<GeminiModel, string> = {
-    [GeminiModel.FLASH_3_0]: "Gemini 3.0 Flash Preview",
-    [GeminiModel.FLASH_2_5]: "Gemini 2.5 Flash",
-    [GeminiModel.FLASH_2_5_LITE]: "Gemini 2.5 Flash Lite",
+    [GeminiModel.FLASH_STABLE]: "Gemini 3.5 Flash",
+    [GeminiModel.FLASH_STABLE_LITE]: "Gemini 3.1 Flash Lite",
   };
   return displayNames[model];
 }
